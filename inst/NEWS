@@ -1,0 +1,35 @@
+
+Changes in version 0.99.2 (2016-10-12)
+--------------------------------------
+
+Internal Changes
+
+    * added a new slot to ModelComponents, `paramLimits`, which allows
+      lower and upper limits to be set for each model parameter. (corrects
+      bug where linearity wanders below 1, giving nonsense results).
+
+Changes in version 0.99.1 (2016-10-11)
+--------------------------------------
+
+User Visible Changes
+
+    * Vignette updated to include installation instructions for
+      BioConductor
+
+Internal Changes
+
+    * Added accessor functions for ModelComponent and FlowHist classes, so
+      direct access of slots via the `@` operator is no longer used outside
+      of the initialization functions.
+
+    * replaced some loops with vectorized calculations
+
+    * replaced call to `eval` with a normal function call to `nlsLM` in
+      flowAnalyze.R.
+
+    * formatted NEWS file
+
+Changes in version 0.99.0 (2016-08-25)
+--------------------------------------
+
+    * What's NEW? Everything so far!

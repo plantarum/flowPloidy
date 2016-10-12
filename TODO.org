@@ -1,0 +1,52 @@
+* Code clean-up [7/7]
+  - [X] break up flowHist into smaller reusable chunks, to facilitate
+    stepping through the init process, and redoing individual steps
+  - [X] use consistent names for flowHist objects: pick one of fh, self etc
+    and replace all the others.
+  - [X] use consistent syntax - pass and return complete flowHist objects,
+    rather than individual slots
+  - [X] incorporate flowHist slots into flowFrame objects?
+  - [X] use proper named lists for the components
+  - [X] consolidate model component code
+    Note: adding a new model component requires:
+    - adding a the component function in models.R (i.e., brB), including a
+      "col" attribute for plotting
+    - add an if statement to add the component in flowHist() in flowHist.R 
+    - adding an if statement to add initial values in flowInit() in models.R
+    - +add appropriate colors to coltab in plot.flowHist() in flowHist.R+
+      
+    Component colors +should be+ are now stored as attributes of the
+    components themselves.
+    Can initial value functions also be added as attributes? Yes, and also
+    functions to check if a component should be added to a FlowHist object.
+    All self contained now!
+  - [X] update vignettes and examples to use flowPloidyData package to
+    access sample files
+
+* Features [6/8]
+  - [ ] Gating
+  - [ ] save and restore parameter estimates from nls
+  - [X] S-phase
+    After considering broadened trapezoids and broadened rectangles, and
+    looking at the resulting parameter values and the influence of the
+    different parameters, a simplified "broadened rectangle" seems
+    appropriate:
+    - the absolute value for the height of the rectangle is very small
+      relative to other model components - often < 10
+    - varying the sd makes a trivial change to the RCS: i.e., varying sd
+      from 1 to 100 moved RCS from 1.271 to 1.306.
+    Consequently, I'm using a fixed sd of 1 for the broadened rectangle,
+    and avoiding the additional complexity/parameters that would be
+    involved with the broadened trapezoid with varying sd and starting and
+    ending heights.
+  - [X] linearity
+    Linearity parameter is now added and functioning properly in the
+    ~linearity~ branch. Not sure how to deal with this just yet. The sample
+    data ranges from 1.92 -- 2.07. How much is acceptable? Should it be
+    used to 'correct' the mean ratios?
+  - [X] initial peak detection with smoothing using kza::kz (or FFT?)
+    Different smoothing algorithms just shift the trade-offs between
+    accuracy and noise in the data. Tried kza:kz, kernalapply, rollapply.
+  - [X] export results as a table for saving to disk
+  - [X] batch processing
+  - [X] switch to nlsLM for regressions

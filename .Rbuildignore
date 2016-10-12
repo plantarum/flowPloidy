@@ -1,0 +1,6 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^.*\.git*$
+^.*\.Rhistory$
+test-script.R
+^vignettes/.*pdf_document_files/

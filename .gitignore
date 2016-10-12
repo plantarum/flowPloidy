@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+*~
+inst/doc
+html
+
+pander*
+plots/
+vignettes/*_files/
+*/*pdf
+s3/
