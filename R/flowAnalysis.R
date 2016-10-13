@@ -47,15 +47,21 @@ fhDoNLS <- function(fh){
   form3 <- paste(", ", getSpecialParamArgs(fh), ")")
   form <- as.formula(paste(form1, args, form3))
 
+  ## Ignore the lowest channels, before we start modeling the debris
+  ## component.
+  dat <- fhHistData(fh)
+  start <- fhStart(dat$intensity)
+  dat <- dat[-(1:(start - 1)), ]
+
   fhNLS(fh) <- nlsLM(formula = form, start = fhInit(fh),
-                     data = fhHistData(fh), 
+                     data = dat, 
                      lower = lLims, upper = uLims,
                      control = list(ftol = .Machine$double.xmin,
                                     ptol = .Machine$double.xmin,
                                     maxiter = 1024))
   return(fh)
 }
-
+  
 fhDoCounts <- function(fh){
   ## lower was originally an argument to fhCount, but I don't think it will
   ## ever be anything other than 0?
@@ -129,17 +135,17 @@ fhDoRCS <- function(fh){
   ## within the histogram.                                               ##
   #########################################################################
 
-  obs <- fhHistData(fh)$intensity
-  exp <- predict(fhNLS(fh))
-  zeros <- zapsmall(exp, digits = 5) == 0
-  obs <- obs[!zeros]
-  exp <- exp[!zeros]
-  chi <- sum(((obs - exp)^2) / exp)
+  ## Ignoring the lowest channels, before the debris component starts. We
+  ## calculate RCS based on the number of channels fit in the model, not
+  ## the full data set, which includes a number of empty/unmodelled
+  ## channels at the beginning.
+  dat <- fhHistData(fh)
+  start <- fhStart(fhHistData(fh)$intensity)
+  dat <- dat[-(1:(start - 1)), ]
+  obs <- dat$intensity
 
-  ## n <- length(obs)
-  ## m <- length(formals(fh@model)) - length(getSpecialParams(fh))
-  ## ## Don't count special parameters (xx, MCvals etc) or intensity in
-  ## ## determining the number of parameters fit in the NLS!
+  exp <- predict(fhNLS(fh))
+  chi <- sum(((obs - exp)^2) / exp)
 
   fhRCS(fh) <- chi/summary(fhNLS(fh))$df[2]
   fh

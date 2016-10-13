@@ -393,12 +393,12 @@ fhComponents$MC <-
       fhDebris(fh) == "MC"
     },
     func = function(xx, MCa, k, MCvals){
-      MCa * exp(-k * xx) * MCvals[xx]
+      MCa * exp(-k * xx) * MCvals ##[xx]
     },
     initParams = function(fh){
       list(MCa = 0.01, k = 0.001)
     },
-    paramLimits = list(MCa = c(0, Inf), k = c(0, Inf)),
+    paramLimits = list(MCa = c(1e-10, Inf), k = c(1e-10, Inf)),
     specialParamSetter = function(fh){
       list(xx= substitute(xx), MCvals = substitute(MCvals))
     }

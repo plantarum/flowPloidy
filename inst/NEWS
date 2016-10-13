@@ -8,6 +8,16 @@ Internal Changes
       lower and upper limits to be set for each model parameter. (corrects
       bug where linearity wanders below 1, giving nonsense results).
 
+    * rationalized the bounds of the data fit in the NLS procedure. Model
+      fitting, and RCS calculation, are now all tied to the bin identified
+      by fhStart. This selects the highest intensity (peak) in the first 20
+      non-zero channels, and ignores all channels below this point. Prior
+      to this, the number of observations and associated degrees of freedom
+      was calculated in an ad-hoc manner, making the RCS values (even-more)
+      difficult to interpret; in addition, the single- and multi- cut
+      values started at one channel, but the RCS calculations started on
+      another channel, which didn't make sense.
+
 Changes in version 0.99.1 (2016-10-11)
 --------------------------------------
 

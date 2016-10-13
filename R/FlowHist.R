@@ -94,13 +94,12 @@ setOldClass("nls")
 #'   (xx), florescence intensity (intensity), and the raw single-cut debris
 #'   model values (SCVals, used in model fitting). Additional columns may
 #'   be added if/when I add gating, so refer to columns by name, not
-#'   position. 
+#'   position.
 #' @slot peaks matrix, containing the coordinates used for peaks when
 #'   calculcating initial parameter values.
-#' @slot comps a list of \code{\link{modelComponent}} objects included for these
-#'   data.
-#' @slot model the function (built from \code{comps}) to fit to these
-#' data.
+#' @slot comps a list of \code{\link{modelComponent}} objects included for
+#'   these data.
+#' @slot model the function (built from \code{comps}) to fit to these data.
 #' @slot init a list of initial parameter estimates to use in fitting the
 #'   model.
 #' @slot nls the nls object produced by the model fitting
@@ -118,9 +117,9 @@ setClass(
     channel = "character", ## data channel to use for histogram
     bins = "integer", ## the number of bins to use
     linearity = "character", ## "fixed" or "variable", to determine whether
-    debris = "character", ## "SC" or "MC", to set the debris model. 
     ## or not linearity is fixed at 2, or allowed to vary as a model
     ## parameter 
+    debris = "character", ## "SC" or "MC", to set the debris model. 
     histData = "data.frame", ## binned histogram data
     peaks = "matrix", ## peak coordinates for initial values
     opts = "list",    ## flags for selecting model components
@@ -545,7 +544,9 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE, ...){
 
   if(nls & (length(fhNLS(x)) > 0)){
     dat <- tabulateFlowHist(x)
-    lines(x = fhHistData(x)$xx, y = predict(fhNLS(x)), col = 2)
+    lines(x = fhHistData(x)$xx[-(1:(fhStart(fhHistData(x)$intensity) -
+                                    1))], 
+          y = predict(fhNLS(x)), col = 2)
     text(paste("RCS: ", round(dat$rcs, 3)), cex = 1, pos = 2,
          x = grconvertX(0.975, from = "npc", to = "user"),
          y = grconvertY(0.95, from = "npc", to = "user"))
@@ -729,8 +730,7 @@ setBins <- function(fh, bins = 256){
 
   intensity <- histBins$counts
   xx <- 1:length(intensity)
-  startMax <- max(intensity[which(intensity != 0)][1:20])
-  startBin <- which(intensity == startMax)[1]
+  startBin <- fhStart(intensity)
   SCvals <- getSingleCutVals(intensity, xx, startBin)
   MCvals <- getMultipleCutVals(intensity, startBin)
   DBvals <- getDoubletVals(intensity)
@@ -743,6 +743,18 @@ setBins <- function(fh, bins = 256){
   fh <- resetFlowHist(fh)
   fh
 }
+
+fhStart <- function(intensity){
+  ## Returns the first channel to include in the modelling process. We
+  ## start on the first peak, ignoring any noise in lower channels. This
+  ## is the same general principle applied in ModFit. I implement this idea
+  ## by picking the highest point in the first 20 non-zero channels in the
+  ## histogram.
+  startMax <- max(intensity[which(intensity != 0)][1:20])
+  startBin <- which(intensity == startMax)[1]
+  startBin
+}
+  
 
 #' @importFrom caTools runmean runmax
 NULL
