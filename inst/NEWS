@@ -1,4 +1,12 @@
 
+Changes in version 0.99.3 (2016-10-17)
+--------------------------------------
+
+Internal Changes
+
+    * Updated DESCRIPTION to include URL and BugReports fields, mostly as
+      an exercise to test SVN access and syncing SVN <-> git
+
 Changes in version 0.99.2 (2016-10-12)
 --------------------------------------
 
