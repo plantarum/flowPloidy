@@ -3,11 +3,10 @@ Title: Analyze flow cytometer data to determine sample ploidy
 Version: 0.99.3
 Author: Tyler Smith <tyler@plantarum.ca>
 Maintainer: Tyler Smith <tyler@plantarum.ca>
-Description: Determine sample ploidy via flow cytometry histogram
-        analysis. Reads Flow Cytometry Standard (FCS) files via the
-        flowCore bioconductor package, and provides functions for
-        determining the DNA ploidy of samples based on internal
-        standards.
+Description: Determine sample ploidy via flow cytometry histogram analysis.
+    Reads Flow Cytometry Standard (FCS) files via the flowCore bioconductor
+    package, and provides functions for determining the DNA ploidy of
+    samples based on internal standards.
 biocViews: FlowCytometry, GUI, Regression, Visualization
 URL: https://github.com/plantarum/flowPloidy
 BugReports: https://github.com/plantarum/flowPloidy/issues
@@ -15,8 +14,19 @@ Depends:
     R (>= 3.3)
 License: GPL-3
 LazyData: true
-Imports: flowCore, car, caTools, knitr, rmarkdown, minpack.lm, shiny,
-        methods, graphics, stats, utils
-Suggests: flowPloidyData
+Imports:
+    flowCore,
+    car,
+    caTools,
+    knitr,
+    rmarkdown,
+    minpack.lm,
+    shiny,
+    methods,
+    graphics,
+    stats,
+    utils
+Suggests:
+    flowPloidyData
 RoxygenNote: 5.0.1
 VignetteBuilder: knitr

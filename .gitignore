@@ -10,3 +10,4 @@ plots/
 vignettes/*_files/
 */*pdf
 s3/
+.svn
