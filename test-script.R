@@ -2,6 +2,35 @@ library(devtools)
 library(flowPloidyData)
 load_all()
 
+
+batch1 <-batchFlowHist(files = flowPloidyFiles, channel = "FL3.INT.LIN")
+batch1b <- browseFlowHist(batch1)
+
+thresh = 0.0002
+par(mfrow = c(2,2))
+deb <- batch1[["240+S.LMD"]]
+debm <- batch1[["240+S.LMD"]]
+debm2 <- batch1[["240+S.LMD"]]
+plot(deb)
+sscfl <- exprs(fhRaw(deb))[, "SS.INT.LIN"] /
+  exprs(fhRaw(deb))[, "FL3.INT.LIN"]
+fl <- exprs(fhRaw(deb))[, "FL3.INT.LIN"]
+plot(sscfl ~ fl, col = "#44444411", pch = 16, ylim = c(0, 0.1))
+dat <- as.data.frame(exprs(fhRaw(deb)))
+dat$ssfl <- sscfl
+abline(h = thresh, col = 2)
+dat1 <- dat[dat$ssfl > thresh, ]
+dat2 <- dat[dat$ssfl <= thresh, ]
+debm@raw@exprs <- as.matrix(dat1)
+debm2@raw@exprs <- as.matrix(dat2)
+debm <- setBins(debm)
+debm2 <- setBins(debm2)
+plot(debm)
+plot(debm2)
+
+
+
+
 #######################
 ## Linearity testing ##
 #######################
@@ -49,6 +78,9 @@ fh1mcl <- fhAnalyze(fh1mcl)
 plot(fh1mcl)
 
 batch1 <-batchFlowHist(files = flowPloidyFiles, channel = "FL3.INT.LIN")
+batch1b <- browseFlowHist(batch1)
+
+batch2 <-batchFlowHist(files = flowPloidyFiles, channel = "FL3.INT.LIN")
 
 tabulateFlowHist(batch1)
 

@@ -810,7 +810,7 @@ NULL
 #' }
 #'
 #' @name findPeaks
-findPeaks <- function(fh, window, smooth = window / 2){
+findPeaks <- function(fh, window = 20, smooth = 20){
   ## extract all peaks from data
   ## smoothing removes most of the noisy peaks
   dat <- fhHistData(fh)[, "intensity"]
@@ -818,6 +818,36 @@ findPeaks <- function(fh, window, smooth = window / 2){
   smDat <- runmean(dat, k = floor(smooth), endrule = "mean")
   localMax <- runmax(smDat, k = window)
   isMax <- localMax == smDat
+
+  ## This odd section loops over each "maximum value", and checks to see if
+  ## adjacent values in the raw data are actually greater. They may be,
+  ## because of the smoothing used above to filter out noise distorts the
+  ## position of peak maxima. So we counter this, partially, by sliding the
+  ## identified maxima in the smoothed data to the local maxima in the raw
+  ## data. I'm only checking the values against their immediate neighbours.
+  ## It might work a little better by checking a broader neighbourhood, but
+  ## then we may find ourselves reintroducing noise that we only just
+  ## finished screening out.
+
+  ## Finding peaks is tricky. I've tried more sophisticated smoothing
+  ## algorithms, including FFT, but in removing noise the peaks always end
+  ## up shifting, so there's going to be a trade-off involved no matter
+  ## what approach I take.
+  for(i in which(isMax)){
+    while(i < length(dat) && dat[i] < max(dat[c(i - 1, i + 1)], TRUE)){
+      if(dat[i + 1] > dat[i -1]){
+        isMax[i] <- FALSE
+        isMax[i + 1] <- TRUE
+        i <- i + 1
+      } else {
+        if(i == 1)
+          break
+        else {
+          isMax[i] <- FALSE
+          isMax[i - 1] <- TRUE
+          i <- i - 1
+        }
+      }}}
   maxVals <- dat[isMax]                 # use the raw data for heights 
   res <- cbind(mean = (1:length(dat))[isMax], height = maxVals)
   fhPeaks(fh) <- res
