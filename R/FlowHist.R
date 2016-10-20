@@ -601,10 +601,10 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE, ...){
 ## Exporting Data ##
 ####################
 
-#' Extract analysis results from a flowHist object
+#' Extract analysis results from a FlowHist object
 #'
 #' A convenience function for extracting the results of the NLS
-#'   curve-fitting analysis on a flowHist object.
+#'   curve-fitting analysis on a FlowHist object.
 #'
 #' If \code{fh} is a single FlowHist object, a data.frame with a single
 #' row is returned. If \code{fh} is a list of \code{\link{FlowHist}} objects, a
@@ -613,7 +613,7 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE, ...){
 #' If a file name is provided, the data will be saved to that file.
 #' 
 #' @title exportFlowHist
-#' @param fh a flowHist object, or a list of flowHist objects.
+#' @param fh a FlowHist object, or a list of FlowHist objects.
 #' @param file character, the name of the file to save data to
 #' @return a data frame 
 #' @author Tyler Smith

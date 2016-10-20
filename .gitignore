@@ -12,3 +12,4 @@ vignettes/*_files/
 s3/
 .svn
 /NOTES.org
+svn-commit*
