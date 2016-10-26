@@ -750,7 +750,7 @@ fhStart <- function(intensity){
   ## is the same general principle applied in ModFit. I implement this idea
   ## by picking the highest point in the first 20 non-zero channels in the
   ## histogram.
-  startMax <- max(intensity[which(intensity != 0)][1:20])
+  startMax <- max(intensity[which(intensity != 0)][1:10])
   startBin <- which(intensity == startMax)[1]
   startBin
 }
@@ -834,20 +834,35 @@ findPeaks <- function(fh, window = 20, smooth = 20){
   ## up shifting, so there's going to be a trade-off involved no matter
   ## what approach I take.
   for(i in which(isMax)){
-    while(i < length(dat) && dat[i] < max(dat[c(i - 1, i + 1)], TRUE)){
-      if(dat[i + 1] > dat[i -1]){
-        isMax[i] <- FALSE
-        isMax[i + 1] <- TRUE
-        i <- i + 1
-      } else {
-        if(i == 1)
-          break
-        else {
-          isMax[i] <- FALSE
-          isMax[i - 1] <- TRUE
-          i <- i - 1
-        }
-      }}}
+    while(i == 1 ||                     # skip second test on first bin
+          (i < length(dat) && dat[i] < max(dat[c(i - 1, i + 1)], TRUE))){
+            if(i == 1)
+              break
+            else
+              if(dat[i + 1] > dat[i -1]){
+                isMax[i] <- FALSE
+                isMax[i + 1] <- TRUE
+                i <- i + 1
+              } else {
+                isMax[i] <- FALSE
+                isMax[i - 1] <- TRUE
+                i <- i - 1
+              }
+          }}
+    ## while(i < length(dat) && dat[i] < max(dat[c(i - 1, i + 1)], TRUE)){
+    ##   if(dat[i + 1] > dat[i -1]){
+    ##     isMax[i] <- FALSE
+    ##     isMax[i + 1] <- TRUE
+    ##     i <- i + 1
+    ##   } else {
+    ##     if(i == 1)
+    ##       break
+    ##     else {
+    ##       isMax[i] <- FALSE
+    ##       isMax[i - 1] <- TRUE
+    ##       i <- i - 1
+    ##     }
+    ##   }}}
   maxVals <- dat[isMax]                 # use the raw data for heights 
   res <- cbind(mean = (1:length(dat))[isMax], height = maxVals)
   fhPeaks(fh) <- res
@@ -875,7 +890,7 @@ findPeaks <- function(fh, window = 20, smooth = 20){
 #' debris field is large.
 #' }
 #' 
-cleanPeaks <- function(fh, window){
+cleanPeaks <- function(fh, window = 20){
   ## Remove ties and multiple peaks for histogram analysis
 
   ## Screen out any ties - if two peaks have the same height, and are
@@ -891,17 +906,18 @@ cleanPeaks <- function(fh, window){
   peaks <- peaks[order(peaks[,2], decreasing = TRUE), ]
 
   ## eliminate the debris field?
-  peaks <- peaks[which(peaks[, "mean"] > 40), ]
+  peaks <- peaks[which(peaks[, "mean"] > 40), , drop = FALSE]
 
   drop <- numeric()
-  for(i in 2: nrow(peaks)){
-    if((peaks[i-1, "height"] == peaks[i, "height"]) &
-       (abs(peaks[i-1, "mean"] - peaks[i, "mean"]) <= window)){ 
-      ## It's a tie!
-      drop <- c(drop, i)
+  if(nrow(peaks) > 1)
+    for(i in 2: nrow(peaks)){
+      if((peaks[i-1, "height"] == peaks[i, "height"]) &
+         (abs(peaks[i-1, "mean"] - peaks[i, "mean"]) <= window)){ 
+        ## It's a tie!
+        drop <- c(drop, i)
+      }
     }
-  }
-
+  
   if(length(drop) > 0){                  # there was at least one tie 
     peaks <- peaks[-drop, ]
   }

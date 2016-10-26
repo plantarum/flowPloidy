@@ -3,6 +3,9 @@ library(flowPloidyData)
 load_all()
 
 
+paul <- FlowHist(file = "~/research/flow/paul/Lob.leaf.Jul2414.L02.002",
+                channel = "FL2.A", analyze = TRUE)
+
 batch1 <-batchFlowHist(files = flowPloidyFiles, channel = "FL3.INT.LIN")
 batch1b <- browseFlowHist(batch1)
 
