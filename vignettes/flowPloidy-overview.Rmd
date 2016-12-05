@@ -89,6 +89,10 @@ We can use the `viewFlowChannels` function to see the options:
 viewFlowChannels(flowPloidyFiles[1])
 ```
 
+(In this example, we're using the filename in the variable
+`flowPloidyFiles[1]`; to examine your own data, replace that with the name
+of a FCS data file of your own.)
+
 Hopefully you see something there that corresponds to the channel you're
 interested in. In our case, it's "`FL3.INT.LIN`". 
 
@@ -125,23 +129,22 @@ A number of features are displayed on the histogram:
 
 Sample A G1 estimate
 
-: a thick vertical blue line with a label at the top indicates the
-estimated position of the first sample ('A') G1 peak. A blue circle
-indicates the actual position on the histogram used as the initial value.
+: a solid blue circle labelled with the letter A is the initial 
+estimate of the first sample ('A') G1 peak. 
 
 Sample A G2 estimate
 
-: a thin vertical blue line without a label indicates the estimated
-position of the G2 peak corresponding to the A G1 peak.
+: a hollow blue circle ('O') indicates the estimated position of the G2
+peak corresponding to the A G1 peak.
 
 Sample B G1 and G2 estimates
 
-: as for Peak A, but orange
+: as for Peak A, but the circles and labels are orange
 
 Initial model estimate
 
-: the thin, dashed grey line indicates the initial parameters used for the
-model-fitting.
+: the thin, dashed grey line indicates model fit using the initial
+parameter estimates
 
 The initial estimate is rough, but in this case it's close enough for the
 model-fitting routines to find a solution, so we can immediately proceed to
@@ -169,13 +172,16 @@ different colours:
 - green: debris model (by default the Single-Cut model, but see below)
 - blue: sample A G1 and G2 peaks
 - orange: sample B G1 and G2 peaks
-- magenta: S-phase of sample A
+- magenta: S-phase of sample A 
 - turqoise: S-phase of sample B
 - purple: aggregates
 - red: the complete model
 
 The aggregate and S-phase components may be quite small, and therefore
-difficult to see. 
+difficult to see. The red complete model plotted first, so it gets obscured
+when it exactly matches another component. For example, until ca. 75 the
+green debris model is the only component contributing to the total model,
+so we see only the green line, not the underlying red line.
 
 In the upper right corner, we see a brief summary of the numerical results.
 For Sample A and Sample B, peak statistics are reported as `position / cell
@@ -204,9 +210,10 @@ fh2 <- FlowHist(file = flowPloidyFiles["734.LMD"], channel = "FL3.INT.LIN")
 plot(fh2, init = TRUE)
 ```
 
-Here we can see that high spike around bin 50 was ignored, resulting in
-both the A and B peaks being placed together near bin 136. We can manually
-set the appropriate starting values with `pickInit`: 
+Here we can see that the noise around the first peak has resulted in a poor
+selection of initial values. The model was fit, but the results are
+nonsense. We can manually set the appropriate starting values with
+`pickInit`:
 
 ```{r, eval = FALSE}
 fh2 <- pickInit(fh2)
@@ -222,9 +229,9 @@ peak manually, adding a circle to the plot at each point.
 
 fh2 <- flowPloidy:::resetFlowHist(fh2)
 flowPloidy:::fhPeaks(fh2) <-
-  structure(c(50.2623811329645, 139.061074258603, 258.242164238835,
-              178.771283080744), .Dim = c(2L, 2L),
-                          .Dimnames = list(NULL, c("mean", "height")))
+  structure(c(50.3852998991202, 139.786453999919, 255.890905972485, 
+              178.859300819953), .Dim = c(2L, 2L),
+            .Dimnames = list(NULL, c("mean", "height")))
 
 fh2 <- flowPloidy:::addComponents(fh2)
 fh2 <- flowPloidy:::makeModel(fh2)
@@ -266,9 +273,9 @@ fh2MC <- updateFlowHist(fh2, debris = "MC")
 plot(fh2MC)
 ```
 
-In this case, the Multi-Cut model produced a RCS value nearly twice that of
-the Single-Cut model. Note, however, that the peak parameters hardly
-changed, and the A/B ratio is identical.
+In this case, the Multi-Cut model produced a RCS value slightly higher than
+that of the Single-Cut model. Note, however, that the peak parameters
+hardly changed, and the A/B ratio is identical.
 
 You may also choose which debris model to use as an argument to `FlowHist`
 (and the related `batchFlowHist` discussed below):
@@ -285,12 +292,13 @@ plotting function `browseFlowHist`, described below.
 By default, linearity (the ratio between the G1 and G2 peaks of the same
 sample) is fit as a parameter. Ideally, linearity should be 2, but due to
 issues with the running of the flow cytometer, it frequently varies between
-ca 1.95 and 2.05. If you want to force linearity to be fixed at 2, you can
+ca 1.9 and 2.1. If you want to force linearity to be fixed at 2, you can
 use the `linearity` argument to `updateFlowHist` or `FlowHist`, as we did
 for `debris` above. In this case, possible values for `linearity` are
 `fixed` (fixed at 2), or `variable` (fit as a parameter). When `linearity`
-is `fixed`, it is reported as `NA` in plot and summary functions. You may
-also set/change `linearity` with the `browseFlowHist` GUI described below.
+is `fixed`, it is reported as `fixed` in plot and summary functions. You
+may also set/change `linearity` with the `browseFlowHist` GUI described
+below.
 
 # Exporting Results
 
@@ -459,8 +467,8 @@ and your web browser will open to display something like this:
 (You may need to maximize your browser window for the layout to look
 'correct')
 
-In the upper-left corner you will find the navigation. Click on `Next` and
-`Prev` to move forwards and backwards over your list of files. Note the
+In the upper-left corner you will find the navigation. Click on `Prev` and
+`Next` to move backwards and forwards over your list of files. Note the
 counter - you can't move past the first or last files, of course.
 
 For the first histogram, file `188-15.LMD`, the model fit is quite good, so
@@ -474,29 +482,28 @@ The second plot, for `222.LMD`, doesn't show a fitted model:
 
 ![](./flowShiny02.png)
 
-This is due to bad initial peak estimates, despite the fact that they look
-ok. To fix this, move the `Samp. A` peak estimate by clicking around near
-the top of the highest peak. You might need to try a few different spots
-before you find one that works (I don't know why this sample is so
-tricky!).
+This is due to bad initial peak estimates -- the `A` peak was placed on a
+local maximum in the noise around 60, and the `B` peak was placed where we
+would expect the `A` peak to be. To fix this, we move the `B` peak
+estimate. First, click on the `B` button in the sidebar on the left. Then
+click on the top of the second peak (near 170). Now click on the `A` button
+in the side bar, and then set the new estimate at the top of the first
+peak.
 
 As you click on the plot, the analysis updates using the new initial peak
-estimate. If you want to move the peak for sample B, select that in the
-checkbox above the plot.
+estimate.
 
 Once a good initial peak is selected, the analysis succeeds with a good
 fit:
 
 ![](./flowShiny03.png)
 
-The analysis for `240+S.LMD` succeeded, and even produced a not-terrible
-RCS value:
+Move ahead to the `240+S.LMD` file. Again, the initial estimates didn't
+work, so this plot needs to be corrected, as we did on the previous plot.
 
 ![](./flowShiny04.png)
 
-However, a quick inspection of the plot shows that it's not a very good fit
-at all. So we need to move the `A` and/or `B` peaks until we get something
-sensible:
+We need to move the `A` and/or `B` peaks until we get something sensible:
 
 ![](./flowShiny05.png)
 

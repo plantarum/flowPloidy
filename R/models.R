@@ -147,20 +147,92 @@ fhComponents <- list()
 ## the component doesn't include xx, or includes other fixed parameters,
 ## then specialParamSetter will need to be provided.
 
+###########################################
+## Helper Functions for Model Components ##
+###########################################
+setLinearity <- function(fh){
+  ## Helper function for components that include the linearity parameter d
+  if(fh@linearity == "fixed")
+    return(list(xx = substitute(xx), d = 2))
+  else if(fh@linearity == "variable")
+    return(list(xx = substitute(xx)))
+  else
+    stop("Incorrect setting for linearity")
+}
+
+erf <- function(x) {
+  ## Helper function used in broadened rectangle features
+  2 * pnorm(x * sqrt(2)) - 1
+}
+
+##################################################
+## Notes on broadened rectangles and trapezoids ##
+##################################################
+
+## for testing the influence of sd:
+## This isn't used in any other code, retained here for further study if
+## needed. 
+## brA1 <- function(BRA, Ma, xx, sd){
+##   BRA * ((flowPloidy::erf(((2 * Ma) - xx)/sqrt(2 * sd)) -
+##           erf((Ma - xx)/sqrt(2 * sd))) / 2)
+## }
+
+## The basic broadened trapezoid functions
+## Retained here for study, but the complexity doesn't provide much/any
+## useful improvement in the model fit.
+## broadenedTrapezoid <- function(BTt1, BTt2, BTx1, BTx2, BTs1, BTs2, xx){
+##   ((BTt2 - BTt1) / (BTx2 - BTx1) * (xx - BTx2) + BTt2) *
+##     ((erf((BTx2 - xx)/sqrt(2 * BTs2)) -
+##       erf((BTx1 - xx)/sqrt(2 * BTs1))) / 2)
+## }
+
+## ## Translated into model components:
+## btA <- function(BTt1A, BTt2A, Ma, xx){
+##   ## Simplified to use a fixed sd (5), and bounded to the G1 mean value
+##   ## (and by extension the G2 mean value).
+##   ((BTt2A - BTt1A) / Ma * (xx - (2 * Ma)) + BTt2A) *
+##     ((erf(((2 * Ma) - xx)/sqrt(2 * 5)) -
+##       erf((Ma - xx)/sqrt(2 * 5))) / 2)
+## }
+
+## btB <- function(BTt1B, BTt2B, Mb, xx){
+##   ## Simplified to use a fixed sd (5), and bounded to the G1 mean value
+##   ## (and by extension the G2 mean value).
+##   ((BTt2B - BTt1B) / Mb * (xx - (2 * Mb)) + BTt2B) *
+##     ((erf(((2 * Mb) - xx)/sqrt(2 * 5)) -
+##       erf((Mb - xx)/sqrt(2 * 5))) / 2)
+## }
+
 #' Gaussian model components
 #'
 #' Components for modeling Gaussian features in flow histograms
 #'
-#' Typically the complete models will contain fA1 and fB2, which model the
-#' G1 peaks of the sample and the standard. In most cases, they will also
+#' Typically the complete models will contain fA1 and fB1, which model the
+#' G1 peaks of the sample and the standard. In many cases, they will also
 #' contain fA2 and fB2, which model the G2 peaks. The G2 peaks are linked
 #' to the G1 peaks, in that they require some of the parameters from the
 #' G1 peaks as well (mean and standard deviation).
 #'
-#' @param a1,a2,b1,b2 area parameters
-#' @param Ma,Mb curve mean parameter
-#' @param Sa,Sb curve standard deviation parameter
+#' If the linearity parameter is set to "fixed", the G2 peaks will be fit
+#' as exactly 2 times the mean of the G1 peaks. If linearity is set to
+#' "variable", the ratio of the G2 peaks to the G1 peaks will be fit as a
+#' model parameter with an initial value of 2, and constrained to the range
+#' 1.9 -- 2.1.
+#'
+#' Additionally, for each set of peaks (sample and standard(s)), a
+#' broadened rectangle component is included to model the S-phase. At
+#' present, this is component has a single parameter, the height of the
+#' rectangle. The standard deviation is fixed at 1. Allowing the SD to vary
+#' in the model fitting doesn't make an appreciable difference in my tests
+#' so far, so I've left it simple.
+#' 
+#' @param a1,a2,b1,b2,c1,c2 area parameters
+#' @param Ma,Mb,Mc curve mean parameter
+#' @param Sa,Sb,Sc curve standard deviation parameter
 #' @param xx vector of histogram intensities
+#' @param d numeric, the ratio of G2/G1 peak means. When linearity is
+#'   fixed, this is set to 2. Otherwise, it is fit as a model parameter
+#'   bounded between 1.9 and 2.1.
 #' @return NA
 #' @author Tyler Smith
 #' @name gauss
@@ -180,16 +252,6 @@ fhComponents$fA1 <-
     },
     paramLimits = list(Ma = c(0, Inf), Sa = c(0, Inf), a1 = c(0, Inf))
   )
-
-setLinearity <- function(fh){
-  ## Helper function for components that include the linearity parameter d
-  if(fh@linearity == "fixed")
-    return(list(xx = substitute(xx), d = 2))
-  else if(fh@linearity == "variable")
-    return(list(xx = substitute(xx)))
-  else
-    stop("Incorrect setting for linearity")
-}
 
 fhComponents$fA2 <-
   ModelComponent(
@@ -214,6 +276,32 @@ fhComponents$fA2 <-
     },
     paramLimits = list(Ma = c(0, Inf), Sa = c(0, Inf), a2 = c(0, Inf),
                        d = c(1.9, 2.1)),
+    specialParamSetter = function(fh){
+      setLinearity(fh)
+    }
+  )
+
+fhComponents$brA <-
+  ModelComponent(
+    name = "brA", color = "magenta",
+    desc = "Broadened rectangle for S-phase of sample A",
+    includeTest = function(fh){
+      TRUE
+    },
+    func = function(BRA, Ma, d, xx){
+      ## 2 * 1 is a placeholder for 2 * sd, should we decide it's worth
+      ## adding sd as a separate parameter
+      BRA * ((flowPloidy:::erf(((d * Ma) - xx)/sqrt(2 * 1)) -
+              flowPloidy:::erf((Ma - xx)/sqrt(2 * 1))) / 2)
+    },
+    initParams = function(fh){
+      res <- list(BRA = 10)
+      if(fhLinearity(fh) == "variable")
+        res <- c(res, d = 2)
+      res
+    },
+    ## paramLimits = list(BRA = c(0, Inf))
+    paramLimits = list(BRA = c(0, Inf), d = c(1.9, 2.1)),
     specialParamSetter = function(fh){
       setLinearity(fh)
     }
@@ -265,6 +353,106 @@ fhComponents$fB2 <-
     },
     paramLimits = list(Mb = c(0, Inf), Sb = c(0, Inf), b2 = c(0, Inf),
                        d = c(1.9, 2.1)),
+    specialParamSetter = function(fh){
+      setLinearity(fh)
+    }
+  )
+
+fhComponents$brB <-
+  ModelComponent(
+    name = "brB", color = "turquoise",
+    desc = "Broadened rectangle for S-phase of sample B",
+    includeTest = function(fh){
+      nrow(fhPeaks(fh)) > 1        
+    },
+    func = function(BRB, Mb, d, xx){
+      ## 2 * 1 is a placeholder for 2 * sd, should we decide it's worth
+      ## adding sd as a separate parameter
+      BRB * ((flowPloidy:::erf(((d * Mb) - xx)/sqrt(2 * 1)) -
+              flowPloidy:::erf((Mb - xx)/sqrt(2 * 1))) / 2)
+    },
+    initParams = function(fh){
+      res <- list(BRB = 10)
+      if(fhLinearity(fh) == "variable")
+        res <- c(res, d = 2)
+      res
+    },
+    paramLimits = list(BRB = c(0, Inf), d = c(1.9, 2.1)),
+    specialParamSetter = function(fh){
+      setLinearity(fh)
+    }
+  )
+
+fhComponents$fC1 <-
+  ModelComponent(
+    name = "fC1", color = "darkgreen",
+    desc = "Gaussian curve for G1 peak of sample C",
+    includeTest = function(fh) {
+      nrow(fhPeaks(fh)) > 2 && fhSamples(fh) > 2
+      },
+    func = function(c1, Mc, Sc, xx){
+      (c1 / (sqrt(2 * pi) * Sc) * exp(-((xx - Mc)^2)/(2 * Sc^2)))
+    },
+    initParams = function(fh){
+      Mc <- as.numeric(fhPeaks(fh)[3, "mean"])
+      Sc <- as.numeric(Mc / 20)
+      c1 <- as.numeric(fhPeaks(fh)[3, "height"] * Sc / 0.45)
+      list(Mc = Mc, Sc = Sc, c1 = c1)
+    },
+    paramLimits = list(Mc = c(0, Inf), Sc = c(0, Inf), c1 = c(0, Inf))
+  )
+
+fhComponents$fC2 <-
+  ModelComponent(
+    name = "fC2", color = "darkgreen",
+    desc = "Gaussian curve for G2 peak of sample C",
+    includeTest = function(fh){
+      nrow(fhPeaks(fh)) > 2 && fhSamples(fh) > 2 &&
+        (fhPeaks(fh)[3, "mean"] * 2) <= nrow(fhHistData(fh))
+    },
+    func = function(c2, Mc, Sc, d, xx){
+      (c2 / (sqrt(2 * pi) * Sc * 2) *
+       exp(-((xx - Mc * d)^2)/(2 * (Sc * 2)^2))) 
+    },
+    initParams = function(fh){
+      Mc <- as.numeric(fhPeaks(fh)[3, "mean"])
+      Sc <- as.numeric(Mc / 20)
+      c2 <- as.numeric(fhHistData(fh)[Mc * 2, "intensity"] *
+                       Sc * 2 / 0.45)
+      res <- list(c2 = c2)
+      if(fhLinearity(fh) == "variable")
+        res <- c(res, d = 2)
+      res
+    },
+    paramLimits = list(Mc = c(0, Inf), Sc = c(0, Inf), c2 = c(0, Inf),
+                       d = c(1.9, 2.1)),
+    specialParamSetter = function(fh){
+      setLinearity(fh)
+    }
+  )
+
+fhComponents$brC <-
+  ModelComponent(
+    name = "brC", color = "magenta",
+    desc = "Broadened rectangle for S-phase of sample C",
+    includeTest = function(fh){
+      FALSE
+    },
+    func = function(BRC, Mc, d, xx){
+      ## 2 * 1 is a placeholder for 2 * sd, should we decide it's worth
+      ## adding sd as a separate parameter
+      ## WARNING: this is a bug - need to replace '2' with 'd' to account
+      ## for variable linearity. As is, the upper end of the S-phase will
+      ## not match the G2 peak!!
+      BRC * ((flowPloidy:::erf(((d * Mc) - xx)/sqrt(2 * 1)) -
+              flowPloidy:::erf((Mc - xx)/sqrt(2 * 1))) / 2)
+    },
+    initParams = function(fh){
+      res <- list(BRC = 10)
+      if(fhLinearity(fh) == "variable")
+        res <- c(res, d = 2)
+    },
+    paramLimits = list(BRC = c(0, Inf), d = c(1.9, 2.1)),
     specialParamSetter = function(fh){
       setLinearity(fh)
     }
@@ -455,98 +643,49 @@ fhComponents$AG <-
     }
   )
 
-## Broadened rectangles:
-## simplified with a fixed sd of 1. Very little change in results with more
-## flexible models, so keeping it simple.
-erf <- function(x) 2 * pnorm(x * sqrt(2)) - 1
-
-fhComponents$brA <-
-  ModelComponent(
-    name = "brA", color = "magenta",
-    desc = "Broadened rectangle for S-phase of sample A",
-    includeTest = function(fh){
-      TRUE
-    },
-    func = function(BRA, Ma, xx){
-      ## 2 * 1 is a placeholder for 2 * sd, should we decide it's worth
-      ## adding sd as a separate parameter
-      BRA * ((flowPloidy:::erf(((2 * Ma) - xx)/sqrt(2 * 1)) -
-              flowPloidy:::erf((Ma - xx)/sqrt(2 * 1))) / 2)
-    },
-    initParams = function(fh){
-      list(BRA = 10)
-    },
-    paramLimits = list(BRA = c(0, Inf))
-  )
-
-fhComponents$brB <-
-  ModelComponent(
-    name = "brB", color = "turquoise",
-    desc = "Broadened rectangle for S-phase of sample B",
-    includeTest = function(fh){
-      nrow(fhPeaks(fh)) > 1        
-    },
-    func = function(BRB, Mb, xx){
-      ## 2 * 1 is a placeholder for 2 * sd, should we decide it's worth
-      ## adding sd as a separate parameter
-      BRB * ((flowPloidy:::erf(((2 * Mb) - xx)/sqrt(2 * 1)) -
-              flowPloidy:::erf((Mb - xx)/sqrt(2 * 1))) / 2)
-    },
-    initParams = function(fh){
-      list(BRB = 10)
-    },
-    paramLimits = list(BRB = c(0, Inf))
-  )
-
-## for testing the influence of sd:
-## This isn't used in any other code, retained here for further study if
-## needed. 
-## brA1 <- function(BRA, Ma, xx, sd){
-##   BRA * ((flowPloidy::erf(((2 * Ma) - xx)/sqrt(2 * sd)) -
-##           erf((Ma - xx)/sqrt(2 * sd))) / 2)
-## }
-
-## The basic broadened trapezoid functions
-## Retained here for study, but the complexity doesn't provide much/any
-## useful improvement in the model fit.
-## broadenedTrapezoid <- function(BTt1, BTt2, BTx1, BTx2, BTs1, BTs2, xx){
-##   ((BTt2 - BTt1) / (BTx2 - BTx1) * (xx - BTx2) + BTt2) *
-##     ((erf((BTx2 - xx)/sqrt(2 * BTs2)) -
-##       erf((BTx1 - xx)/sqrt(2 * BTs1))) / 2)
-## }
-
-## ## Translated into model components:
-## btA <- function(BTt1A, BTt2A, Ma, xx){
-##   ## Simplified to use a fixed sd (5), and bounded to the G1 mean value
-##   ## (and by extension the G2 mean value).
-##   ((BTt2A - BTt1A) / Ma * (xx - (2 * Ma)) + BTt2A) *
-##     ((erf(((2 * Ma) - xx)/sqrt(2 * 5)) -
-##       erf((Ma - xx)/sqrt(2 * 5))) / 2)
-## }
-
-## btB <- function(BTt1B, BTt2B, Mb, xx){
-##   ## Simplified to use a fixed sd (5), and bounded to the G1 mean value
-##   ## (and by extension the G2 mean value).
-##   ((BTt2B - BTt1B) / Mb * (xx - (2 * Mb)) + BTt2B) *
-##     ((erf(((2 * Mb) - xx)/sqrt(2 * 5)) -
-##       erf((Mb - xx)/sqrt(2 * 5))) / 2)
-## }
 
 ##############################
 ## Model Building Functions ##
 ##############################
 addComponents <- function(fh){
+  ## make sure old components are flushed!
+  fh <- resetFlowHist(fh, from = "comps")
   for(i in fhComponents)
     if(mcIncludeTest(i)(fh)){
       newComp <- i
       mcSpecialParams(newComp) <- mcSpecialParamSetter(newComp)(fh)
       fhComps(fh)[[mcName(i)]] <- newComp
-      lims <- mcParamLimits(i)
-      newLims <- fhLimits(fh)
-      for(j in names(lims))
-        newLims[[j]] <- lims[[j]]
-      fhLimits(fh) <- newLims
+      ## lims <- mcParamLimits(i)
+      ## newLims <- fhLimits(fh)
+      ## for(j in names(lims))
+      ##   newLims[[j]] <- lims[[j]]
+      ## fhLimits(fh) <- newLims
     }
+  if(fhLinearity(fh) == "variable")
+    if(sum(c("fA2", "fB2", "fC2") %in% names(fhComps(fh))) == 0){
+      message("No G2 peaks, using fixed linearity")
+      fh <- updateFlowHist(fh, linearity = "fixed")
+    }
+  fh
+}
+
+dropComponents <- function(fh, components){
+  fh <- resetFlowHist(fh, "limits")  
+  fhComps(fh) <- fhComps(fh)[! names(fhComps(fh)) %in% components]
+  fh <- setLimits(fh)
+  fh <- makeModel(fh)
+  fh <- getInit(fh)
+  fh
+}
+
+setLimits <- function(fh){
+  fhLimits(fh) <- list()
+  for(i in fhComps(fh)){
+    lims <- mcParamLimits(i)
+    for(j in names(lims)){
+      fhLimits(fh)[[j]] <- lims[[j]]
+    }
+  }
   fh
 }
 

@@ -38,9 +38,9 @@ fhAnalyze <- function(fh){
 fhDoNLS <- function(fh){
   model <- fhModel(fh)
   form1 <- paste("intensity ~ model(")
-  args <- as.character(names(formals(fhModel(fh))))
-  args <- args[!args %in% c("", names(getSpecialParams(fh)))]
+  args <- fhArgs(fh)
   pLims <- fhLimits(fh)
+  pLims <- pLims[! names(pLims) %in% fhSpecialParams(fh)]
   lLims <- sapply(pLims, function(x) x[1])
   uLims <- sapply(pLims, function(x) x[2])
   args <- paste(args, collapse = ", ")
@@ -101,7 +101,19 @@ fhDoCounts <- function(fh){
     secondPeak <- NULL
   }
 
-  fhCounts(fh) <- list(firstPeak = firstPeak, secondPeak = secondPeak)
+  if("fC1" %in% names(fhComps(fh))){
+    thirdPeak <-
+      integrate(mcFunc(fhComps(fh)$fC1), c1 = coef(fhNLS(fh))["c1"],
+                Mc = coef(fhNLS(fh))["Mc"],
+                Sc = coef(fhNLS(fh))["Sc"],
+                lower = lower, upper = upper,
+                subdivisions = 1000)
+  } else {
+    thirdPeak <- NULL
+  }
+
+  fhCounts(fh) <- list(firstPeak = firstPeak, secondPeak = secondPeak,
+                       thirdPeak = thirdPeak)
 
   fh
 }  
@@ -110,11 +122,21 @@ fhDoCV <- function(fh){
   CVa <- coef(fhNLS(fh))["Sa"]/coef(fhNLS(fh))["Ma"]
   if("fB1" %in% names(fhComps(fh))){
     CVb <- coef(fhNLS(fh))["Sb"]/coef(fhNLS(fh))["Mb"]
-    CI <- deltaMethod(fhNLS(fh), "Ma/Mb")
+    AB <- deltaMethod(fhNLS(fh), "Ma/Mb")
   } else {
     CVb <- CI <- NULL
   }
-  fhCV(fh) <- list(CVa = CVa, CVb = CVb, CI = CI)
+
+  if("fC1" %in% names(fhComps(fh))){
+    CVc <- coef(fhNLS(fh))["Sc"]/coef(fhNLS(fh))["Mc"]
+    AC <- deltaMethod(fhNLS(fh), "Ma/Mc")
+    BC <- deltaMethod(fhNLS(fh), "Mb/Mc")
+  } else {
+    CVc <- AC <- BC <- NULL
+  }
+  
+  fhCV(fh) <- list(CVa = CVa, CVb = CVb, CVc = CVc,
+                   AB = AB, AC = AC, BC = BC)
   fh
 }
 

@@ -7,10 +7,10 @@
 fhAnalyze(fh)
 }
 \arguments{
-\item{fh}{a \code{FlowHist} object}
+\item{fh}{a \code{\link{FlowHist}} object}
 }
 \value{
-a \code{FlowHist} object with the analysis (nls, counts, cv,
+a \code{\link{FlowHist}} object with the analysis (nls, counts, cv,
   RCS) slots filled.
 }
 \description{

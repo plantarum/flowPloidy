@@ -5,18 +5,18 @@
 \alias{findPeaks}
 \title{findPeaks}
 \usage{
-findPeaks(fh, window, smooth = window/2)
+findPeaks(fh, window = 20, smooth = 20)
 
-cleanPeaks(fh, window)
+cleanPeaks(fh, window = 20)
 }
 \arguments{
-\item{fh}{a \code{FlowHist} object}
+\item{fh}{a \code{\link{FlowHist}} object}
 
 \item{window}{an integer, the width of the moving window to use in
-identifying local maxima via \code{caTools::runmax}}
+identifying local maxima via \code{\link{caTools::runmax}}}
 
 \item{smooth}{an integer, the width of the moving window to use in
-removing noise via \code{caTools::runmean}}
+removing noise via \code{\link{caTools::runmean}}}
 }
 \value{
 Returns a matrix with two columns:
@@ -36,7 +36,8 @@ starting values - accuracy isn't important, we just need something
 value.
 
 Utility functions for use internally by flowPloidy; not exported and
-won't be visible to users. Usually invoked from within \code{FlowHist}.
+won't be visible to users. Usually invoked from within
+\code{\link{FlowHist}}.
 
 Note that there is a trade-off between accuracy in detected peaks, and
 avoiding noise. Increasing the value of \code{smooth} will reduce the
@@ -47,12 +48,13 @@ get 'close enough' for the NLS optimization to find the true parameter
 values. If you'd like to explore this, the internal (unexported)
 function \code{fhPeakPlot} may be useful.
 
-\code{cleanPeaks} filters the output of \code{findPeaks} to:  
+\code{\link{cleanPeaks}} filters the output of
+  \code{\link{findPeaks}} to:   
 \itemize{
 
 \item remove duplicates, ie., peaks with the same intensity that occur
 within \code{window} positions of each other. Otherwise,
-\code{findPeaks} will consider noisy peaks without a single highest
+\code{\link{findPeaks}} will consider noisy peaks without a single highest
 point to be multiple distinct peaks.
 
 \item drop G2 peaks. In some cases the G2 peak for one sample will have

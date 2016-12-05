@@ -7,7 +7,7 @@
 tabulateFlowHist(fh, file = NULL)
 }
 \arguments{
-\item{fh}{a flowHist object, or a list of flowHist objects.}
+\item{fh}{a FlowHist object, or a list of FlowHist objects.}
 
 \item{file}{character, the name of the file to save data to}
 }
@@ -15,14 +15,14 @@ tabulateFlowHist(fh, file = NULL)
 a data frame
 }
 \description{
-Extract analysis results from a flowHist object
+Extract analysis results from a FlowHist object
 }
 \details{
 A convenience function for extracting the results of the NLS
-  curve-fitting analysis on a flowHist object.
+  curve-fitting analysis on a FlowHist object.
 
 If \code{fh} is a single FlowHist object, a data.frame with a single
-row is returned. If \code{fh} is a list of \code{FlowHist} objects, a
+row is returned. If \code{fh} is a list of \code{\link{FlowHist}} objects, a
 row for each object will be added to the data.frame.
 
 If a file name is provided, the data will be saved to that file.

@@ -7,12 +7,12 @@
 setBins(fh, bins = 256)
 }
 \arguments{
-\item{fh}{a \code{FlowHist} object}
+\item{fh}{a \code{\link{FlowHist}} object}
 
 \item{bins}{integer, the number of bins to use in aggregating FCS data}
 }
 \value{
-a \code{FlowHist} object, with the \code{bins} slot set to
+a \code{\link{FlowHist}} object, with the \code{bins} slot set to
   \code{bins}, and the corresonding binned data stored in a matrix in
   the \code{histData} slot. Any previous analysis slots are removed:
   \code{peaks, comps, model, init, nls, counts, CV, RCS}.

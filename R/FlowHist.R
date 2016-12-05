@@ -1,4 +1,4 @@
-## Functions for creating and viewing FlowHist objects.
+# Functions for creating and viewing FlowHist objects.
 
 #' @importFrom flowCore read.FCS exprs pData parameters
 NULL
@@ -67,6 +67,9 @@ setOldClass("nls")
 #' @param channel character, the name of the data column to use
 #' @param bins integer, the number of bins to use to aggregate events into
 #'   a histogram
+#' @param gate logical, a vector of events to exclude from analysis. In
+#'   normal usage this will be set interactively, not as a function
+#'   argument.
 #' @param linearity character, either "variable", the default, or "fixed".
 #'   If "fixed", linearity is fixed at 2; if "variable", linearity is fit
 #'   as a model parameter.
@@ -83,6 +86,8 @@ setOldClass("nls")
 #' @param pick boolean; if TRUE, the user will be prompted to select peaks
 #'   to use for starting values. Otherwise (the default), starting values
 #'   will be detected automatically.
+#' @param samples integer; the number of samples in the data. Default is 2
+#' (unknown and standard), but can be set to 3 if two standards are  used.
 #' @param verbose boolean; if TRUE, \code{\link{histBatch}} will list files
 #'   as it processes them. 
 #' 
@@ -90,6 +95,9 @@ setOldClass("nls")
 #' @slot channel character, the name of the data column to use
 #' @slot bins integer, the number of bins to use to aggregate events into a
 #'   histogram
+#' @slot gate logical, a vector indicating events to exclude from the
+#'   analysis. In normal use, the gate will be modified via interactive
+#'   functions, not set directly by users. 
 #' @slot histdata data.frame, the columns are the histogram bin number
 #'   (xx), florescence intensity (intensity), and the raw single-cut debris
 #'   model values (SCVals, used in model fitting). Additional columns may
@@ -107,7 +115,9 @@ setOldClass("nls")
 #' @slot CV a list of the coefficients of variation for each peak in the
 #'   fitted model.
 #' @slot RCS numeric, the residual chi-square for the fitted model.
-#'
+#' @slot samples numeric, the number of samples included in the data. The
+#'   default is 2 (i.e., unknown and standard), but if two standards are
+#'   used it should be set to 3.
 #' @return \code{\link{FlowHist}} returns a \code{\link{FlowHist}} object.
 #' @author Tyler Smith
 setClass(
@@ -115,11 +125,14 @@ setClass(
   representation = representation(
     raw = "flowFrame", ## raw data, object defined in flowCore
     channel = "character", ## data channel to use for histogram
+    samples = "integer", ## (maximum) number of sample peaks to fit
     bins = "integer", ## the number of bins to use
     linearity = "character", ## "fixed" or "variable", to determine whether
     ## or not linearity is fixed at 2, or allowed to vary as a model
     ## parameter 
     debris = "character", ## "SC" or "MC", to set the debris model. 
+    gate = "logical", ## vector indicating which events to exclude from
+    ## analysis, i.e., the gate
     histData = "data.frame", ## binned histogram data
     peaks = "matrix", ## peak coordinates for initial values
     opts = "list",    ## flags for selecting model components
@@ -143,9 +156,12 @@ setMethod(
   definition = function(.Object, file, channel, bins = 256,
                         window = 20, smooth = 20, pick = FALSE,
                         linearity = "variable", debris = "SC",
-                        opts = list(), ... ){
+                        gate = logical(), samples = 2, opts = list(),
+                        ...){ 
     .Object@raw <- read.FCS(file, dataset = 1, alter.names = TRUE)
     .Object@channel <- channel
+    .Object@gate <- gate
+    .Object@samples <- as.integer(samples)
     .Object <- setBins(.Object, bins)
     if(pick){
       .Object <- pickPeaks(.Object)
@@ -158,6 +174,7 @@ setMethod(
     .Object@debris <- debris
     .Object@opts <- opts
     .Object <- addComponents(.Object)
+    .Object <- setLimits(.Object)
     .Object <- makeModel(.Object)
     .Object <- getInit(.Object)
     callNextMethod(.Object, ...)
@@ -167,12 +184,30 @@ setMethod(
 ## Accessors ##
 ###############
 
+fhGate <- function(fh){
+  fh@gate
+}
+
+`fhGate<-` <- function(fh, value){
+  fh@gate <- value
+  fh
+}
+
 fhLimits <- function(fh){
   fh@limits
 }
 
 `fhLimits<-` <- function(fh, value){
   fh@limits <- value
+  fh
+}
+
+fhSamples <- function(fh){
+  fh@samples
+}
+
+`fhSamples<-` <- function(fh, value){
+  fh@samples <- value
   fh
 }
 
@@ -210,6 +245,16 @@ fhModel <- function(fh){
 `fhModel<-` <- function(fh, value){
   fh@model <- value
   fh
+}
+
+fhSpecialParams <- function(fh){
+  names(getSpecialParams(fh))
+}
+
+fhArgs <- function(fh){
+  res <- names(formals(fhModel(fh)))
+  res <- res[!res %in% fhSpecialParams(fh)]
+  res
 }
 
 fhNLS <- function(fh){
@@ -318,10 +363,7 @@ fhRaw <- function(fh){
 resetFlowHist <- function(fh, from = "peaks"){
   ## Clear analysis slots
   ## Default is to clear everything from peaks onwards
-  removeFrom <- c("peaks", "comps")
-  ## Dependencies
-  ## - changing peaks changes everything
-  ## - changing comps changes model, init, nls
+  removeFrom <- c("gate", "peaks", "comps", "limits")
 
   ## coded to allow for further refinement, if/when additions to the
   ## FlowHist class makes it sensible to change the granularity of slot
@@ -331,11 +373,17 @@ resetFlowHist <- function(fh, from = "peaks"){
 
   rmF <- function(x)
     removeNum <= which(removeFrom == x)
-  
+
+  if(rmF("gate")){
+    fhGate(fh) <- logical()
+    fh <- setBins(fh)                   # recreate histData
+  }
   if(rmF("peaks"))
     fhPeaks(fh) <- matrix()
   if(rmF("comps")){
     fhComps(fh) <- list()
+  }
+  if(rmF("limits")){    
     fhLimits(fh) <- list()
     fhModel(fh) <- function(){}
     fhInit(fh) <- list()
@@ -356,11 +404,12 @@ resetFlowHist <- function(fh, from = "peaks"){
 #' @export
 FlowHist <- function(file, channel, bins = 256, window = 20, smooth = 20,
                      pick = FALSE, linearity = "variable", debris = "SC",
-                     opts = list(), analyze = TRUE){
+                     opts = list(), samples = 2, gate = logical(),
+                     analyze = TRUE){
   fh <-  new("FlowHist", file = file, channel = channel,
              bins = as.integer(bins), window = window, smooth = smooth,
              pick = pick, linearity = linearity, debris = debris,
-             opts = opts)
+             opts = opts, samples = samples, gate = gate)
   if(analyze)
     fh <- fhAnalyze(fh)
   return(fh)
@@ -368,12 +417,15 @@ FlowHist <- function(file, channel, bins = 256, window = 20, smooth = 20,
 
 #' Displays the column names present in an FCS file
 #'
-#' A convenience function for viewing column names in an FCS, in order to
-#'   select one for the \code{channel} argument in \code{\link{FlowHist}}.
+#' A convenience function for viewing column names in a FCS data file, or a
+#' FlowHist object. Used to select one for the \code{channel} argument
+#' in \code{\link{FlowHist}}, or for viewing additional channels for use in
+#' gating.
 #' 
 #' @title viewFlowChannels
-#' @param file character, the name of a FCS data file
-#' @return A vector of column names from the FCS file.
+#' @param file character, the name of a FCS data file; or the name of a
+#'   FlowHist object.
+#' @return A vector of column names from the FCS file/FlowHist object.
 #' @seealso \code{\link{FlowHist}}
 #' @author Tyler Smith
 #' @examples
@@ -381,10 +433,14 @@ FlowHist <- function(file, channel, bins = 256, window = 20, smooth = 20,
 #' viewFlowChannels(flowPloidyFiles[1])
 #' @export
 viewFlowChannels <- function(file){
-  tmp <- read.FCS(file, alter.names = TRUE, dataset = 1)
-  cnames <- colnames(exprs(tmp))
-  names(cnames) <- NULL
-  cnames
+  if(class(file) == "FlowHist"){
+    res <- colnames(exprs(fhRaw(file)))
+  } else {
+    tmp <- read.FCS(file, alter.names = TRUE, dataset = 1)
+    res <- colnames(exprs(tmp))
+  }
+  names(res) <- NULL
+  res
 }
 
 
@@ -399,13 +455,14 @@ viewFlowChannels <- function(file){
 #' @export
 batchFlowHist <- function(files, channel, bins = 256, verbose = TRUE,
                       window = 20, smooth = 20, linearity = "variable",
-                      debris = "SC"){ 
+                      debris = "SC", samples = 2){ 
   res <- list()
   for(i in seq_along(files)){
     if(verbose) message("processing ", files[i])
     tmpRes <- FlowHist(file = files[i], channel = channel, bins = bins,
                        window = window, smooth = smooth, pick = FALSE,
-                       linearity = linearity, debris = debris)
+                       linearity = linearity, debris = debris,
+                       samples = samples)
     res[[fhFile(tmpRes)]] <- tmpRes
   }              
   return(res)
@@ -418,6 +475,7 @@ setMethod(
     cat("FlowHist object '")
     cat(fhFile(object)); cat("'\n")
     cat("channel: "); cat(fhChannel(object)); cat("\n")
+    cat(fhSamples(object)); cat(" samples"); cat("\n")
     cat("bins: "); cat(fhBins(object)); cat("\n")
     cat("linearity: "); cat(fhLinearity(object)); cat("\n")
     cat("debris: "); cat(fhDebris(object)); cat("\n")
@@ -448,8 +506,8 @@ setMethod(
     if(length(object@CV) > 0){
     cvs <- c(fhCV(object)$CVa, fhCV(object)$CVb)
     if(!is.null(fhCV(object)$CVb)){
-      cat(paste("\nRatio Peak A / Peak B: ", round(fhCV(object)$CI[1], 3),
-                ", SE: ", round(fhCV(object)$CI[2], 5), sep = ""))
+      cat(paste("\nRatio Peak A / Peak B: ", round(fhCV(object)$AB[1], 3),
+                ", SE: ", round(fhCV(object)$AB[2], 5), sep = ""))
     }
   }
 
@@ -488,9 +546,9 @@ setMethod(
 #' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
 #' plotFH(fh1)
 #' @export
-plotFH <- function(fh, ...){
+plotFH <- function(fh, main = fhFile(fh), ...){
   ## plots the raw data for a FlowHist object
-  plot(fhHistData(fh)$intensity, type = 'n', main = fhFile(fh),
+  plot(fhHistData(fh)$intensity, type = 'n', main = main,
        ylab = "Intensity", xlab = fhChannel(fh), ...)
   polygon(x = c(fhHistData(fh)$xx, max(fhHistData(fh)$xx) + 1),
           y = c(fhHistData(fh)$intensity, 0),
@@ -512,8 +570,9 @@ plotFH <- function(fh, ...){
 #' @return Not applicable
 #' @author Tyler Smith
 #' @export
-plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE, ...){
-  plotFH(x, ...)
+plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
+                          main = fhFile(x), ...){
+  plotFH(x, main = main, ...)
 
   if(init){
     yy <- with(fhHistData(x),
@@ -522,23 +581,36 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE, ...){
     lines(x = fhHistData(x)$xx,
           y = yy, 
           col = "grey", lwd = 1, lty = 5)
-    abline(v = fhInit(x)$Ma, col = "blue", lwd = 2)
     points(x = fhInit(x)$Ma,
            y  = fhHistData(x)$intensity[round(fhInit(x)$Ma, 0)],
-           cex = 2, pch = 16, col = "blue")
-    text(paste("Samp. A: ", round(fhInit(x)$Ma, 0)), cex = 1,
+           cex = 1.5, pch = 16, col = "blue")
+    text("A", cex = 1,
          x = fhInit(x)$Ma, col = "blue", pos = 2,
-         y = grconvertY(0.9, from = "npc", to = "user"))
-    abline(v = 2 * fhInit(x)$Ma, col = "blue", lwd = 0.5)
+         y = fhHistData(x)$intensity[round(fhInit(x)$Ma, 0)])
+    points(x = 2 * fhInit(x)$Ma,
+           y = fhHistData(x)$intensity[round(2 * fhInit(x)$Ma, 0)],
+           col = "blue", cex = 1.5)
     if(! is.null(fhInit(x)$Mb)){
-      abline(v = fhInit(x)$Mb, col = "orange", lwd = 2)
       points(x = fhInit(x)$Mb,
              y = fhHistData(x)$intensity[round(fhInit(x)$Mb, 0)],
-             cex = 2, pch = 16, col = "orange")
-      text(paste("Samp. B: ", round(fhInit(x)$Mb, 0)), cex = 1,
+             cex = 1.5, pch = 16, col = "orange")
+      text("B", cex = 1,
            x = fhInit(x)$Mb, col = "orange", pos = 2,
-           y = grconvertY(0.7, from = "npc", to = "user"))
-      abline(v = 2 * fhInit(x)$Mb, col = "orange", lwd = 0.5)
+           y = fhHistData(x)$intensity[round(fhInit(x)$Mb, 0)])
+      points(x = 2 * fhInit(x)$Mb,
+             y = fhHistData(x)$intensity[round(2 * fhInit(x)$Mb, 0)],
+             col = "orange", cex = 1.5)
+    }
+    if(! is.null(fhInit(x)$Mc)){
+      points(x = fhInit(x)$Mc,
+             y = fhHistData(x)$intensity[round(fhInit(x)$Mc, 0)],
+             cex = 1.5, pch = 16, col = "darkgreen")
+      text("C", cex = 1,
+           x = fhInit(x)$Mc, col = "darkgreen", pos = 2,
+           y = fhHistData(x)$intensity[round(fhInit(x)$Mc, 0)])
+      points(x = 2 * fhInit(x)$Mc,
+             y = fhHistData(x)$intensity[round(2 * fhInit(x)$Mc, 0)],
+             col = "green", cex = 1.5)
     }
   }
 
@@ -547,33 +619,49 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE, ...){
     lines(x = fhHistData(x)$xx[-(1:(fhStart(fhHistData(x)$intensity) -
                                     1))], 
           y = predict(fhNLS(x)), col = 2)
+    yPos <- grconvertY(0.95, from = "npc", to = "user") # starting pos
+    lHt <- par("cxy")[2]                # line height
     text(paste("RCS: ", round(dat$rcs, 3)), cex = 1, pos = 2,
          x = grconvertX(0.975, from = "npc", to = "user"),
-         y = grconvertY(0.95, from = "npc", to = "user"))
+         y = yPos)
+    yPos <- yPos - lHt
     text(paste("A: ", round(dat$sizeA, 1), "/",
                round(dat$countsA, 1), "/",
-               round(dat$cvA, 3)),
+               round(100 * dat$cvA, 1)),
          cex = 1, pos = 2, col = "blue",
          x = grconvertX(0.975, from = "npc", to = "user"),
-         y = grconvertY(0.95, from = "npc", to = "user") - par("cxy")[2])
-    text(paste("B: ", round(dat$sizeB, 1), "/",
-               round(dat$countsB, 1), "/",
-               round(dat$cvB, 3)),
-         cex = 1, pos = 2, col = "orange",
-         x = grconvertX(0.975, from = "npc", to = "user"),
-         y = grconvertY(0.95, from = "npc", to = "user") -
-           par("cxy")[2] * 2)
-    text(paste("A/B:  ",
-               round(dat$ratioAB, 3)), cex = 1, pos = 2,
-         x = grconvertX(0.975, from = "npc", to = "user"),
-         y = grconvertY(0.95, from = "npc", to = "user") -
-           par("cxy")[2] * 3)
-    text(paste("Linearity: ",
-               round(dat$linearity, 3)), cex = 1,
+         y = yPos)
+    yPos <- yPos - lHt
+
+    if(!is.na(dat$sizeB)){
+      text(paste("B: ", round(dat$sizeB, 1), "/",
+                 round(dat$countsB, 1), "/",
+                 round(100 * dat$cvB, 1)),
+           cex = 1, pos = 2, col = "orange",
+           x = grconvertX(0.975, from = "npc", to = "user"),
+           y = yPos)
+      yPos <- yPos - lHt
+    }
+
+    if(!is.na(dat$sizeC)){
+      text(paste("C: ", round(dat$sizeC, 1), "/",
+                 round(dat$countsC, 1), "/",
+                 round(100 * dat$cvC, 1)),
+           cex = 1, pos = 2, col = "darkgreen",
+           x = grconvertX(0.975, from = "npc", to = "user"),
+           y = yPos)
+      yPos <- yPos - lHt
+    }
+
+    if(is.na(dat$linearity))
+      linval <- "fixed"
+    else
+      linval <- round(dat$linearity, 3)
+    
+    text(paste("Linearity: ", linval), cex = 1,
          pos = 2, 
          x = grconvertX(0.975, from = "npc", to = "user"),
-         y = grconvertY(0.95, from = "npc", to = "user") -
-           par("cxy")[2] * 4) 
+         y = yPos) 
 
   }
 
@@ -639,45 +727,50 @@ tabulateFlowHist <- function(fh, file = NULL){
 }
 
 exFlowHist <- function(fh){
+  df <- data.frame(file = fhFile(fh), channel = fhChannel(fh),
+                   components = paste(names(fhComps(fh)), collapse = ";"),
+                   totalEvents = sum(fhHistData(fh)$intensity))
+  
   if(length(fhNLS(fh)) > 0){
+    df$countsA = fhCounts(fh)$firstPeak$value
+    df$countsB = ifelse(is.null(fhCounts(fh)$secondPeak$value), NA,
+                        fhCounts(fh)$secondPeak$value)
+    df$countsC = ifelse(is.null(fhCounts(fh)$thirdPeak$value), NA,
+                        fhCounts(fh)$thirdPeak$value)
+    df$sizeA = coef(fhNLS(fh))["Ma"]
+    df$sizeB = coef(fhNLS(fh))["Mb"]
+    df$sizeC = coef(fhNLS(fh))["Mc"]
+    df$cvA = fhCV(fh)$CVa
+    df$cvB = ifelse(is.null(fhCV(fh)$CVb), NA, fhCV(fh)$CVb)
+    df$cvC = ifelse(is.null(fhCV(fh)$CVc), NA, fhCV(fh)$CVc)
+    df$AB = unlist(ifelse(is.null(fhCV(fh)$AB[1]), NA,
+                          fhCV(fh)$AB[1]))
+    df$ABse = unlist(ifelse(is.null(fhCV(fh)$AB[2]), NA,
+                            fhCV(fh)$AB[2]))
+
+    df$AC = unlist(ifelse(is.null(fhCV(fh)$AC[1]), NA,
+                          fhCV(fh)$AC[1]))
+    df$ACse = unlist(ifelse(is.null(fhCV(fh)$AC[2]), NA,
+                            fhCV(fh)$AC[2]))
+
+    df$BC = unlist(ifelse(is.null(fhCV(fh)$BC[1]), NA,
+                                     fhCV(fh)$BC[1]))
+    df$BCse = unlist(ifelse(is.null(fhCV(fh)$BC[2]), NA,
+                            fhCV(fh)$BC[2]))
+
+    df$rcs = fhRCS(fh)
+
     if(fhLinearity(fh) == "variable")
-      linearity = coef(fhNLS(fh))["d"]
+      df$linearity = coef(fhNLS(fh))["d"]
     else
-      linearity = NA
-             
-    data.frame(file = fhFile(fh), channel = fhChannel(fh),
-             components = paste(names(fhComps(fh)), collapse = ";"),
-             totalEvents = sum(fhHistData(fh)$intensity),
-             countsA = fhCounts(fh)$firstPeak$value,
-             countsB = ifelse(is.null(fhCounts(fh)$secondPeak$value), NA,
-                              fhCounts(fh)$secondPeak$value),
-             sizeA = coef(fhNLS(fh))["Ma"],
-             sizeB = coef(fhNLS(fh))["Mb"],
-             cvA = fhCV(fh)$CVa,
-             cvB = ifelse(is.null(fhCV(fh)$CVb), NA, fhCV(fh)$CVb),
-             ratioAB = unlist(ifelse(is.null(fhCV(fh)$CI[1]), NA,
-                                     fhCV(fh)$CI[1])),
-             ratioSE = unlist(ifelse(is.null(fhCV(fh)$CI[2]), NA,
-                                     fhCV(fh)$CI[2])),
-             rcs = fhRCS(fh),
-             linearity = linearity,
-             row.names = NULL)
+      df$linearity = NA
+    row.names(df) = NULL
   } else {
-    data.frame(file = fhFile(fh), channel = fhChannel(fh),
-               components = paste(names(fhComps(fh)), collapse = ";"),
-               totalEvents = sum(fhHistData(fh)$intensity),
-               countsA = NA,
-               countsB = NA,
-               sizeA = NA,
-               sizeB = NA,
-               cvA = NA,
-               cvB = NA,
-               ratioAB = NA,
-               ratioSE = NA,
-               rcs = NA,
-               linearity = NA,
-               row.names = NULL)
+    df[, c("countsA", "countsB", "countsC", "sizeA", "sizeB", "sizeC",
+           "cvA", "cvB", "cvC", "AB", "ABse", "AC", "ACse", "BC", "BCse",
+           "rcs", "linearity")] <- NA 
   }
+  df
 }
 
 #################################################
@@ -714,11 +807,18 @@ setBins <- function(fh, bins = 256){
 
   ## Extract the data channel
   chanDat <- exprs(fhRaw(fh))[, fhChannel(fh)]
-
+  gateResid <- NULL
+  gate <- fhGate(fh)
   ## remove the top bin - this contains clipped values representing all
   ## out-of-range data, not true values
   chanTrim <- chanDat[chanDat < max(chanDat)]
-
+  gate <- gate[chanDat < max(chanDat)]
+  
+  if(sum(fhGate(fh)) != 0){
+    gateResid <- chanTrim[!gate]
+    chanTrim <- chanTrim[gate]
+  }
+  
   metaData <- pData(parameters(fhRaw(fh)))
   maxBins <- metaData[which(metaData$name == fhChannel(fh)), "range"]
   
@@ -736,10 +836,17 @@ setBins <- function(fh, bins = 256){
   DBvals <- getDoubletVals(intensity)
   TRvals <- getTripletVals(intensity, DBvals)
   QDvals <- getQuadrupletVals(intensity, DBvals, TRvals)
+
+  if(!is.null(gateResid)){
+    gateResid <- hist(gateResid, breaks = histBins$breaks,
+                      plot = FALSE)$counts
+  } else {
+    gateResid <- numeric(length(intensity))
+  }
   fhHistData(fh) <- data.frame(xx = xx, intensity = intensity,
                             SCvals = SCvals, MCvals = MCvals,
                             DBvals = DBvals, TRvals = TRvals,
-                            QDvals = QDvals)
+                            QDvals = QDvals, gateResid = gateResid)
   fh <- resetFlowHist(fh)
   fh
 }
@@ -849,20 +956,7 @@ findPeaks <- function(fh, window = 20, smooth = 20){
                 i <- i - 1
               }
           }}
-    ## while(i < length(dat) && dat[i] < max(dat[c(i - 1, i + 1)], TRUE)){
-    ##   if(dat[i + 1] > dat[i -1]){
-    ##     isMax[i] <- FALSE
-    ##     isMax[i + 1] <- TRUE
-    ##     i <- i + 1
-    ##   } else {
-    ##     if(i == 1)
-    ##       break
-    ##     else {
-    ##       isMax[i] <- FALSE
-    ##       isMax[i - 1] <- TRUE
-    ##       i <- i - 1
-    ##     }
-    ##   }}}
+
   maxVals <- dat[isMax]                 # use the raw data for heights 
   res <- cbind(mean = (1:length(dat))[isMax], height = maxVals)
   fhPeaks(fh) <- res
@@ -917,7 +1011,7 @@ cleanPeaks <- function(fh, window = 20){
         drop <- c(drop, i)
       }
     }
-  
+
   if(length(drop) > 0){                  # there was at least one tie 
     peaks <- peaks[-drop, ]
   }
@@ -952,7 +1046,7 @@ cleanPeaks <- function(fh, window = 20){
 
   rownames(out) <- NULL
 
-  out <- out[1:min(2, nrow(out)), , drop = FALSE]
+  ## out <- out[1:min(2, nrow(out)), , drop = FALSE]
   if(nrow(out) > 1){
     out <- out[order(out[, "mean"]), ]
   }
@@ -1006,6 +1100,7 @@ pickInit <- function(fh){
 
   fh <- pickPeaks(fh)
   fh <- addComponents(fh)
+  fh <- setLimits(fh)
   fh <- makeModel(fh)
   fh <- getInit(fh)
   fh
@@ -1046,7 +1141,8 @@ pickPeaks <- function(fh){
 #' @param debris character, either "SC", the default, or "MC", to set the
 #'   debris model component to the Single-Cut or Multi-Cut models.
 #' @param analyze boolean, if TRUE the updated model will be analyzed
-#'   immediately 
+#'   immediately
+#' @param samples integer, the number of samples in the data
 #' @return a \code{\link{FlowHist}} object with the modified values of linearity
 #'   and/or debris, and, if \code{analyze} was TRUE, a new NLS fitting
 #' @author Tyler Smith
@@ -1059,10 +1155,11 @@ pickPeaks <- function(fh){
 #' plot(fh1)
 #' @export
 updateFlowHist <- function(fh, linearity = NULL, debris = NULL,
-                           analyze = TRUE){
+                           samples = NULL, analyze = TRUE){
   ## keep the existing peaks, as they may have already been tweaked by the
   ## user
   message("updating FlowHist")
+
   if(!is.null(linearity))
     if(linearity %in% c("fixed", "variable"))
       fhLinearity(fh) <- linearity
@@ -1073,9 +1170,16 @@ updateFlowHist <- function(fh, linearity = NULL, debris = NULL,
       fhDebris(fh) <- debris
     else
       stop("Invalid debris value")
+  if(!is.null(samples))
+    if(samples > 0 && samples < 4)
+      fhSamples(fh) <- as.integer(samples)
+    else
+      stop("Invalid sample number: must be between 1 and 3")
   
   fh <- resetFlowHist(fh, from = "comps")
+  
   fh <- addComponents(fh)
+  fh <- setLimits(fh)
   fh <- makeModel(fh)
   fh <- getInit(fh)
   if(analyze)

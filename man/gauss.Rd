@@ -4,13 +4,17 @@
 \alias{gauss}
 \title{Gaussian model components}
 \arguments{
-\item{a1, a2, b1, b2}{area parameters}
+\item{a1, a2, b1, b2, c1, c2}{area parameters}
 
-\item{Ma, Mb}{curve mean parameter}
+\item{Ma, Mb, Mc}{curve mean parameter}
 
-\item{Sa, Sb}{curve standard deviation parameter}
+\item{Sa, Sb, Sc}{curve standard deviation parameter}
 
 \item{xx}{vector of histogram intensities}
+
+\item{d}{numeric, the ratio of G2/G1 peak means. When linearity is
+fixed, this is set to 2. Otherwise, it is fit as a model parameter
+bounded between 1.9 and 2.1.}
 }
 \value{
 NA
@@ -19,11 +23,24 @@ NA
 Components for modeling Gaussian features in flow histograms
 }
 \details{
-Typically the complete models will contain fA1 and fB2, which model the
-G1 peaks of the sample and the standard. In most cases, they will also
+Typically the complete models will contain fA1 and fB1, which model the
+G1 peaks of the sample and the standard. In many cases, they will also
 contain fA2 and fB2, which model the G2 peaks. The G2 peaks are linked
 to the G1 peaks, in that they require some of the parameters from the
 G1 peaks as well (mean and standard deviation).
+
+If the linearity parameter is set to "fixed", the G2 peaks will be fit
+as exactly 2 times the mean of the G1 peaks. If linearity is set to
+"variable", the ratio of the G2 peaks to the G1 peaks will be fit as a
+model parameter with an initial value of 2, and constrained to the range
+1.9 -- 2.1.
+
+Additionally, for each set of peaks (sample and standard(s)), a
+broadened rectangle component is included to model the S-phase. At
+present, this is component has a single parameter, the height of the
+rectangle. The standard deviation is fixed at 1. Allowing the SD to vary
+in the model fitting doesn't make an appreciable difference in my tests
+so far, so I've left it simple.
 }
 \author{
 Tyler Smith

@@ -8,10 +8,10 @@
 \usage{
 FlowHist(file, channel, bins = 256, window = 20, smooth = 20,
   pick = FALSE, linearity = "variable", debris = "SC", opts = list(),
-  analyze = TRUE)
+  samples = 2, gate = logical(), analyze = TRUE)
 
 batchFlowHist(files, channel, bins = 256, verbose = TRUE, window = 20,
-  smooth = 20, linearity = "variable", debris = "SC")
+  smooth = 20, linearity = "variable", debris = "SC", samples = 2)
 }
 \arguments{
 \item{file}{character, the name of the file to load}
@@ -22,10 +22,10 @@ batchFlowHist(files, channel, bins = 256, verbose = TRUE, window = 20,
 a histogram}
 
 \item{window}{the width of the moving window used to identify local
-maxima for peak detection via \code{caTools:runmax}}
+maxima for peak detection via \code{\link{caTools::runmax}}}
 
 \item{smooth}{the width of the moving window used to reduce noise in
-the histogram via \code{caTools::runmean}}
+the histogram via \code{\link{caTools::runmean}}}
 
 \item{pick}{boolean; if TRUE, the user will be prompted to select peaks
 to use for starting values. Otherwise (the default), starting values
@@ -41,26 +41,34 @@ debris model component to the Single-Cut or Multi-Cut models.}
 \item{opts}{list, currently not used, but maybe in future as a way to
 test additional model options}
 
+\item{samples}{integer; the number of samples in the data. Default is 2
+(unknown and standard), but can be set to 3 if two standards are  used.}
+
+\item{gate}{logical, a vector of events to exclude from analysis. In
+normal usage this will be set interactively, not as a function
+argument.}
+
 \item{analyze}{boolean, if TRUE the  model will be analyzed
 immediately}
 
 \item{files}{character, a vector of file names to load}
 
-\item{verbose}{boolean; if TRUE, \code{histBatch} will list files as it
-processes them.}
+\item{verbose}{boolean; if TRUE, \code{\link{histBatch}} will list files
+as it processes them.}
 }
 \value{
-\code{FlowHist} returns a \code{FlowHist} object.
+\code{\link{FlowHist}} returns a \code{\link{FlowHist}} object.
 
-\code{batchFlowHist} returns a list of \code{FlowHist} objects.
+\code{\link{batchFlowHist}} returns a list of \code{\link{FlowHist}}
+  objects.
 }
 \description{
-Creates a \code{FlowHist} object from an FCS file, setting up the
+Creates a \code{\link{FlowHist}} object from an FCS file, setting up the
 histogram data for analysis.
 }
 \details{
-Starting with a \code{flowFrame} object, read from a FCS file,
-\code{FlowHist} will:
+Starting with a \code{\link{flowFrame}} object, read from a FCS file,
+\code{\link{FlowHist}} will:
 
 \enumerate{
 \item Extract the intensity data from \code{channel}.
@@ -73,10 +81,10 @@ specified with the \code{bins} argument. The default is 256, but you may
 also try 128 or 512. Any integer is technically acceptable, but I
 wouldn't stray from the default without a good reason.
 
-\item identify model components to include. All \code{FlowHist} objects
-will have the single-cut debris model and the G1 peak for sample A, and
-the broadened rectangle for the S-phase of sample A. Depending on the
-data, additional components for the G2 peak and sample B (G1, G2,
+\item identify model components to include. All \code{\link{FlowHist}}
+objects will have the single-cut debris model and the G1 peak for sample
+A, and the broadened rectangle for the S-phase of sample A. Depending on
+the data, additional components for the G2 peak and sample B (G1, G2,
 s-phase) may also be added.
 
 \item Build the NLS model. All the components are combined into a single
@@ -84,11 +92,11 @@ model.
 
 \item Identify starting values for Gaussian (G1 and G2 peaks) model
 components. For reasonably clean data, the built-in peak detection is
-fine. You can evaluate this by plotting the \code{FlowHist} object with
-the argument \code{init = TRUE}. If it doesn't look good, you can play
-with the \code{window} and \code{smooth} arguments (which is tedious!),
-or pick the peaks visually yourself with \code{pick = TRUE}.
-}
+fine. You can evaluate this by plotting the \code{\link{FlowHist}}
+object with the argument \code{init = TRUE}. If it doesn't look good,
+you can play with the \code{window} and \code{smooth} arguments (which
+is tedious!), or pick the peaks visually yourself with \code{pick =
+TRUE}. }
 }
 \section{Slots}{
 
@@ -100,6 +108,10 @@ or pick the peaks visually yourself with \code{pick = TRUE}.
 \item{\code{bins}}{integer, the number of bins to use to aggregate events into a
 histogram}
 
+\item{\code{gate}}{logical, a vector indicating events to exclude from the
+analysis. In normal use, the gate will be modified via interactive
+functions, not set directly by users.}
+
 \item{\code{histdata}}{data.frame, the columns are the histogram bin number
 (xx), florescence intensity (intensity), and the raw single-cut debris
 model values (SCVals, used in model fitting). Additional columns may
@@ -109,11 +121,10 @@ position.}
 \item{\code{peaks}}{matrix, containing the coordinates used for peaks when
 calculcating initial parameter values.}
 
-\item{\code{comps}}{a list of \code{modelComponent} objects included for these
-data.}
+\item{\code{comps}}{a list of \code{\link{modelComponent}} objects included for
+these data.}
 
-\item{\code{model}}{the function (built from \code{comps}) to fit to these
-data.}
+\item{\code{model}}{the function (built from \code{comps}) to fit to these data.}
 
 \item{\code{init}}{a list of initial parameter estimates to use in fitting the
 model.}
@@ -126,6 +137,10 @@ model.}
 fitted model.}
 
 \item{\code{RCS}}{numeric, the residual chi-square for the fitted model.}
+
+\item{\code{samples}}{numeric, the number of samples included in the data. The
+default is 2 (i.e., unknown and standard), but if two standards are
+used it should be set to 3.}
 }}
 \examples{
 library(flowPloidyData) 

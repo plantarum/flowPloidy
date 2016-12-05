@@ -22,9 +22,14 @@
     All self contained now!
   - [X] update vignettes and examples to use flowPloidyData package to
     access sample files
-
-* Features [6/8]
-  - [ ] Gating
+  - [ ] The gate plot is updating to earlier when clicking 'set gate'. It
+    needs to wait until *after* the gate is set. As is, it ends up out of
+    sync with the applied gate. Need to study the way reactive functions
+    are processed and arrange for the correct order.
+* Features [8/9]
+  - [X] Need to provide an interface for visualizing an existing gate in
+    the browseFlowHist UI.
+  - [X] Gating
   - [ ] save and restore parameter estimates from nls
   - [X] S-phase
     After considering broadened trapezoids and broadened rectangles, and
@@ -50,3 +55,4 @@
   - [X] export results as a table for saving to disk
   - [X] batch processing
   - [X] switch to nlsLM for regressions
+    

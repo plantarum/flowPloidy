@@ -7,12 +7,13 @@
 browseFlowHist(flowList, debug = FALSE)
 }
 \arguments{
-\item{flowList}{a list of \code{FlowHist} objects}
+\item{flowList}{either a \code{\link{FlowHist}} object, or a list of
+\code{\link{FlowHist}} objects}
 
 \item{debug}{boolean, turns on debugging messages}
 }
 \value{
-Returns the list of \code{FlowHist} objects, updated by any
+Returns the list of \code{\link{FlowHist}} objects, updated by any
   changes made in the GUI.
 }
 \description{

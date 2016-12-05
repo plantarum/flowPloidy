@@ -4,10 +4,11 @@
 \alias{updateFlowHist}
 \title{updateFlowHist}
 \usage{
-updateFlowHist(fh, linearity = NULL, debris = NULL, analyze = TRUE)
+updateFlowHist(fh, linearity = NULL, debris = NULL, samples = NULL,
+  analyze = TRUE)
 }
 \arguments{
-\item{fh}{a \code{FlowHist} object}
+\item{fh}{a \code{\link{FlowHist}} object}
 
 \item{linearity}{character, either "variable", the default, or "fixed".
 If "fixed", linearity is fixed at 2; if "variable", linearity is fit
@@ -16,11 +17,13 @@ as a model parameter.}
 \item{debris}{character, either "SC", the default, or "MC", to set the
 debris model component to the Single-Cut or Multi-Cut models.}
 
+\item{samples}{integer, the number of samples in the data}
+
 \item{analyze}{boolean, if TRUE the updated model will be analyzed
 immediately}
 }
 \value{
-a \code{FlowHist} object with the modified values of linearity
+a \code{\link{FlowHist}} object with the modified values of linearity
   and/or debris, and, if \code{analyze} was TRUE, a new NLS fitting
 }
 \description{

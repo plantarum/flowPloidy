@@ -7,17 +7,20 @@
 viewFlowChannels(file)
 }
 \arguments{
-\item{file}{character, the name of a FCS data file}
+\item{file}{character, the name of a FCS data file; or the name of a
+FlowHist object.}
 }
 \value{
-A vector of column names from the FCS file.
+A vector of column names from the FCS file/FlowHist object.
 }
 \description{
 Displays the column names present in an FCS file
 }
 \details{
-A convenience function for viewing column names in an FCS, in order to
-  select one for the \code{channel} argument in \code{FlowHist}.
+A convenience function for viewing column names in a FCS data file, or a
+FlowHist object. Used to select one for the \code{channel} argument
+in \code{\link{FlowHist}}, or for viewing additional channels for use in
+gating.
 }
 \examples{
 library(flowPloidyData) 
@@ -27,6 +30,6 @@ viewFlowChannels(flowPloidyFiles[1])
 Tyler Smith
 }
 \seealso{
-\code{FlowHist}
+\code{\link{FlowHist}}
 }
 

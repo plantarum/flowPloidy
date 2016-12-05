@@ -7,15 +7,15 @@
 pickInit(fh)
 }
 \arguments{
-\item{fh}{A \code{flowHist} object}
+\item{fh}{A \code{\link{FlowHist}} object}
 }
 \value{
-\code{pickInit} returns the \code{flowHist} object with its
-  initial value slot updated.
+\code{\link{pickInit}} returns the \code{\link{FlowHist}} object
+  with its initial value slot updated.
 
-\code{pickPeaks} returns a matrix with each peak as a row, with the mean
-(position) in the first column, and the height (intensity) in the second
-column.
+\code{\link{pickPeaks}} returns a matrix with each peak as a row, with
+  the mean (position) in the first column, and the height (intensity) in
+  the second column.
 }
 \description{
 Prompts the user to select the peaks to use as initial
@@ -28,8 +28,8 @@ The raw histogram data are plotted, and the user is prompted to
   fails to discriminate between overlapping peaks, or is confused by
   noise.
 
-The normal use, \code{pickPeaks} is called from \code{pickInit}, rather
-  than directly by the user.
+The normal use, \code{\link{pickPeaks}} is called from
+  \code{\link{pickInit}}, rather than directly by the user.
 }
 \examples{
 library(flowPloidyData) 

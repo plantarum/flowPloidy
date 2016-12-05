@@ -4,10 +4,11 @@
 \alias{plot.FlowHist}
 \title{Plot histograms for FlowHist objects}
 \usage{
-\method{plot}{FlowHist}(x, init = FALSE, nls = TRUE, comps = TRUE, ...)
+\method{plot}{FlowHist}(x, init = FALSE, nls = TRUE, comps = TRUE,
+  main = fhFile(x), ...)
 }
 \arguments{
-\item{x}{a \code{FlowHist} object}
+\item{x}{a \code{\link{FlowHist}} object}
 
 \item{init}{boolean; if TRUE, plot the regression model using the
 initial parameter estimates over the raw data.}
