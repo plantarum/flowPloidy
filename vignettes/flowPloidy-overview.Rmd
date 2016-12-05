@@ -24,14 +24,14 @@ bibliography: flowPloidy.bibtex
 To install it, you must first have the Bioconductor system installed. To
 do, from within R, call:
 
-```{r, eval=FALSE}
+```{r bioconductor, eval=FALSE}
 source("https://bioconductor.org/biocLite.R")
 biocLite()
 ```
 
 Then install `flowPloidy`:
 
-```{r, eval=FALSE}
+```{r biocLite1, eval=FALSE}
 biocLite("flowPloidy")
 ```
 
@@ -40,7 +40,7 @@ the `flowPloidyData` package, which is also on BioConductor. (You don't
 need `flowPloidyData` to use `flowPloidy` on your own data, only for the
 examples).
 
-```{r, eval=FALSE}
+```{r biocLite2, eval=FALSE}
 biocLite("flowPloidyData")
 ```
 
@@ -50,7 +50,7 @@ You may also install the developmental version of `flowPloidy` directly
 from its [Github repository](https://github.com/plantarum/flowPloidy). To
 do so, you will need the `devtools` package:
 
-```{r, eval = FALSE}
+```{r install_github, eval = FALSE}
 install.packages("devtools", dependencies = TRUE)
 library("devtools")
 install_github("plantarum/flowPloidy")
@@ -68,9 +68,10 @@ Instructions on how to do so are available on the [BioConductor
 Once our packages are installed, we only need to load them into memory to
 use them: 
 
-```{r}
+```{r library}
 library(flowPloidy)
 library(flowPloidyData)
+FlowHist
 ```
 
 The `flowPloidyData` package provides a single variable, `flowPloidyFiles`.
@@ -85,7 +86,7 @@ You will need to know which channel to use for your analysis. This will
 most likely remain the same for all analyses from the same flow cytometer.
 We can use the `viewFlowChannels` function to see the options:
 
-```{r, output = "hold"}
+```{r viewFlowChannel, output = "hold"}
 viewFlowChannels(flowPloidyFiles[1])
 ```
 
@@ -101,7 +102,7 @@ interested in. In our case, it's "`FL3.INT.LIN`".
 With all the necessary packages installed, and the name of the channel of
 interest identified, we are ready to proceed with a `flowPloidy` analysis.
 
-```{r}
+```{r fh1 FlowHist}
 fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN",
                 analyze = FALSE)
 ```
@@ -150,7 +151,7 @@ The initial estimate is rough, but in this case it's close enough for the
 model-fitting routines to find a solution, so we can immediately proceed to
 the complete analysis.
 
-```{r}
+```{r fhAnalyze}
 fh1 <- fhAnalyze(fh1)
 ```
 
@@ -189,7 +190,7 @@ counts / coefficient of variation`. We can see that the coarse initial
 estimates were indeed close enough to give us a reasonable model fitting.
 The numerical results are now available by printing the `FlowHist` object:
 
-```{r, output = "hold"}
+```{r fh1 print, output = "hold"}
 fh1
 ```
 
@@ -215,7 +216,7 @@ selection of initial values. The model was fit, but the results are
 nonsense. We can manually set the appropriate starting values with
 `pickInit`:
 
-```{r, eval = FALSE}
+```{r pickInit, eval = FALSE}
 fh2 <- pickInit(fh2)
 ```
 
@@ -234,6 +235,7 @@ flowPloidy:::fhPeaks(fh2) <-
             .Dimnames = list(NULL, c("mean", "height")))
 
 fh2 <- flowPloidy:::addComponents(fh2)
+fh2 <- flowPloidy:::setLimits(fh2)
 fh2 <- flowPloidy:::makeModel(fh2)
 fh2 <- flowPloidy:::getInit(fh2)
 
@@ -305,20 +307,20 @@ below.
 To summarize the results in a data table, use the `tabulateFlowHist`
 command: 
 
-```{r}
+```{r tabulateFlowHist1}
 tabulateFlowHist(fh1)
 ```
 
 To combine multiple objects in a single summary, combine them as a list:
 
-```{r}
+```{r tabulateFlowHist2}
 tabulateFlowHist(list(fh1, fh2))
 ```
 
 As a convenience, if you pass a file name to the `file` argument of
 `exportFlowHist`, the table will be saved to that file:
 
-```{r, eval = FALSE}
+```{r tabulateFlowHist write, eval = FALSE}
 tabulateFlowHist(list(fh1, fh2), file = "flow-results.csv")
 ```
 
@@ -332,20 +334,20 @@ it, you need a list of file names to process. The R function `list.files()`
 is helpful here. If your FCS files are in the directory "`datadir/`", you
 can collect all their names using:
 
-```{r, eval = FALSE}
+```{r list.files, eval = FALSE}
 my.files <- list.files("datadir/", full.names = TRUE)
 ```
 
 If you have a mix of FCS files and other files together, you can supply a
 pattern to match only your data:
 
-```{r, eval = FALSE}
+```{r list.files pattern, eval = FALSE}
 my.files <- list.files("datadir/", pattern = ".LMD", full.names = TRUE)
 ```
 
 If you want to combine directories, use `c()`:
 
-```{r, eval = FALSE}
+```{r list.files combine, eval = FALSE}
 my.files <- list.files("datadir1/", full.names = TRUE)
 my.files <- c(my.files, list.files("datadir2/", full.names = TRUE))
 ```
@@ -414,13 +416,13 @@ the problems shortly!)
 
 You can export the results with `tabulateFlowHist()`:
 
-```{r}
+```{r tabulateFlowHist histBatch}
 tabulateFlowHist(batch1)
 ```
 
 You can scroll through the resulting plots with the following code:
 
-```{r, eval = FALSE}
+```{r base graphics viewer, eval = FALSE}
 parOld <- par(ask = TRUE)
 lapply(batch1, FUN = plot)
 ## press enter to scroll through your files!
@@ -539,7 +541,7 @@ Remember, if you don't pass a `file` argument to `tabulateFlowHist` it only
 prints the results to he screen, they aren't saved in a file (which file
 could it be?). To save the results of your analysis to disk, use:
 
-```{r, eval = FALSE}
+```{r tabulateFlowHist(batch1), eval = FALSE}
 tabulateFlowHist(batch1, file = "my-analysis-output.csv")
 ```
 
