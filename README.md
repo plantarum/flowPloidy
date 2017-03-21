@@ -1,10 +1,20 @@
 # flowPloidy
 
+## Caution!
+
+The development version of flowPloidy is working well, and corrects a
+number of issues present in the stable version. However, the documentation
+is now (2017-03-03) out-dated! Work to update the help files and vignettes
+is ongoing.
+
 ## Installation
 
-`flowPloidy` is now available in the devel branch of  [Bioconductor](https://bioconductor.org). 
+### Stable Version
 
-To install it, you need to install the `bioconductor` R package (more details on the [Bioconductor site ](http://bioconductor.org/install/)):
+`flowPloidy` is available in [Bioconductor](https://bioconductor.org).
+
+To install it, you need to install the `bioconductor` R package (more
+details on the [Bioconductor site ](http://bioconductor.org/install/)):
 
 ```{r}
 ## try http:// if https:// URLs are not supported
@@ -12,19 +22,8 @@ source("https://bioconductor.org/biocLite.R")
 biocLite()
 ```
 
-Once that's installed, you need to select the "Devel Branch":
-
-```{r}
-library(BiocInstaller)
-useDevel()
-biocValid()              # checks for out of date packages
-biocLite()               # (optional) updates out of date packages
-```
-
-(for more details on using the
-[Bioconductor Devel Version](http://bioconductor.org/developers/how-to/useDevel/) see the linked page)
-
-With Bioconductor set to the devel version, you can now install `flowPloidy` directly. In order to use the examples in the vignette and the help files, you'll also need to install `flowPloidyData`:
+Once that's installed, you can install `flowPloidy` using the Bioconductor
+tools:
 
 ```{r}
 biocLite("flowPloidy")
@@ -35,13 +34,39 @@ This should pull in all the package dependencies for `flowPloidy`, after
 which you can load the package with the normal function
 `library("flowPloidy")`.
 
+### Development Version
+
+Bioconductor focuses on stable software, and consequently only releases
+updates once every 6 months. Development on `flowPloidy` is currently
+(March 2017) proceeding at a faster rate. You may install the development
+version directly from the GitHub repository if you wish to use the latest
+updates:
+
+```{r}
+## Install Bioconductor tools first:
+source("https://bioconductor.org/biocLite.R")
+biocLite()
+
+## Install flowCore from Bioconductor:
+biocLite("flowCore")
+
+## Install devtools so you can directly access GitHub
+install.packages(devtools)
+library(devtools)
+
+## Install flowPloidy:
+install_github("plantarum/flowPloidy", dependencies = TRUE, 
+    build_vignettes = TRUE)
+```
+
 ## Getting Started
 
 ```{r}
 library("flowPloidy")
 ```
 
-The `flowPloidy` workflow is documented in the vignette, which you can view from R:
+The `flowPloidy` workflow is documented in the vignette, which you can view
+from R:
 
 ```{r}
 fpVig <- vignette("flowPloidy-overview")

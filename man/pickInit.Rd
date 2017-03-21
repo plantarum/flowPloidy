@@ -2,9 +2,12 @@
 % Please edit documentation in R/FlowHist.R
 \name{pickInit}
 \alias{pickInit}
+\alias{pickPeaks}
 \title{Interactively select model starting values}
 \usage{
 pickInit(fh)
+
+pickPeaks(fh)
 }
 \arguments{
 \item{fh}{A \code{\link{FlowHist}} object}
@@ -28,8 +31,12 @@ The raw histogram data are plotted, and the user is prompted to
   fails to discriminate between overlapping peaks, or is confused by
   noise.
 
-The normal use, \code{\link{pickPeaks}} is called from
+In normal use, \code{\link{pickPeaks}} is called from
   \code{\link{pickInit}}, rather than directly by the user.
+
+Note that the A peak must be lower (smaller mean, further left) than the
+  B peak. If the user selects the A peak with a higher mean than the B
+  peak, the peaks will be swapped to ensure A is lower.
 }
 \examples{
 library(flowPloidyData) 
@@ -43,4 +50,3 @@ plot(fh2, init = TRUE) ## revised starting values
 \author{
 Tyler Smith
 }
-

@@ -312,7 +312,7 @@ fhComponents$fB1 <-
     name = "fB1", color = "orange",
     desc = "Gaussian curve for G1 peak of sample B",
     includeTest = function(fh){
-      nrow(fhPeaks(fh)) > 1
+      nrow(fhPeaks(fh)) > 1 && fhSamples(fh) > 1
     },
     func = function(b1, Mb, Sb, xx){
       (b1 / (sqrt(2 * pi) * Sb) * exp(-((xx - Mb)^2)/(2 * Sb^2)))
@@ -331,7 +331,7 @@ fhComponents$fB2 <-
     name = "fB2", color = "orange",
     desc = "Gaussian curve for G2 peak of sample B",
     includeTest = function(fh){
-      if(nrow(fhPeaks(fh)) > 1)
+      if(nrow(fhPeaks(fh)) > 1 && fhSamples(fh) > 2)
         (fhPeaks(fh)[2, "mean"] * 2) <= nrow(fhHistData(fh))
       else
         FALSE
@@ -363,7 +363,7 @@ fhComponents$brB <-
     name = "brB", color = "turquoise",
     desc = "Broadened rectangle for S-phase of sample B",
     includeTest = function(fh){
-      nrow(fhPeaks(fh)) > 1        
+      nrow(fhPeaks(fh)) > 1 && fhSamples(fh) > 2
     },
     func = function(BRB, Mb, d, xx){
       ## 2 * 1 is a placeholder for 2 * sd, should we decide it's worth

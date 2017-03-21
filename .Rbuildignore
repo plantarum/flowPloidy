@@ -4,3 +4,6 @@
 ^.*\.Rhistory$
 test-script.R
 ^vignettes/.*pdf_document_files/
+^vignettes/auto
+^vignettes/design.Rmd
+NOTES.org

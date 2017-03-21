@@ -23,8 +23,9 @@ debris model component to the Single-Cut or Multi-Cut models.}
 immediately}
 }
 \value{
-a \code{\link{FlowHist}} object with the modified values of linearity
-  and/or debris, and, if \code{analyze} was TRUE, a new NLS fitting
+a \code{\link{FlowHist}} object with the modified values of
+  linearity and/or debris, and, if \code{analyze} was TRUE, a new NLS
+  fitting
 }
 \description{
 Update, and optionally re-analyze, a FlowHist object
@@ -44,4 +45,3 @@ plot(fh1)
 \author{
 Tyler Smith
 }
-

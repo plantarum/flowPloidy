@@ -2,7 +2,75 @@ library(devtools)
 library(flowPloidyData)
 load_all()
 
-batch1 <- batchFlowHist(flowPloidyFiles, channel="FL3.INT.LIN")
+
+etienne <- batchFlowHist(list.files("/home/tws/research/flow/etienne/",
+                                    full.names = TRUE),
+                         channel = "FL3.INT.LIN", standards = 2.5) 
+
+etBr <- browseFlowHist(etienne)
+
+e1 <- FlowHist("Calli+laxa-moved gate 2017-02-07 553.LMD",
+               channel = "FL3.INT.LIN")
+
+e1 <- FlowHist("Calliciprus+laxa 2017-02-07 550.LMD",
+               channel = "FL3.INT.LIN")
+
+e1 <- FlowHist("call1.LMD", channel = "FL3.INT.LIN")
+
+
+viewFlowChannels("~/research/flow/160930_HCT116_Ca-new.fcs")
+viewFlowChannels("~/research/flow/160930_HCT116_Ca.fcs")
+
+hct <- FlowHist("~/research/flow/160930_HCT116_Ca-new.fcs",
+                channel = "Propidium.Iodide.A")
+
+hctB <- browseFlowHist(hct)
+
+hctNoDebris <- dropComponents(hct, c("SC", "AG"))
+hctNoDebris <- fhAnalyze(hctNoDebris)
+
+plot(hctNoDebris, ylim = c(0, 800))
+
+browseFlowHist(hct)
+browseFlowHist(hctNoDebris)
+plot(hct, ylim = c(0, 800))
+
+hct <- FlowHist("~/research/flow/160930_HCT116_Ca-new.fcs",
+                channel = "Propidium.Iodide.A", bins = 512)
+
+batch1 <- batchFlowHist(flowPloidyFiles, channel="FL3.INT.LIN",
+                        standards = 2.5)
+b1 <- batch1[[1]]
+
+b1Br <- browseFlowHist(batch1)
+
+b1 <- batch1[[1]]
+
+do.call(integrate, c(substitute(fhModel(b1)), as.list(coef(fhNLS(b1))),
+                     lower = 0, upper = 256, subdivisions = 512,
+                     SCvals = substitute(fhHistData(b1)["SCvals"]),
+                     DBvals = substitute(fhHistData(b1)["DBvals"]),
+                     TRvals = substitute(fhHistData(b1)["TRvals"]),
+                     QDvals = substitute(fhHistData(b1)["QDvals"]))) 
+
+integrate(fhModel(b1), 
+          a1 = coef(fhNLS(b1))["a1"],
+          Ma = coef(fhNLS(b1))["Ma"],
+          Sa = coef(fhNLS(b1))["Sa"],
+          a2 = coef(fhNLS(b1))["a2"],
+          d = coef(fhNLS(b1))["d"],
+          BRA = coef(fhNLS(b1))["BRA"],
+          b1 = coef(fhNLS(b1))["b1"],
+          Mb = coef(fhNLS(b1))["Mb"],
+          Sb = coef(fhNLS(b1))["Sb"],
+          SCa = coef(fhNLS(b1))["SCa"],
+          SCvals = fhHistData(b1)["SCvals"], 
+          Ap = coef(fhNLS(b1))["Ap"],
+          DBvals = fhHistData(b1)["DBvals"],
+          TRvals = fhHistData(b1)["TRvals"],
+          QDvals = fhHistData(b1)["QDvals"],
+          lower = 0, upper = 256, subdivisions = 1000)
+
 b1b <- browseFlowHist(batch1)
 
 
@@ -12,6 +80,9 @@ vac2 <-
     channel = "FL2.A")
 
 browseFlowHist(vac2)
+
+vac2ND <- dropComponents(vac2, c("SC", "AG"))
+vac2NDAn <- browseFlowHist(vac2ND)
 
 dat <- exprs(fhRaw(vac2))
 thresh <- 0.05

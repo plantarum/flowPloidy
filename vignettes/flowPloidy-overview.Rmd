@@ -71,7 +71,6 @@ use them:
 ```{r library}
 library(flowPloidy)
 library(flowPloidyData)
-FlowHist
 ```
 
 The `flowPloidyData` package provides a single variable, `flowPloidyFiles`.

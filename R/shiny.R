@@ -1,9 +1,10 @@
-#' @importFrom shiny fluidPage nearPoints reactive radioButtons
-#'   actionButton plotOutput reactive eventReactive shinyApp titlePanel
-#'   sidebarLayout sidebarPanel htmlOutput fluidRow tags mainPanel
-#'   renderPrint renderTable renderPlot renderText column observe runApp
-#'   stopApp wellPanel updateRadioButtons HTML numericInput sliderInput
-#'   brushOpts eventReactive
+#' @importFrom shiny actionButton brushOpts brushedPoints column
+#'   eventReactive eventReactive fluidPage fluidRow HTML htmlOutput
+#'   mainPanel nearPoints numericInput observe observeEvent plotOutput
+#'   radioButtons reactive reactiveValues renderPlot renderPrint
+#'   renderTable renderText runApp selectInput shinyApp sidebarLayout
+#'   sidebarPanel sliderInput stopApp tags titlePanel updateNumericInput
+#'   updateRadioButtons updateSelectInput updateSliderInput wellPanel
 NULL
 
 #' @importFrom utils str
@@ -28,6 +29,9 @@ NULL
 #' @export
 browseFlowHist <- function(flowList, debug = FALSE){
   if(class(flowList) == "FlowHist"){
+    ## if flowList is a single FlowHist object, wrap it in a list so we can
+    ## use the same code for processing single and multiple FlowHist
+    ## objects. Convert back to a single object on return.
     flowList <- list(flowList)
     names(flowList) <- fhFile(flowList[[1]])
   }
@@ -38,6 +42,12 @@ browseFlowHist <- function(flowList, debug = FALSE){
   initialLinearity <- fhLinearity(.fhList[[1]])
 
   if(debug) message("init Linearity: ", initialLinearity)
+
+  initialStdSelected <- fhStdSelected(.fhList[[1]])
+  message("initialStdSelected: ", initialStdSelected)
+  standardList <- fhStdSizes(.fhList[[1]])
+  message("standardList: ", standardList)
+  initialStdPeak <- fhStdPeak(.fhList[[1]])
   
   initialDebris <- fhDebris(.fhList[[1]])
 
@@ -53,6 +63,12 @@ browseFlowHist <- function(flowList, debug = FALSE){
   
   initGateData <- data.frame(x = raw[, chan1],
                              y = raw[, chan2] / raw[, chan1]) 
+
+  maxY <- max(initGateData$y[!is.infinite(initGateData$y)],
+              na.rm = TRUE)
+
+  if(is.nan(maxY))
+    maxY <- 6
   
   ui <- fluidPage(
     tags$head(
@@ -62,6 +78,12 @@ browseFlowHist <- function(flowList, debug = FALSE){
       }
       #gatePlot, #gatedData, #gateResiduals {
           max-height: 300px;
+      }
+      #exit {
+          margin-top: 1.4em;
+      }
+      #setGate {
+          margin-top: 1.8em;
       }
     "))),
     fluidRow(
@@ -81,27 +103,41 @@ browseFlowHist <- function(flowList, debug = FALSE){
                                                  label = "Next"))))),
                tags$hr(),
                fluidRow(
-                 column(4, 
+                 column(6, 
                         numericInput('sampSelect', 'Samples',
-                                     initialSamples, min = 2, max = 3)),
-                 column(8,
-                        radioButtons(inputId = "peakPicker",
-                                     label = "Move peak:", 
-                                     choices = list("A" = "A",
-                                                    "B" = "B",
-                                                    "C" = "C"), 
-                                     selected = "A", inline = TRUE))),
-               tags$hr(),
-               radioButtons(inputId = "linearity",
-                            label = "Linearity",
-                            choices = list("Fixed" = "fixed",
-                                           "Variable" = "variable"), 
-                            inline = TRUE, selected = initialLinearity),
-               tags$hr(),
-               radioButtons(inputId = "debris",
-                            label = "Debris Model",
-                            choices = list("MC" = "MC", "SC" = "SC"),  
-                            inline = TRUE, selected = initialDebris)
+                                     initialSamples, min = 1, max = 3)),
+                 column(6,
+                        selectInput(inputId = "peakPicker",
+                                    label = "Peak",
+                                    selected = "A",
+                                    choices = list("A", "B", "C")))),
+               fluidRow(
+                 column(6, 
+                        selectInput(inputId = 'standardSelect',
+                                    label = 'Standard Value',
+                                    choices = standardList,
+                                    selected = initialStdSelected)),
+                 column(6,
+                        selectInput(inputId = "standardPeak",
+                                    label = "Standard Peak",
+                                    selected = initialStdPeak,
+                                    choices = list("X", "A",
+                                                   "B", "C")))) ,
+               fluidRow(
+                 column(6,
+                        selectInput(inputId = "linearity",
+                                    label = "Linearity",
+                                    selected = initialLinearity,
+                                    choices = list("Fixed" = "fixed",
+                                                   "Variable" =
+                                                     "variable"))),  
+                 column(6, 
+                        selectInput(inputId = "debris",
+                                    label = "Debris Model",
+                                    choices = list("MC" = "MC",
+                                                   "SC" = "SC", 
+                                                   "none" = "none"),  
+                                    selected = initialDebris)))
              ))),
       column(width = 9,
              plotOutput("fhHistogram", click = "pointPicker"))
@@ -121,10 +157,16 @@ browseFlowHist <- function(flowList, debug = FALSE){
                                     selected = chan2))),
                sliderInput("yrange", "Zoom", min = 0, ticks = FALSE,
                            step =
-                             max(4, ceiling(log(max(initGateData$y))))/20, 
-                           max = max(4, ceiling(log(max(initGateData$y)))),
+                             max(6, ceiling(log(maxY)))/20, 
+                           max = max(6, ceiling(log(maxY)), na.rm = TRUE),
                            value = 0, dragRange = FALSE),
-               actionButton("setGate", label = "Set Gate")))),
+               fluidRow(
+                 column(6, 
+                        selectInput('yType', 'Y axis', c("Y/X", "Y"),
+                                    selected = "Y/X")),
+                 column(6,
+                        actionButton("setGate", label = "Set Gate"))
+               )))),
       column(width = 3,
              plotOutput("gatePlot",
                         click = "gatePlot_click",
@@ -165,20 +207,22 @@ browseFlowHist <- function(flowList, debug = FALSE){
 
       ## fhNext/fhPrev --> rv$fhI --> fhCurrent --> rv$FH
       
-      updateRadioButtons(session, "linearity",
+      updateSelectInput(session, "linearity",
                          selected = fhLinearity(.fhList[[rv$fhI]]))
-
-      updateRadioButtons(session, "debris",
+      updateSelectInput(session, "debris",
                          selected = fhDebris(.fhList[[rv$fhI]]))
-
       updateNumericInput(session, "sampSelect",
                          value = fhSamples(.fhList[[rv$fhI]]))
+
+      updateSelectInput(session, "standardSelect",
+                         selected = fhStdSelected(.fhList[[rv$fhI]]))
+      updateSelectInput(session, "standardPeak",
+                         selected = fhStdPeak(.fhList[[rv$fhI]]))
       rv$FH <- .fhList[[rv$fhI]]
       rv$fhI
     })      
 
     fhSetGate <- observeEvent(input$setGate, { 
-      if(debug) message(prefix, "Setting gate")
       dat <- gateData()
       bp <- brushedPoints(dat, xvar = names(dat)[1],
                           yvar = names(dat)[2], input$gatePlot_brush,
@@ -223,26 +267,45 @@ browseFlowHist <- function(flowList, debug = FALSE){
     ## Not sure why the following toggle events don't respond as
     ## eventReactives?
     fhToggleLinearity <- observeEvent(input$linearity, {
-      .fhList[[fhCurrent()]] <<-
-        updateFlowHist(.fhList[[fhCurrent()]],
-                       linearity = input$linearity, analyze = TRUE)
-      rv$FH <- .fhList[[fhCurrent()]]
+      if(fhLinearity(.fhList[[fhCurrent()]]) != input$linearity){
+        .fhList[[fhCurrent()]] <<-
+          updateFlowHist(.fhList[[fhCurrent()]],
+                         linearity = input$linearity, analyze = TRUE)
+        rv$FH <- .fhList[[fhCurrent()]]
+      }
     })
     
     fhToggleDebris <- observeEvent(input$debris, {
-      .fhList[[fhCurrent()]] <<-
-        updateFlowHist(.fhList[[fhCurrent()]],
-                       debris = input$debris, analyze = TRUE)
-      rv$FH <- .fhList[[fhCurrent()]]
+      if(fhDebris(.fhList[[fhCurrent()]]) != input$debris){
+        .fhList[[fhCurrent()]] <<-
+          updateFlowHist(.fhList[[fhCurrent()]],
+                         debris = input$debris, analyze = TRUE)
+        rv$FH <- .fhList[[fhCurrent()]]
+      }
     })
 
     fhToggleSamples <- observeEvent(input$sampSelect, {
-      .fhList[[fhCurrent()]] <<-
-        updateFlowHist(.fhList[[fhCurrent()]],
+      if(fhSamples(.fhList[[fhCurrent()]]) != input$sampSelect){
+        .fhList[[fhCurrent()]] <<-
+          updateFlowHist(.fhList[[fhCurrent()]],
                          samples = input$sampSelect, analyze = TRUE)
-      rv$FH <- .fhList[[fhCurrent()]]
+        rv$FH <- .fhList[[fhCurrent()]]
+      }
     })
-    
+
+    fhUpdateStdPeak <- observeEvent(input$standardPeak, {
+      if(fhStdPeak(.fhList[[fhCurrent()]]) != input$standardPeak)
+        fhStdPeak(.fhList[[fhCurrent()]]) <<- input$standardPeak
+    })
+
+    fhUpdateStdSelected <- observeEvent(input$standardSelect, {
+      ## don't update the fh object if the input is the same as the actual
+      ## value (may come up when switching to a new object)
+      if(fhStdSelected(.fhList[[fhCurrent()]]) != input$standardSelect)
+        fhStdSelected(.fhList[[fhCurrent()]]) <<-
+          as.numeric(input$standardSelect) 
+    })
+
     observe({
       if(input$exit > 0){
         stopApp()
@@ -260,9 +323,12 @@ browseFlowHist <- function(flowList, debug = FALSE){
 
     observe({
       dat <- gateData()
+      maxY <- max(dat[,2][!is.nan(dat[,2]) & is.finite(dat[,2])],
+                  na.rm = TRUE)
       updateSliderInput(session, "yrange", 
-                        step = max(6, ceiling(log(max(dat[,2]))))/20,
-                        max = max(6, ceiling(log(max(dat[,2])))),
+                        step = max(6, ceiling(log(maxY)),
+                                   na.rm = TRUE )/20,
+                        max = max(6, ceiling(log(maxY)), na.rm = TRUE),
                         value = 0, min = 0)
     })
 
@@ -272,10 +338,16 @@ browseFlowHist <- function(flowList, debug = FALSE){
       chan2 <- input$ycol
 
       raw <<- exprs(fhRaw(.fhList[[fhCurrent()]]))
-      
+      if(input$yType == "Y/X"){
+        yvals <- raw[, chan2] / raw[, chan1]
+        yName <- paste(chan2, chan1, sep = "/")
+      } else if(input$yType == "Y"){
+        yvals <- raw[, chan2]
+        yName <- chan2
+      }
       df <- data.frame(x = raw[, chan1],
-                       y = raw[, chan2] / raw[, chan1])
-      names(df) <- c(chan1, paste(chan1, chan2, sep = "/"))
+                       y = yvals)
+      names(df) <- c(chan1, yName)
       df
     })
 
@@ -288,16 +360,19 @@ browseFlowHist <- function(flowList, debug = FALSE){
       forceChange <- input$setGate
       dat <- gateData()
       op = par(mar = gateMar)
-      if(isGated(.fhList[[fhCurrent()]])){
-      plot(dat, ylim = c(0, exp(log(max(dat[, 2])) - input$yrange)),
+      ## need to account for infinite values when setting plot ranges.
+      ## Infinite values generated when the dat[, 1] contains 0 values. 
+      maxY <- max(dat[!is.nan(dat[,2]) & is.finite(dat[,2]), 2],
+                  na.rm = TRUE)
+      plot(dat, ylim = c(0, exp(log(maxY) - input$yrange)),
            type = 'n')
-      points(dat[!fhGate(.fhList[[fhCurrent()]]), ], pch = 16,
-             col = "#05050510")
-      points(dat[fhGate(.fhList[[fhCurrent()]]), ], pch = 16,
-             col = "#80000010") 
+      if(isGated(.fhList[[fhCurrent()]])){
+        points(dat[!fhGate(.fhList[[fhCurrent()]]), ], pch = 16,
+               col = "#05050510")
+        points(dat[fhGate(.fhList[[fhCurrent()]]), ], pch = 16,
+               col = "#80000010") 
       } else
-        plot(dat, ylim = c(0, exp(log(max(dat[, 2])) - input$yrange)),
-             pch = 16, col = "#05050510")
+        points(dat, pch = 16, col = "#05050510")
 
       par(op)
     })
@@ -325,7 +400,14 @@ browseFlowHist <- function(flowList, debug = FALSE){
 
   }
   runApp(shinyApp(ui = ui, server = server))
-  return(.fhList)
+  if(length(.fhList) == 1){
+    ## if we started with one flowHist object, return one flowHist object
+    return(.fhList[[1]])
+  } else {
+    ## we started with a list of flowHist objects, return a list of
+    ## modified objects:
+    return(.fhList)
+  }
 }
 
 selectPeaks <- function(fh, peakA, peakB, peakC){
@@ -345,7 +427,8 @@ selectPeaks <- function(fh, peakA, peakB, peakC){
     newPeaks <- as.matrix(rbind(pA))
   
   colnames(newPeaks) <- c("mean", "height")
-
+  newPeaks <- newPeaks[order(newPeaks[, "mean"]), ]
+  
   fhPeaks(fh) <- newPeaks
   
   fh <- addComponents(fh)

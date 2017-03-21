@@ -25,10 +25,9 @@ library(flowPloidyData)
 fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
 fh1 <- fhAnalyze(fh1)
 }
-\author{
-Tyler Smith
-}
 \seealso{
 \code{\link{FlowHist}}
 }
-
+\author{
+Tyler Smith
+}

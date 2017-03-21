@@ -26,10 +26,9 @@ gating.
 library(flowPloidyData) 
 viewFlowChannels(flowPloidyFiles[1])
 }
-\author{
-Tyler Smith
-}
 \seealso{
 \code{\link{FlowHist}}
 }
-
+\author{
+Tyler Smith
+}

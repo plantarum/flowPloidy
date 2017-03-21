@@ -13,3 +13,6 @@ s3/
 .svn
 /NOTES.org
 svn-commit*
+vignettes/michal*
+*_cache
+*.tex

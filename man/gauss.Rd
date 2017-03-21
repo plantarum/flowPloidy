@@ -45,4 +45,3 @@ so far, so I've left it simple.
 \author{
 Tyler Smith
 }
-
