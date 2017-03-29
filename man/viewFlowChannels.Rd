@@ -7,7 +7,7 @@
 viewFlowChannels(file)
 }
 \arguments{
-\item{file}{character, the name of a FCS data file; or the name of a
+\item{file}{character, the name of an FCS data file; or the name of a
 FlowHist object.}
 }
 \value{

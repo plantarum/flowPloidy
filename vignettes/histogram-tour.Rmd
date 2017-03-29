@@ -10,7 +10,7 @@ output:
         fig_width: 6
         fig_height: 4
         fig_caption: false
-        pandoc_args: ["--variable=fontfamily:tgschola"]
+        template: fpPandoc.latex
 vignette: >
   %\VignetteIndexEntry{flowPloidy: FCM Histograms}
   %\VignetteEngine{knitr::rmarkdown}

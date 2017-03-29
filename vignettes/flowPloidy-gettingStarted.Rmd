@@ -10,7 +10,6 @@ output:
         fig_width: 6
         fig_height: 4
         fig_caption: false
-        keep_tex: true
         template: fpPandoc.latex
 vignette: >
   %\VignetteIndexEntry{flowPloidy: Getting Started}
@@ -254,6 +253,9 @@ On the left side of the plot is the navigation panel. We will ignore the
 various options for now, but will discuss them further below. For now,
 click the "Next" button to move on to the next histogram.
 
+(We'll discuss the gating interface at the bottom of the screen below. For
+now we ignore it.)
+
 ## Correcting a Failed Model Fit
 
 The second histogram didn't work at all:
@@ -482,7 +484,7 @@ That said, for some species it is unavoidable. The following example
 illustrates one such case, _Vaccinium oxycoccos_. As you'll see, the
 G1 peaks in this species are typically obscured by large amounts of debris.
 With some relatively straightforward gating, however, we can still use the
-model-fitting approach to determining GC content.
+model-fitting approach to determining genome size.
 
 We'll use a single file for this example: `fpVac`. Again, this is provided
 by the `flowPloidyData` package. As before, we start by determining
@@ -538,21 +540,68 @@ The final element on the control panel is the `Set Gate` button. Clicking
 that will apply the current gate to our data (or remove an existing gate if
 none is selected).
 
+## Interpreting the Gate Plot
+
 On the lower right we have three plot windows. The left-most is the actual
 gate window, which displays the raw data. The middle window is a preview of
 the raw data after the gate is applied. The right-most window shows the
 gate 'residuals', the complement of the middle window - it shows a
 histogram of all the observations that are *excluded* by the gate.
 
-## Applying a Gate
+The plot we're most interested in is the one on the left. For most of our
+gating, we set the X-axis to the fluorescence data channel; in this case
+that's `FL2.A`. We plot side scatter (actually, the ratio side
+scatter/fluorescence) on the Y-axis. 
 
-For this sample, we will use the `FL2.A` channel for the X axis, and the
-`SSC.H` channel for the Y axis, with the Y axis displayed as `Y/X`. Zooming
-the slider to `3`[^1], we can see a clear separation between our (meager)
-nuclei populations, and the looming dark cloud of debris.
+The amount of fluorescence emitted by each particle tells us how much dye
+they have incorporated; we expect clusters corresponding to the G1 nuclei
+of our sample and the standard. There may also be clusters for the G2
+nuclei. This is exactly what we saw in the previous examples where we
+didn't need gating: the unaltered histograms were clear enough to fit our
+model and extract the parameters we need to determine genome size.
+
+In this case, we have a lot of debris particles that are emitting the same
+fluorescence intensities as our intact nuclei, so we need another parameter
+to separate them. That's where side scatter comes in. Side scatter is a
+measure of 'optical complexity' or 'granularity'. Simply put, it tells us
+something about the shape of the particles. And our nuclei will have a
+characteristic shape. Typically, this shape has lower 'optical complexity'
+than the irregular debris particles.
+
+In order to see this, we'll need to zoom in on the gate plot. Dragging the
+zoom slider about halfway across[^1] we see this:
 
 [^1]: The zoom slider numbers aren't particularly meaningful in themselves;
     higher numbers mean a higher zoom, measured on a log scale.
+
+![](gs_gate.png)
+
+Notice the dense cloud of points on the upper left. These particles have
+low fluorescence and high granularity. They could be bits of damaged
+nuclei, or irregularly-shaped cell components that are weakly fluorescent
+in the FCM laser. This is the debris we need to exclude.
+
+When we do, we'll uncover our intact nuclei, which are visible along the
+bottom of the plot in three discrete clusters. The two near the center of
+the X-axis are the G1 peaks for the sample and standard. The smaller
+cluster further right is the G2 peak for the standard. Zooming in further
+we can see these more clearly:
+
+![](gs_gate_zoom2.png)
+
+Here, notice that the nuclei form tight, dark clusters, with particles
+trailing away upwards. Those upward 'side-scatter tails' are probably
+intact nuclei with bits of debris or fluorescent compounds stuck to them.
+This makes their shapes more irregular, increasing their side scatter
+values. Unfortunately, there is no clear dividing line between 'clean
+nuclei' and 'goopy nuclei'. In practice, we place our gates high enough to
+retain all the particles in the densest section of the clusters, and extend
+them upwards to include the bottom portion of the tails. There is an
+element of subjectivity here: we are balancing biasing our results with
+goopy nuclei by including too much of the tail, and reducing the amount of
+precious data in the analysis by being too aggressive with our gate.
+
+## Applying a Gate
 
 Use the mouse to left-click and drag a box around the cell clouds:
 

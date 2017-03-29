@@ -7,3 +7,5 @@ test-script.R
 ^vignettes/auto
 ^vignettes/design.Rmd
 NOTES.org
+^vignettes/.*_cache
+^vignettes/old-docs

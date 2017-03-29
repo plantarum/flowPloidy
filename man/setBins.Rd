@@ -12,20 +12,28 @@ setBins(fh, bins = 256)
 \item{bins}{integer, the number of bins to use in aggregating FCS data}
 }
 \value{
-a \code{\link{FlowHist}} object, with the \code{bins} slot set to
-  \code{bins}, and the corresonding binned data stored in a matrix in
+a \code{\link{FlowHist}} object, with the \code{bins} slot set
+  to \code{bins}, and the corresonding binned data stored in a matrix in
   the \code{histData} slot. Any previous analysis slots are removed:
   \code{peaks, comps, model, init, nls, counts, CV, RCS}.
 }
 \description{
-(Re-) set the bins for a FlowHist object
+(Re-)set the bins for a FlowHist object
 }
 \details{
 This function sets (or resets) the number of bins to use in aggregating
 FCS data into a histogram, and generates the corresponding data matrix.
+Not exported for general use.
 
-The \code{histData} matrix also contains the \code{SCvals} column. This
-is used to calculate the single-cut debris component in the NLS model.
+The \code{histData} matrix also contains the columns corresponding to
+the raw data used in calculating the single-cut and multiple-cut debris
+components, as well as the doublet, triplet, and quadruplet aggregate
+values. (i.e., \code{SCvals}, \code{MCvals}, \code{DBvals},
+\code{TRvals}, and \code{QDvals}).
+
+\code{\link{setBins}} includes a call to \code{\link{resetFlowHist}}, so
+all the model components that depend on the bins are updated in the
+process (as you want!).
 }
 \examples{
 ## defaults to 256 bins:

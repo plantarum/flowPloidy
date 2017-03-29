@@ -24,6 +24,26 @@ NULL
 
 setOldClass("nls")
 
+#' An S4 class to represent internal standard details for
+#' \code{\link{FlowHist}} objects
+#'
+#' The \code{sizes} slot is set in \code{\link{FlowHist}} or
+#' \code{\link{batchFlowHist}}. The other values are updates through
+#' interaction with the \code{\link{browseFlowHist}} GUI.
+#'
+#' @name FlowStandards
+#'
+#' @return \code{\link{stdSizes}}, \code{\link{stdSelected}} and
+#'   \code{\link{stdPeak}} return the corresponding slot values
+#' 
+#' @slot sizes numeric, the size (in pg) of the internal size standard. Can
+#'   be a vector of multiple values, if the sample is part of a set that
+#'   included different standards for different samples.
+#' @slot selected numeric, the size (in pg) of the internal size standard
+#'   actually used for this sample. Must be one of the values in the
+#'   \code{sizes} slot.
+#' @slot peak character, "A" or "B", indicating which of the histogram
+#'   peaks is the size standard.
 setClass(
   Class = "FlowStandards",
   representation = representation(
@@ -33,10 +53,15 @@ setClass(
   )
 )
 
+#' @rdname FlowStandards
+#' @param std a \code{\link{FlowStandards}} object
+#' @export
 stdSizes <- function(std){
   std@sizes
 }
 
+#' @rdname FlowStandards
+#' @export
 stdSelected <- function(std){
   std@selected
 }
@@ -49,6 +74,8 @@ stdSelected <- function(std){
   std
 }
 
+#' @rdname FlowStandards
+#' @export
 stdPeak <- function(std){
   std@peak
 }
@@ -103,40 +130,66 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' Creates a \code{\link{FlowHist}} object from an FCS file, setting up the
 #' histogram data for analysis.
 #'
-#' Starting with a \code{\link{flowFrame}} object, read from a FCS file,
-#' \code{\link{FlowHist}} will:
+#' For most uses, simpling calling \code{\link{FlowHist}} with a
+#' \code{file}, \code{channel}, and \code{standards} argument will do what
+#' you need. The other arguments are provided for optional tuning of this
+#' process. In practice, it's easier to correct the model fit using
+#' \code{\link{browseFlowHist}} than to determine 'perfect' values to pass
+#' in as arguments to \code{\link{FlowHist}}.
+#'
+#' Similarly, \code{\link{batchFlowHist}} is usually used with only the
+#' \code{files}, \code{channel}, and \code{standards} arguments.
+#' 
+#' In operation, \code{\link{FlowHist}} starts by reading an FCS file
+#' (using the function \code{\link{read.FCS}} internally). This produces a
+#' \code{\link{flowFrame}} object, which we extend to a
+#' \code{\link{FlowHist}} object as follows:
 #'
 #' \enumerate{
-#' \item Extract the intensity data from \code{channel}.
+#' \item Extract the fluorescence data from \code{channel}.
 #'
-#' \item Remove the top bin, which contains off-scale readings we ignore
-#' in the analysis.
+#' \item Remove the top bin, which contains off-scale readings we ignore in
+#' the analysis.
+#'
+#' \item Remove negative fluorescence values, which are artifacts of
+#' instrument compensation
+#'
+#' \item Removes the first 5 bins, which often contain noisy values,
+#' probably further artifacts of compensation.
 #'
 #' \item aggregates the raw data into the desired number of bins, as
 #' specified with the \code{bins} argument. The default is 256, but you may
 #' also try 128 or 512. Any integer is technically acceptable, but I
-#' wouldn't stray from the default without a good reason.
+#' wouldn't stray from the default without a good reason. (I've never had a
+#' good reason!)
 #'
 #' \item identify model components to include. All \code{\link{FlowHist}}
 #' objects will have the single-cut debris model and the G1 peak for sample
 #' A, and the broadened rectangle for the S-phase of sample A. Depending on
 #' the data, additional components for the G2 peak and sample B (G1, G2,
-#' s-phase) may also be added.
+#' s-phase) may also be added. The \code{debris} argument can be used to
+#' select the Multi-Cut debris model instead, or this can be toggled in
+#' \code{\link{browseFlowHist}} 
 #' 
 #' \item Build the NLS model. All the components are combined into a single
 #' model. 
 #'
 #' \item Identify starting values for Gaussian (G1 and G2 peaks) model
 #' components. For reasonably clean data, the built-in peak detection is
-#' fine. You can evaluate this by plotting the \code{\link{FlowHist}}
-#' object with the argument \code{init = TRUE}. If it doesn't look good,
-#' you can play with the \code{window} and \code{smooth} arguments (which
-#' is tedious!), or pick the peaks visually yourself with \code{pick =
-#' TRUE}. }
+#' ok. You can evaluate this by plotting the \code{\link{FlowHist}} object
+#' with the argument \code{init = TRUE}. The easiest way to fix bad peak
+#' detection is via the \code{\link{browseFlowHist}} interface. You can
+#' also play with the \code{window} and \code{smooth} arguments (which is
+#' tedious!), or pick the peaks visually yourself with \code{pick = TRUE}.
+#'
+#' \item Finally, we fit the model and calculate the fitted parameters.
+#' Model fitting is suppressed if the \code{analyze} argument is set as
+#' \code{FALSE}
+#' }
 #' 
 #' @name FlowHist
 #'
-#' @param file character, the name of the file to load
+#' @param file character, the name of the single file to load
 #' @param files character, a vector of file names to load
 #' @param channel character, the name of the data column to use
 #' @param bins integer, the number of bins to use to aggregate events into
@@ -153,10 +206,10 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @param analyze boolean, if TRUE the model will be analyzed immediately
 #' @param opts list, currently not used, but maybe in future as a way to
 #'   test additional model options
-#' @param window the width of the moving window used to identify local
-#'   maxima for peak detection via \code{\link{runmax}}
-#' @param smooth the width of the moving window used to reduce noise in the
-#'   histogram via \code{\link{runmean}}
+#' @param window integer, the width of the moving window used to identify
+#'   local maxima for peak detection via \code{\link{runmax}}
+#' @param smooth integer, the width of the moving window used to reduce
+#'   noise in the histogram via \code{\link{runmean}}
 #' @param pick boolean; if TRUE, the user will be prompted to select peaks
 #'   to use for starting values. Otherwise (the default), starting values
 #'   will be detected automatically.
@@ -173,19 +226,27 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @slot channel character, the name of the data column to use
 #' @slot bins integer, the number of bins to use to aggregate events into a
 #'   histogram
+#' @slot linearity character, either "fixed" or "variable" to indicate if
+#'   linearity is fixed at 2 or fit as a model parameter
+#' @slot debris character, either "SC" or "MC" to indicate if the model
+#'   should include the single-cut or multi-cut model
 #' @slot gate logical, a vector indicating events to exclude from the
 #'   analysis. In normal use, the gate will be modified via interactive
-#'   functions, not set directly by users. 
+#'   functions, not set directly by users.
 #' @slot histdata data.frame, the columns are the histogram bin number
-#'   (xx), florescence intensity (intensity), and the raw single-cut debris
-#'   model values (SCVals, used in model fitting). Additional columns may
-#'   be added if/when I add gating, so refer to columns by name, not
-#'   position.
+#'   (xx), florescence intensity (intensity), and the raw single-cut and
+#'   multi-cut debris model values (SCvals and MCvals), and the raw
+#'   doublet, triplet and quadruplet aggregate values (DBvals, TRvals, and
+#'   QDvals). The debris and aggregate values are used in the NLS fitting
+#'   procedures.
 #' @slot peaks matrix, containing the coordinates used for peaks when
 #'   calculcating initial parameter values.
-#' @slot comps a list of \code{ModelComponent} objects included for
-#'   these data.
+#' @slot opts list, currently unused. A convenient place to store flags
+#'   when trying out new options.
+#' @slot comps a list of \code{ModelComponent} objects included for these
+#'   data.
 #' @slot model the function (built from \code{comps}) to fit to these data.
+#' @slot limits list, a list of lower and upper bounds for model parameters
 #' @slot init a list of initial parameter estimates to use in fitting the
 #'   model.
 #' @slot nls the nls object produced by the model fitting
@@ -196,6 +257,8 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @slot samples numeric, the number of samples included in the data. The
 #'   default is 2 (i.e., unknown and standard), but if two standards are
 #'   used it should be set to 3.
+#' @slot standards a \code{\link{FlowStandards}} object.
+#' 
 #' @return \code{\link{FlowHist}} returns a \code{\link{FlowHist}} object.
 #' @author Tyler Smith
 setClass(
@@ -265,6 +328,28 @@ setMethod(
 ## Accessors ##
 ###############
 
+#' Functions to access slot values in \code{\link{FlowHist}} objects
+#'
+#' For normal users, these functions aren't necessary. Overly curious
+#' users, or those wishing to hack on the code, may find these useful for
+#' inspecting the various bits and pieces inside a \code{\link{FlowHist}}
+#' object.
+#'
+#' The versions of these functions that allow modification of the
+#' \code{\link{FlowHist}} object are not exported. Functions are provided
+#' for users to update \code{\link{FlowHist}} objects in a safe way.
+#'
+#' @name fhAccessors
+#' 
+#' @title FlowHist Accessors
+#' @param fh a \code{\link{FlowHist}}
+#' @return Used to access a slot, returns the value of the slot. Used to
+#'   update the value of a slot, returns the updated \code{\link{FlowHist}}
+#'   object.
+#' @author Tyler Smith
+
+#' @rdname fhAccessors
+#' @export
 fhGate <- function(fh){
   fh@gate
 }
@@ -274,6 +359,8 @@ fhGate <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhLimits <- function(fh){
   fh@limits
 }
@@ -283,6 +370,8 @@ fhLimits <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhSamples <- function(fh){
   fh@samples
 }
@@ -292,6 +381,8 @@ fhSamples <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhPeaks <- function(fh){
   fh@peaks
 }
@@ -301,6 +392,8 @@ fhPeaks <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhInit <- function(fh){
   fh@init
 }
@@ -310,6 +403,8 @@ fhInit <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhComps <- function(fh){
   fh@comps
 }
@@ -319,6 +414,8 @@ fhComps <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhModel <- function(fh){
   fh@model
 }
@@ -328,16 +425,22 @@ fhModel <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhSpecialParams <- function(fh){
   names(getSpecialParams(fh))
 }
 
+#' @rdname fhAccessors
+#' @export
 fhArgs <- function(fh){
   res <- names(formals(fhModel(fh)))
   res <- res[!res %in% fhSpecialParams(fh)]
   res
 }
 
+#' @rdname fhAccessors
+#' @export
 fhNLS <- function(fh){
   fh@nls
 }
@@ -347,6 +450,8 @@ fhNLS <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhCounts <- function(fh){
   fh@counts
 }
@@ -356,6 +461,8 @@ fhCounts <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhCV <- function(fh){
   fh@CV
 }
@@ -365,6 +472,8 @@ fhCV <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhRCS <- function(fh){
   fh@RCS
 }
@@ -374,6 +483,8 @@ fhRCS <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhFile <- function(fh){
   fh@raw@description$GUID
 }
@@ -386,6 +497,8 @@ fhFile <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhChannel <- function(fh){
   fh@channel
 }
@@ -395,6 +508,8 @@ fhChannel <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhBins <- function(fh){
   fh@bins
 }
@@ -404,6 +519,8 @@ fhBins <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhLinearity <- function(fh){
   fh@linearity
 }
@@ -413,6 +530,8 @@ fhLinearity <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhDebris <- function(fh){
   fh@debris
 }
@@ -422,6 +541,8 @@ fhDebris <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhHistData <- function(fh){
   fh@histData
 }
@@ -431,6 +552,8 @@ fhHistData <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhRaw <- function(fh){
   fh@raw
 }
@@ -441,6 +564,8 @@ fhRaw <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhStandards <- function(fh){
   fh@standards
 }
@@ -450,6 +575,8 @@ fhStandards <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhStdPeak <- function(fh){
   stdPeak(fhStandards(fh))
 }
@@ -459,6 +586,8 @@ fhStdPeak <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhStdSelected <- function(fh){
   stdSelected(fhStandards(fh))
 }
@@ -468,11 +597,53 @@ fhStdSelected <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
 fhStdSizes <- function(fh){
   stdSizes(fhStandards(fh))
 }
 
+#' @rdname fhAccessors
+#' @export
+fhOpts <- function(fh){
+  fh@opts
+}
 
+`fhOpts<-` <- function(fh, value){
+  fh@opts <- value
+  fh
+}
+
+#' Reset the values in a \code{\link{FlowHist}} object
+#'
+#' NB: This function isn't required for normal use, and isn't exported for
+#' general use. It's provided as a convenience for anyone interested in
+#' tweaking model construction and associated parameters. Regular users
+#' don't need to do this!
+#' 
+#' This function provides a safe way to reset the values in a
+#' \code{\link{FlowHist}} object. This is important because changing
+#' something early in the process will require updating all the dependent
+#' values in the appropriate order.
+#'
+#' The dependency relationships are:
+#'
+#' \code{gate} <- \code{peaks} <- \code{comps} <- \code{limits}
+#'
+#' Consequently, changing the \code{gate} requires updating \code{peaks},
+#' \code{comps} and \code{limits}. Changing \code{components} only requires
+#' updating the \code{limits}. Updating \code{limits} implicitly updates
+#' the model and subsequent analysis (i.e., NLS, CV, counts and RCS).
+#'
+#' In practice, this means that if you change the components, you should
+#' call \code{resetFlowHist} to update the dependencies. i.e.,
+#' \code{resetFlowHist(fh, from = "limits")}.
+#'
+#' @param fh a \code{\link{FlowHist}} object.
+#' @param from character, the point in the \code{\link{FlowHist}} process
+#'   to reset from (see details).
+#' @return the updated \code{\link{FlowHist}} object.
+#' @author Tyler Smith
 resetFlowHist <- function(fh, from = "peaks"){
   ## Clear analysis slots
   ## Default is to clear everything from peaks onwards
@@ -514,10 +685,10 @@ resetFlowHist <- function(fh, from = "peaks"){
 #' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
 #' fh1
 #' @export
-FlowHist <- function(file, channel, bins = 256, window = 20, smooth = 20,
-                     pick = FALSE, linearity = "variable", debris = "SC",
-                     opts = list(), samples = 2, gate = logical(),
-                     analyze = TRUE, standards = 0){
+FlowHist <- function(file, channel, standards = 0, bins = 256, window =
+                     20, smooth = 20, pick = FALSE, linearity = "variable",
+                     debris = "SC", opts = list(), samples = 2, gate =
+                     logical(), analyze = TRUE){ 
   fh <-  new("FlowHist", file = file, channel = channel,
              bins = as.integer(bins), window = window, smooth = smooth,
              pick = pick, linearity = linearity, debris = debris,
@@ -536,7 +707,7 @@ FlowHist <- function(file, channel, bins = 256, window = 20, smooth = 20,
 #' gating.
 #' 
 #' @title viewFlowChannels
-#' @param file character, the name of a FCS data file; or the name of a
+#' @param file character, the name of an FCS data file; or the name of a
 #'   FlowHist object.
 #' @return A vector of column names from the FCS file/FlowHist object.
 #' @seealso \code{\link{FlowHist}}
@@ -558,7 +729,6 @@ viewFlowChannels <- function(file){
 
 #' @rdname FlowHist
 #' @examples
-#' library(flowPloidyData) 
 #' batch1 <- batchFlowHist(flowPloidyFiles, channel = "FL3.INT.LIN")
 #' batch1
 #' @param ... Additional arguments passed to \code{\link{FlowHist}}
@@ -566,16 +736,11 @@ viewFlowChannels <- function(file){
 #' \code{\link{batchFlowHist}} returns a list of \code{\link{FlowHist}}
 #'   objects. 
 #' @export
-batchFlowHist <- function(files, channel, bins = 256, verbose = TRUE,
-                      window = 20, smooth = 20, linearity = "variable",
-                      debris = "SC", samples = 2, ...){ 
+batchFlowHist <- function(files, channel, verbose = TRUE, ...){ 
   res <- list()
   for(i in seq_along(files)){
     if(verbose) message("processing ", files[i])
-    tmpRes <- FlowHist(file = files[i], channel = channel, bins = bins,
-                       window = window, smooth = smooth, pick = FALSE,
-                       linearity = linearity, debris = debris,
-                       samples = samples, ...)
+    tmpRes <- FlowHist(file = files[i], channel = channel, ...)
     res[[fhFile(tmpRes)]] <- tmpRes
   }              
   return(res)
@@ -648,18 +813,19 @@ setMethod(
 #' Extract analysis results from a FlowHist object
 #'
 #' A convenience function for extracting the results of the NLS
-#'   curve-fitting analysis on a FlowHist object.
+#' curve-fitting analysis on a FlowHist object.
 #'
-#' If \code{fh} is a single FlowHist object, a data.frame with a single
-#' row is returned. If \code{fh} is a list of \code{\link{FlowHist}} objects, a
+#' If \code{fh} is a single FlowHist object, a data.frame with a single row
+#' is returned. If \code{fh} is a list of \code{\link{FlowHist}} objects, a
 #' row for each object will be added to the data.frame.
 #'
 #' If a file name is provided, the data will be saved to that file.
 #' 
 #' @title exportFlowHist
-#' @param fh a FlowHist object, or a list of FlowHist objects.
+#' @param fh a \code{\link{FlowHist}} object, or a list of
+#'   \code{\link{FlowHist}} objects.
 #' @param file character, the name of the file to save data to
-#' @return a data frame 
+#' @return a data frame
 #' @author Tyler Smith
 #' @examples
 #' library(flowPloidyData) 
@@ -732,9 +898,9 @@ exFlowHist <- function(fh){
 
     if(! anyNA(c(df[, c("stdpeak", "standard")]))){
       if(df$stdpeak == "A"){
-        df$pg <- df$sizeB/df$sizeA
+        df$pg <- df$standard * (df$sizeB/df$sizeA)
       } else if(df$stdpeak == "B"){
-        df$pg <- df$sizeA/df$sizeB
+        df$pg <- df$standard * (df$sizeA/df$sizeB)
       }} else {
          df$pg <- NA
        }
@@ -751,19 +917,27 @@ exFlowHist <- function(fh){
 ## Functions for initializing FlowHist objects ##
 #################################################
 
-#' (Re-) set the bins for a FlowHist object
+#' (Re-)set the bins for a FlowHist object
 #'
 #' This function sets (or resets) the number of bins to use in aggregating
 #' FCS data into a histogram, and generates the corresponding data matrix.
+#' Not exported for general use.
 #'
-#' The \code{histData} matrix also contains the \code{SCvals} column. This
-#' is used to calculate the single-cut debris component in the NLS model.
+#' The \code{histData} matrix also contains the columns corresponding to
+#' the raw data used in calculating the single-cut and multiple-cut debris
+#' components, as well as the doublet, triplet, and quadruplet aggregate
+#' values. (i.e., \code{SCvals}, \code{MCvals}, \code{DBvals},
+#' \code{TRvals}, and \code{QDvals}).
+#'
+#' \code{\link{setBins}} includes a call to \code{\link{resetFlowHist}}, so
+#' all the model components that depend on the bins are updated in the
+#' process (as you want!).
 #' 
 #' @title setBins
 #' @param fh a \code{\link{FlowHist}} object
 #' @param bins integer, the number of bins to use in aggregating FCS data
-#' @return a \code{\link{FlowHist}} object, with the \code{bins} slot set to
-#'   \code{bins}, and the corresonding binned data stored in a matrix in
+#' @return a \code{\link{FlowHist}} object, with the \code{bins} slot set
+#'   to \code{bins}, and the corresonding binned data stored in a matrix in
 #'   the \code{histData} slot. Any previous analysis slots are removed:
 #'   \code{peaks, comps, model, init, nls, counts, CV, RCS}.
 #' @author Tyler Smith
@@ -840,10 +1014,10 @@ setBins <- function(fh, bins = 256){
 
 fhStart <- function(intensity){
   ## Returns the first channel to include in the modelling process. We
-  ## start on the first peak, ignoring any noise in lower channels. This
-  ## is the same general principle applied in ModFit. I implement this idea
-  ## by picking the highest point in the first 20 non-zero channels in the
-  ## histogram.
+  ## start on the first peak, ignoring any noise in lower channels. This is
+  ## the same general principle applied in ModFit (although I don't know
+  ## how they actually do this!). I implement this idea by picking the
+  ## highest point in the first 20 non-zero channels in the histogram.
   startMax <- max(intensity[which(intensity != 0)][1:10])
   startBin <- which(intensity == startMax)[1]
   startBin
@@ -958,8 +1132,8 @@ findPeaks <- function(fh, window = 20, smooth = 20){
 #'
 #' \item remove duplicates, ie., peaks with the same intensity that occur
 #' within \code{window} positions of each other. Otherwise,
-#' \code{\link{findPeaks}} will consider noisy peaks without a single highest
-#' point to be multiple distinct peaks.
+#' \code{\link{findPeaks}} will consider noisy peaks without a single
+#' highest point to be multiple distinct peaks.
 #'
 #' \item drop G2 peaks. In some cases the G2 peak for one sample will have
 #' greater intensity than the G1 peak for another sample. We correct for
@@ -1053,11 +1227,11 @@ cleanPeaks <- function(fh, window = 20){
 #'   noise.
 #'
 #' In normal use, \code{\link{pickPeaks}} is called from
-#'   \code{\link{pickInit}}, rather than directly by the user.
+#' \code{\link{pickInit}}, rather than directly by the user.
 #'
 #' Note that the A peak must be lower (smaller mean, further left) than the
-#'   B peak. If the user selects the A peak with a higher mean than the B
-#'   peak, the peaks will be swapped to ensure A is lower.
+#' B peak. If the user selects the A peak with a higher mean than the B
+#' peak, the peaks will be swapped to ensure A is lower.
 #'
 #' @param fh A \code{\link{FlowHist}} object
 #' 
@@ -1065,8 +1239,8 @@ cleanPeaks <- function(fh, window = 20){
 #'   with its initial value slot updated.
 #'
 #' \code{\link{pickPeaks}} returns a matrix with each peak as a row, with
-#'   the mean (position) in the first column, and the height (intensity) in
-#'   the second column. 
+#' the mean (position) in the first column, and the height (intensity) in
+#' the second column.
 #'
 #' @author Tyler Smith
 #'
@@ -1122,7 +1296,7 @@ pickPeaks <- function(fh){
 ##########################
 ## Change Model Options ##
 ##########################
-#' Update, and optionally re-analyze, a FlowHist object
+#' Update, and optionally re-analyze, a \code{\link{FlowHist}} object
 #'
 #' Allows users to switch the debris model from Single-Cut to Multi-Cut (or
 #'   vice-versa), or to toggle linearity between fixed and variable.

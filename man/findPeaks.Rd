@@ -54,8 +54,8 @@ function \code{fhPeakPlot} may be useful.
 
 \item remove duplicates, ie., peaks with the same intensity that occur
 within \code{window} positions of each other. Otherwise,
-\code{\link{findPeaks}} will consider noisy peaks without a single highest
-point to be multiple distinct peaks.
+\code{\link{findPeaks}} will consider noisy peaks without a single
+highest point to be multiple distinct peaks.
 
 \item drop G2 peaks. In some cases the G2 peak for one sample will have
 greater intensity than the G1 peak for another sample. We correct for

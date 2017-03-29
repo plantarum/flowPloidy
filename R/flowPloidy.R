@@ -1,0 +1,74 @@
+#' flowPloidy: A package for analyzing Flow Cytometry Histograms
+#'
+#' The flowPloidy package provides functions for reading and analyzing flow
+#' cytometry histograms. Specifically, it builds and fits a non-linear
+#' regression model, from which peak parameters (mean, CV) can be
+#' estimated. In normal use, samples will include a co-chopped size
+#' standard. Comparing the unknown peak mean to the standard peak mean, we
+#' determine the genome content for the unknown sample.
+#'
+#' Please see the vignettes for an overview: \code{histogram-tour} and
+#'   \code{flowPloidy-gettingStarted} for an overview.
+#' 
+#' @section Primary Functions:
+#'
+#' Most users will need only the functions:
+#'
+#' \enumerate{
+#' \item \code{\link{viewFlowChannels}}, to determine the name of the
+#'   primary data channel to use.
+#' \item \code{\link{batchFlowHist}}, to load a list of FCM files into R.
+#' \item \code{\link{browseFlowHist}}, to review and correct the
+#'   model-fitting for the files, using an interactive graphical browser.
+#' \item \code{\link{tabulateFlowHist}}, to extract the results and save
+#'   them to a file.
+#' }
+#'
+#' @section Additional User Tools:
+#' 
+#' Additional functions for inspecting and manipulating
+#' \code{\link{FlowHist}} objects and analyses:
+#'
+#' \enumerate{
+#' \item \code{\link{plot.FlowHist}}, for plotting the data and fitted
+#'   model using base R graphics.
+#' \item \code{\link{pickInit}}, to interactively select initial peak
+#'   estimates, using base R graphics.
+#' \item \code{\link{setBins}}, to reset the bins, selecting the number of
+#'   bins to use.
+#' \item \code{\link{fhAnalyze}}, to (re-)analyze the FCM data, presumably
+#'   after updating the settings for a file.
+#' \item \code{\link{updateFlowHist}}, to update the settings for an FCM
+#'   file.
+#' }
+#'
+#' @section Internal Functions:
+#'
+#' These functions aren't necessary for regular use, but may be useful to
+#' those interested in modifying or extending the package, or just curious
+#' about details:
+#'
+#' \enumerate{
+#' \item \code{\link{fhAccessors}}, for inspecting the slots of a
+#'   \code{\link{FlowHist}} object 
+#' \item \code{\link{findPeaks}}, the functions which perform the initial
+#'   peak detection
+#' \item \code{\link{ModelComponent}}, the S4 class for the various model
+#'   components used in constructing the non-linear regression model.
+#' \item \code{\link{GaussianComponents}}, a description of the Gaussian
+#'   model component that is fit to cell peaks.
+#' \item \code{\link{FlowStandards}}, the S4 class for the size standard
+#'   data. 
+#' \item \code{\link{plotFH}}, a low-level plotting function for displaying
+#'   raw histogram data.
+#' \item \code{\link{resetFlowHist}}, a function for safely resetting
+#'   various portions of a \code{\link{FlowHist}} object.
+#' \item \code{\link{flowModels}}, functions for assembling
+#'   \code{\link{ModelComponent}} into a complete model.
+#' }
+#'
+#'
+#' @author Tyler Smith
+#' @docType package
+#' @name flowPloidy
+NULL

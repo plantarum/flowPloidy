@@ -28,7 +28,7 @@ a \code{\link{FlowHist}} object with the modified values of
   fitting
 }
 \description{
-Update, and optionally re-analyze, a FlowHist object
+Update, and optionally re-analyze, a \code{\link{FlowHist}} object
 }
 \details{
 Allows users to switch the debris model from Single-Cut to Multi-Cut (or

@@ -3,6 +3,7 @@
 \usepackage{sourcecodepro}                  % inconsolata font for code
 \usepackage[margin=1in]{geometry} % document size
 \usepackage{natbib}               % reference style
+\usepackage{fancybox}
 \bibpunct{(} {)} {;} {a} {} {,}   % citation formatting
 \renewcommand{\topfraction}{0.9}	% max fraction of floats at top
 \renewcommand{\bottomfraction}{0.8}	% max fraction of floats at bottom

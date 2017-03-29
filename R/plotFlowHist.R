@@ -142,6 +142,16 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
          pos = 2, 
          x = grconvertX(0.975, from = "npc", to = "user"),
          y = yPos) 
+    yPos <- yPos - lHt
+    
+    if(!is.na(dat$pg)){
+      text(paste("Sample ", ifelse(dat$stdpeak == "A", "B", "A"),
+                 ": ", round(dat$pg, 3), "pg"),
+           cex = 1, pos = 2, 
+           x = grconvertX(0.975, from = "npc", to = "user"),
+           y = yPos)
+      yPos <- yPos - lHt
+    }
 
   }
 

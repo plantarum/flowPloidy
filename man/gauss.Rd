@@ -2,6 +2,7 @@
 % Please edit documentation in R/models.R
 \name{gauss}
 \alias{gauss}
+\alias{GaussianComponents}
 \title{Gaussian model components}
 \arguments{
 \item{a1, a2, b1, b2, c1, c2}{area parameters}

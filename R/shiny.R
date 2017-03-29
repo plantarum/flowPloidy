@@ -44,9 +44,9 @@ browseFlowHist <- function(flowList, debug = FALSE){
   if(debug) message("init Linearity: ", initialLinearity)
 
   initialStdSelected <- fhStdSelected(.fhList[[1]])
-  message("initialStdSelected: ", initialStdSelected)
+  if(debug) message("initialStdSelected: ", initialStdSelected)
   standardList <- fhStdSizes(.fhList[[1]])
-  message("standardList: ", standardList)
+  if(debug) message("standardList: ", standardList)
   initialStdPeak <- fhStdPeak(.fhList[[1]])
   
   initialDebris <- fhDebris(.fhList[[1]])
@@ -57,9 +57,13 @@ browseFlowHist <- function(flowList, debug = FALSE){
 
   raw <- exprs(fhRaw(.fhList[[.fhI]]))
   chan1 <- fhChannel(.fhList[[.fhI]])
-  chan2 <- viewFlowChannels(.fhList[[.fhI]])[2]      # why 2? sometimes, by
-                                        # chance, the 
-                                        # second column is the SS value.
+  if(length(viewFlowChannels(.fhList[[.fhI]])) > 1){
+    ## why 2? sometimes, by chance, the second column is the SS value.
+    chan2 <- viewFlowChannels(.fhList[[.fhI]])[2]
+  } else {
+    ## there's only one channel, so gating is pointless
+    chan2 <- chan1
+  }
   
   initGateData <- data.frame(x = raw[, chan1],
                              y = raw[, chan2] / raw[, chan1]) 
@@ -294,16 +298,20 @@ browseFlowHist <- function(flowList, debug = FALSE){
     })
 
     fhUpdateStdPeak <- observeEvent(input$standardPeak, {
-      if(fhStdPeak(.fhList[[fhCurrent()]]) != input$standardPeak)
+      if(fhStdPeak(.fhList[[fhCurrent()]]) != input$standardPeak){
         fhStdPeak(.fhList[[fhCurrent()]]) <<- input$standardPeak
+        rv$FH <- .fhList[[fhCurrent()]]
+      }
     })
 
     fhUpdateStdSelected <- observeEvent(input$standardSelect, {
       ## don't update the fh object if the input is the same as the actual
       ## value (may come up when switching to a new object)
-      if(fhStdSelected(.fhList[[fhCurrent()]]) != input$standardSelect)
+      if(fhStdSelected(.fhList[[fhCurrent()]]) != input$standardSelect){
         fhStdSelected(.fhList[[fhCurrent()]]) <<-
-          as.numeric(input$standardSelect) 
+          as.numeric(input$standardSelect)
+        rv$FH <- .fhList[[fhCurrent()]]
+      }
     })
 
     observe({
@@ -428,6 +436,11 @@ selectPeaks <- function(fh, peakA, peakB, peakC){
   
   colnames(newPeaks) <- c("mean", "height")
   newPeaks <- newPeaks[order(newPeaks[, "mean"]), ]
+
+  ## if we have a single row, the previous selection will return a numeric
+  ## vector, which needs to be converted back into a matrix with 1 row:
+  if(is.numeric(newPeaks))
+    newPeaks <- t(as.matrix(newPeaks))
   
   fhPeaks(fh) <- newPeaks
   
