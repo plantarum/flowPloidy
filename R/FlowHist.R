@@ -44,6 +44,13 @@ setOldClass("nls")
 #'   \code{sizes} slot.
 #' @slot peak character, "A" or "B", indicating which of the histogram
 #'   peaks is the size standard.
+#'
+#' @examples
+#' library(flowPloidyData) 
+#' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN",
+#'                 standards = c(1.96, 5.43))
+#' fhStandards(fh1)  ## display standards included in this object
+#' stdSizes(fhStandards(fh1))  ## list standard sizes
 setClass(
   Class = "FlowStandards",
   representation = representation(
@@ -207,9 +214,12 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @param opts list, currently not used, but maybe in future as a way to
 #'   test additional model options
 #' @param window integer, the width of the moving window used to identify
-#'   local maxima for peak detection via \code{\link{runmax}}
+#'   local maxima for peak detection via \code{\link{runmax}}. The default
+#'   is 20. If you have really clean, narrow, peaks, lowering this value
+#'   may help you get better initial values.
 #' @param smooth integer, the width of the moving window used to reduce
-#'   noise in the histogram via \code{\link{runmean}}
+#'   noise in the histogram via \code{\link{runmean}}. The default is 20.
+#'   As for \code{window}, lower values may be helpful for clean peaks.
 #' @param pick boolean; if TRUE, the user will be prompted to select peaks
 #'   to use for starting values. Otherwise (the default), starting values
 #'   will be detected automatically.
@@ -245,8 +255,10 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   when trying out new options.
 #' @slot comps a list of \code{ModelComponent} objects included for these
 #'   data.
-#' @slot model the function (built from \code{comps}) to fit to these data.
-#' @slot limits list, a list of lower and upper bounds for model parameters
+#' @slot model the function (built from \code{comps}) to fit to these
+#'   data.
+#' @slot limits list, a list of lower and upper bounds for model
+#'   parameters 
 #' @slot init a list of initial parameter estimates to use in fitting the
 #'   model.
 #' @slot nls the nls object produced by the model fitting
@@ -347,8 +359,11 @@ setMethod(
 #'   update the value of a slot, returns the updated \code{\link{FlowHist}}
 #'   object.
 #' @author Tyler Smith
-
 #' @rdname fhAccessors
+#' @examples
+#' library(flowPloidyData) 
+#' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
+#' fhModel(fh1) ## prints the model to screen
 #' @export
 fhGate <- function(fh){
   fh@gate
@@ -644,6 +659,7 @@ fhOpts <- function(fh){
 #'   to reset from (see details).
 #' @return the updated \code{\link{FlowHist}} object.
 #' @author Tyler Smith
+#' @keywords internal
 resetFlowHist <- function(fh, from = "peaks"){
   ## Clear analysis slots
   ## Default is to clear everything from peaks onwards
@@ -1012,6 +1028,26 @@ setBins <- function(fh, bins = 256){
   fh
 }
 
+#' Calculate the where to start analysis for a \code{\link{FlowHist}}
+#' histogram 
+#'
+#' We exclude the first five bins at the outset (as part of the function
+#' \code{\link{setBins}}. For some flow cytometers, these values contain
+#' very high spikes that are an artifact of compensation, and are not
+#' useful data.
+#'
+#' After that, we call \code{\link{fhStart}} to skip to the highest value
+#' in the first 20 non-zero bins, and ignore everything below that. The
+#' motivation here is the same - to get out beyond the noisy bins and into
+#' the actual data we're trying to fit.
+#' 
+#' @param intensity numeric, the fluorescence intensity channel bins
+#' @return an integer, the index of the first intensity element to include
+#'   in the actual model fitting. That is, everything from \code{startBin}
+#'   to the end of \code{intensity} gets fit in the model, everything below
+#'   \code{startBin} is ignored.
+#' @author Tyler Smith
+#' @keywords internal
 fhStart <- function(intensity){
   ## Returns the first channel to include in the modelling process. We
   ## start on the first peak, ignoring any noise in lower channels. This is
@@ -1067,7 +1103,7 @@ NULL
 #' }
 #' 
 #' @author Tyler Smith
-#'
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #' set.seed(123)
@@ -1226,9 +1262,6 @@ cleanPeaks <- function(fh, window = 20){
 #'   fails to discriminate between overlapping peaks, or is confused by
 #'   noise.
 #'
-#' In normal use, \code{\link{pickPeaks}} is called from
-#' \code{\link{pickInit}}, rather than directly by the user.
-#'
 #' Note that the A peak must be lower (smaller mean, further left) than the
 #' B peak. If the user selects the A peak with a higher mean than the B
 #' peak, the peaks will be swapped to ensure A is lower.
@@ -1238,15 +1271,11 @@ cleanPeaks <- function(fh, window = 20){
 #' @return \code{\link{pickInit}} returns the \code{\link{FlowHist}} object
 #'   with its initial value slot updated.
 #'
-#' \code{\link{pickPeaks}} returns a matrix with each peak as a row, with
-#' the mean (position) in the first column, and the height (intensity) in
-#' the second column.
-#'
 #' @author Tyler Smith
 #'
 #' @examples
 #' library(flowPloidyData) 
-#' fh2 <- FlowHist(file = flowPloidyFiles[12], channel = "FL3.INT.LIN")
+#' fh2 <- FlowHist(file = flowPloidyFiles[2], channel = "FL3.INT.LIN")
 #' plot(fh2, init = TRUE) ## automatic peak estimates
 #' \dontrun{
 #' fh2 <- pickInit(fh2)   ## hand-pick peak estimates
@@ -1271,7 +1300,6 @@ pickInit <- function(fh){
   fh
 }
 
-#' @rdname pickInit
 pickPeaks <- function(fh){
   ## Does the work of actually plotting and selecting peaks for
   ##   \code{\link{pickInit}}
@@ -1285,12 +1313,42 @@ pickPeaks <- function(fh){
   message("select sample B peak:")
   peakB <- unlist(locator(1))
   points(peakB[1], peakB[2], col = 3, cex = 3)
-  res <- rbind(peakA, peakB)
-  colnames(res) <- c("mean", "height")
-  rownames(res) <- NULL
-  res <- res[order(res[, "mean"]), ]
-  fhPeaks(fh) <- res
-  fh
+
+  selectPeaks(fh, peakA[1], peakB[1], NULL)
+}
+
+selectPeaks <- function(fh, peakA, peakB, peakC){
+  pA <- fhHistData(fh)[round(peakA, 0), c("xx", "intensity")]
+  if(is.numeric(peakB))                 
+    pB <- fhHistData(fh)[round(peakB, 0), c("xx", "intensity")]
+  if(is.numeric(peakC))                 
+    pC <- fhHistData(fh)[round(peakC, 0), c("xx", "intensity")]
+  
+  fh <- resetFlowHist(fh)
+
+  if(is.numeric(peakC))
+    newPeaks <- as.matrix(rbind(pA, pB, pC))
+  else if(is.numeric(peakB))
+    newPeaks <- as.matrix(rbind(pA, pB))
+  else
+    newPeaks <- as.matrix(rbind(pA))
+  
+  colnames(newPeaks) <- c("mean", "height")
+  newPeaks <- newPeaks[order(newPeaks[, "mean"]), ]
+
+  ## if we have a single row, the previous selection will return a numeric
+  ## vector, which needs to be converted back into a matrix with 1 row:
+  if(is.numeric(newPeaks) && ! is.matrix(newPeaks))
+    newPeaks <- t(as.matrix(newPeaks))
+  
+  fhPeaks(fh) <- newPeaks
+  
+  fh <- addComponents(fh)
+  fh <- setLimits(fh)
+  fh <- makeModel(fh)
+  fh <- getInit(fh)
+
+  return(fh)
 }
 
 ##########################

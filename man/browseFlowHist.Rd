@@ -13,14 +13,24 @@ browseFlowHist(flowList, debug = FALSE)
 \item{debug}{boolean, turns on debugging messages}
 }
 \value{
-Returns the list of \code{\link{FlowHist}} objects, updated by any
-  changes made in the GUI.
+Returns the list of \code{\link{FlowHist}} objects, updated by
+  any changes made in the GUI.
 }
 \description{
-Visually assess histogram fits
+Visually assess and correct histogram fits
 }
 \details{
-Visually assess histogram fits
+Visually assess histogram fits, correcting initial values, and selecting
+model components.
+
+This function will open a browser tab displaying the first
+\code{\link{FlowHist}} object from the argument \code{flowList}. Using
+the interface, the user can modify the starting values for the histogram
+peaks, select different debris model components, toggle the linearity
+option, select which peak to treat as the standard, and, if multiple
+standard sizes are available, select which one to apply.
+
+See the "Getting Started" vignette for a tutorial introduction.
 }
 \examples{
 library(flowPloidyData)

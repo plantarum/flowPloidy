@@ -10,15 +10,26 @@ NULL
 #' @importFrom utils str
 NULL
 
-#' Visually assess histogram fits
+#' Visually assess and correct histogram fits
 #'
-#' Visually assess histogram fits
+#' Visually assess histogram fits, correcting initial values, and selecting
+#' model components.
+#'
+#' This function will open a browser tab displaying the first
+#' \code{\link{FlowHist}} object from the argument \code{flowList}. Using
+#' the interface, the user can modify the starting values for the histogram
+#' peaks, select different debris model components, toggle the linearity
+#' option, select which peak to treat as the standard, and, if multiple
+#' standard sizes are available, select which one to apply.
+#'
+#' See the "Getting Started" vignette for a tutorial introduction.
+#' 
 #' @title browseFlowHist
 #' @param flowList either a \code{\link{FlowHist}} object, or a list of
-#'   \code{\link{FlowHist}} objects 
+#'   \code{\link{FlowHist}} objects
 #' @param debug boolean, turns on debugging messages
-#' @return Returns the list of \code{\link{FlowHist}} objects, updated by any
-#'   changes made in the GUI.
+#' @return Returns the list of \code{\link{FlowHist}} objects, updated by
+#'   any changes made in the GUI.
 #' @author Tyler Smith
 #' @examples
 #' library(flowPloidyData)
@@ -418,36 +429,3 @@ browseFlowHist <- function(flowList, debug = FALSE){
   }
 }
 
-selectPeaks <- function(fh, peakA, peakB, peakC){
-  pA <- fhHistData(fh)[round(peakA, 0), c("xx", "intensity")]
-  if(is.numeric(peakB))                 
-    pB <- fhHistData(fh)[round(peakB, 0), c("xx", "intensity")]
-  if(is.numeric(peakC))                 
-    pC <- fhHistData(fh)[round(peakC, 0), c("xx", "intensity")]
-  
-  fh <- resetFlowHist(fh)
-
-  if(is.numeric(peakC))
-    newPeaks <- as.matrix(rbind(pA, pB, pC))
-  else if(is.numeric(peakB))
-    newPeaks <- as.matrix(rbind(pA, pB))
-  else
-    newPeaks <- as.matrix(rbind(pA))
-  
-  colnames(newPeaks) <- c("mean", "height")
-  newPeaks <- newPeaks[order(newPeaks[, "mean"]), ]
-
-  ## if we have a single row, the previous selection will return a numeric
-  ## vector, which needs to be converted back into a matrix with 1 row:
-  if(is.numeric(newPeaks))
-    newPeaks <- t(as.matrix(newPeaks))
-  
-  fhPeaks(fh) <- newPeaks
-  
-  fh <- addComponents(fh)
-  fh <- setLimits(fh)
-  fh <- makeModel(fh)
-  fh <- getInit(fh)
-
-  return(fh)
-}

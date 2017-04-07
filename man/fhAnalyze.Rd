@@ -10,8 +10,8 @@ fhAnalyze(fh)
 \item{fh}{a \code{\link{FlowHist}} object}
 }
 \value{
-a \code{\link{FlowHist}} object with the analysis (nls, counts, cv,
-  RCS) slots filled.
+a \code{\link{FlowHist}} object with the analysis (nls, counts,
+  cv, RCS) slots filled.
 }
 \description{
 Complete non-linear regression analysis of FlowHist histogram data

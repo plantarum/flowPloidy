@@ -1,4 +1,32 @@
+Changes in version 1.1.6 (2017-04-??)
+-------------------------------------
+
+(Including changes from 1.1.4 and 1.1.5, which didn't get their own NEWS
+items since I was the only one who saw them.)
+
+User Visible Changes
+
+    * Users may now specify one or more internal standard sizes in
+      functions FlowHist() and batchFlowHist(), via the argument
+      'standards'. These values will be presented to the user in the
+      browseFlowHist() viewer, and after being set by the user, the value
+      will be used to calculate the GC size in pg in the function
+      tabulateFlowHist.
+
+    * Users may now select which peak in the histogram to treat as the
+      internal standard when calculating GC values.
+
+    * New vignettes added: "Getting Started", and "Histogram Tour".
+
+    * Old vignette "overview" removed.
+
+    * Internal help pages greatly expanded, including many internal
+      functions. See ?flowPloidy for an overview
+
+    * Many minor bug fixes and GUI tweaks (for browseFlowHist).
+
 Changes in version 1.1.3 (2016-11-25)
+-------------------------------------
 
 User Visible Changes
 

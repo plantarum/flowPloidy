@@ -100,6 +100,11 @@ The versions of these functions that allow modification of the
 \code{\link{FlowHist}} object are not exported. Functions are provided
 for users to update \code{\link{FlowHist}} objects in a safe way.
 }
+\examples{
+library(flowPloidyData) 
+fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
+fhModel(fh1) ## prints the model to screen
+}
 \author{
 Tyler Smith
 }

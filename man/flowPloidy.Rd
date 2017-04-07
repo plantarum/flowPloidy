@@ -15,7 +15,9 @@ determine the genome content for the unknown sample.
 }
 \details{
 Please see the vignettes for an overview: \code{histogram-tour} and
-  \code{flowPloidy-gettingStarted} for an overview.
+\code{flowPloidy-gettingStarted}. To follow along with the examples in
+the vignettes, and also in the documentation listed below, you'll need
+to install the \code{flowPloidyData} package from Bioconductor.
 }
 \section{Primary Functions}{
 
@@ -40,14 +42,18 @@ Additional functions for inspecting and manipulating
 \code{\link{FlowHist}} objects and analyses:
 
 \enumerate{
+\item \code{\link{FlowHist}}, to load a single FCM file into R.
 \item \code{\link{plot.FlowHist}}, for plotting the data and fitted
   model using base R graphics.
 \item \code{\link{pickInit}}, to interactively select initial peak
-  estimates, using base R graphics.
+  estimates, using base R graphics (this is more easily accomplished via
+  \code{\link{browseFlowHist}}.
 \item \code{\link{setBins}}, to reset the bins, selecting the number of
   bins to use.
 \item \code{\link{fhAnalyze}}, to (re-)analyze the FCM data, presumably
-  after updating the settings for a file.
+  after updating the settings for a file. Most functions that make
+  changes that would require reanalysis provide the option to do this
+  automatically, and this option is usually the default.
 \item \code{\link{updateFlowHist}}, to update the settings for an FCM
   file.
 }
@@ -56,9 +62,9 @@ Additional functions for inspecting and manipulating
 \section{Internal Functions}{
 
 
-These functions aren't necessary for regular use, but may be useful to
-those interested in modifying or extending the package, or just curious
-about details:
+These functions aren't necessary for regular use, and are not exported
+for direct access by users. They may be useful to those interested in
+modifying or extending the package, or just curious about details:
 
 \enumerate{
 \item \code{\link{fhAccessors}}, for inspecting the slots of a
@@ -69,6 +75,8 @@ about details:
   components used in constructing the non-linear regression model.
 \item \code{\link{GaussianComponents}}, a description of the Gaussian
   model component that is fit to cell peaks.
+\item \code{\link{DebrisModels}}, a description of the debris
+  model components.
 \item \code{\link{FlowStandards}}, the S4 class for the size standard
   data. 
 \item \code{\link{plotFH}}, a low-level plotting function for displaying
@@ -77,6 +85,12 @@ about details:
   various portions of a \code{\link{FlowHist}} object.
 \item \code{\link{flowModels}}, functions for assembling
   \code{\link{ModelComponent}} into a complete model.
+\item \code{\link{fhDoNLS}}, \code{\link{fhDoCounts}},
+  \code{\link{fhDoCV}}, \code{\link{fhDoRCS}}: the functions which
+  actually complete the model fitting and extract the parameters of
+  interest.
+\item \code{\link{setGate}}, the function for applying a gate to a
+  \code{\link{FlowHist}} object.
 }
 }
 

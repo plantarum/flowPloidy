@@ -80,3 +80,4 @@ points(test.peaks, col = 'red', cex = 2)
 \author{
 Tyler Smith
 }
+\keyword{internal}

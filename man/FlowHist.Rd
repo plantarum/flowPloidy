@@ -27,10 +27,13 @@ the unknown sample will not be done.}
 a histogram}
 
 \item{window}{integer, the width of the moving window used to identify
-local maxima for peak detection via \code{\link{runmax}}}
+local maxima for peak detection via \code{\link{runmax}}. The default
+is 20. If you have really clean, narrow, peaks, lowering this value
+may help you get better initial values.}
 
 \item{smooth}{integer, the width of the moving window used to reduce
-noise in the histogram via \code{\link{runmean}}}
+noise in the histogram via \code{\link{runmean}}. The default is 20.
+As for \code{window}, lower values may be helpful for clean peaks.}
 
 \item{pick}{boolean; if TRUE, the user will be prompted to select peaks
 to use for starting values. Otherwise (the default), starting values
@@ -167,9 +170,11 @@ when trying out new options.}
 \item{\code{comps}}{a list of \code{ModelComponent} objects included for these
 data.}
 
-\item{\code{model}}{the function (built from \code{comps}) to fit to these data.}
+\item{\code{model}}{the function (built from \code{comps}) to fit to these
+data.}
 
-\item{\code{limits}}{list, a list of lower and upper bounds for model parameters}
+\item{\code{limits}}{list, a list of lower and upper bounds for model
+parameters}
 
 \item{\code{init}}{a list of initial parameter estimates to use in fitting the
 model.}

@@ -27,6 +27,29 @@ plotResid <- function(fh, main = fhFile(fh), sub = "Gate Residuals", ...){
           col = "lightgray", border = NA)
 }
 
+#' Apply a gate to a FlowHist object
+#'
+#' This function is primarily book-keeping to make sure that
+#' \code{histData} and downstream calculations are appropriately updated
+#' when a gate is applied. The code for applying the gate is actually in
+#' the function \code{\link{setBins}}.
+#' 
+#' @title setGate
+#' @param fh a \code{\link{FlowHist}} object
+#' @param gate boolean, a vector indicating which rows in the raw data
+#'   should be included (gated) in the analysis.
+#' @param refresh boolean, should the analysis be updated after applying
+#'   the gate (default = TRUE)?
+#' @return \code{setGate} returns an updated \code{\link{FlowHist}} object,
+#'   with the \code{histData} slot updated to account for the gate. With
+#'   \code{refresh = TRUE} (default), it will also rebuild the model and
+#'   complete the analysis.
+#'
+#'   \code{isGated} returns TRUE if the \code{\link{FlowHist}} object is
+#'   gated.
+#' @author Tyler Smith
+#' @seealso \code{\link{setBins}}
+#' @keywords internal
 setGate <- function(fh, gate, refresh = TRUE){
   fhGate(fh) <- gate
   ## We save and restore the peaks here. In most cases, you need to
@@ -49,6 +72,7 @@ setGate <- function(fh, gate, refresh = TRUE){
   fh
 }
 
+#' @rdname setGate
 isGated <- function(fh){
   ## returns TRUE if the FlowHist data is gated
   sum(fhGate(fh)) != 0
