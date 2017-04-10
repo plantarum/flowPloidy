@@ -188,7 +188,7 @@ to the variable you pass to is as an argument, as in the following example.
 ***
 
 ```{r browseFlowHist, eval = FALSE}
-batch1 <- browseFlowHist(batch1)
+batch1 <- browseFlowHist(batch1) ## update the histograms in batch1
 ```
 
 \newpage
@@ -228,11 +228,20 @@ regarding the model fit:
 
 * **RCS:** the residual Chi-Square value. This is a rough goodness-of-fit
   value. @bagwell_1993 suggests that values between 0.7 and 4 indicate an
-  acceptable model fit. See below for further discussion.
+  acceptable model fit. See `?RCS` for more details in the online manual.
 * **A** and **B:** the parameter estimates for samples A and B. The three
   numbers are the peak position, the number of nuclei counted, and the
   coefficient of variation.
-* **Linearity:** The linearity parameter, discussed further below.
+* **Linearity:** The linearity parameter. This is the ratio between G1 and
+  G2 peaks. By default, we fit it as a model parameter bounded between 1.9
+  and 2.1[^1].
+
+[^1]: Linearity should be 2, but local environmental conditions may cause
+    your flow cytometer to drift, and it may vary between days, or even
+    from the beginning to the end of a run. If you don't have G2 peaks in
+    your data, it won't matter at all. In general, you can ignore this,
+    unless you are interested in developing new model components (in which
+    case, see `?ModelComponent`).
 
 For this example, the default settings have worked perfectly. The model fit
 is acceptable (RCS 2.208), and the CVs for the peaks are well below the
@@ -307,16 +316,16 @@ knitr::include_graphics("gs_browse3b.png")
 ```
 
 Quick and easy. However, our RCS value is now off the charts! Two things
-are contributing to this. First, as we'll discuss below, RCS is sensitive
-to a number of factors, not all of which are related to model fit. Second,
-the most appropriate way to model histogram debris varies for different
-samples. As botanists, we will analyze samples from many different species,
-tissue types, and using different preparation protocols. In some cases, the
-Single Cut debris model will be most effective; in others, the Multi-Cut
-model works better. When your analysis produces high RCS values, as in this
-case, it may be a clue that the other debris model is more appropriate. We
-can check this by selecting "MC" from the "Debris Model" drop-down list at
-the left:
+are contributing to this. First, RCS is sensitive to a number of factors,
+not all of which are related to model fit (see `?RCS`). Second, the most
+appropriate way to model histogram debris varies for different samples. As
+botanists, we will analyze samples from many different species, tissue
+types, and using different preparation protocols. In some cases, the Single
+Cut debris model will be most effective; in others, the Multi-Cut model
+works better. When your analysis produces high RCS values, as in this case,
+it may be a clue that the other debris model is more appropriate. We can
+check this by selecting "MC" from the "Debris Model" drop-down list at the
+left:
 
 ```{r, echo = FALSE, out.width = "100%"}
 knitr::include_graphics("gs_browse3c.png")
@@ -390,7 +399,8 @@ until you've exited from the histogram browser. Should you accidentally
 close your browser tab without exiting, entering `C-c` in the R console
 should restore the console (without saving the edits you made!). Note this
 is what I do on Linux, for Windows and Mac you may need to use a different
-key to cancel the browser loop.
+key to cancel the browser loop. If you are using RStudio, there's a little
+red "stop sign" button at the top of the console window you can click.
 
 Assuming we've made all of our edits and exited cleanly from the browser
 window, the updated histogram data is now stored in our variable. We can
@@ -418,7 +428,7 @@ The columns in this table are:
 * **size<N>:** the peak size for each sample
 * **cv<N>:** the coefficient of variation for the G1 peak of each sample
 * **AB:** the ratio of the G1 peaks A/B
-* **ABse:** the standard error of the A/B peak ratio (discussed below)
+* **ABse:** the standard error of the A/B peak ratio (see `?PeakRatio`)
 * **AC, BC:** if a third sample is included, the peak ratios and SE for
   these comparisons
 * **rcs:** the Residual Chi-Square value
@@ -458,17 +468,19 @@ histogram from the raw data files.
 
 # Size Standards
 
-Up to this point, we've largely ignored size standards. There are two and a
-half different ways to incorporate size standards into your `flowPloidy`
-analysis. You could ignore them entirely. If you do, the data returned by
-`tabulateFlowHist()` will include only the relative G1 peak positions for
-your samples, from which you can determine which one is the standard, based
-on the expected ratios for your study. This is a bit tedious.
+Up to this point, we've largely ignored size standards. There are three
+ways to incorporate size standards into your `flowPloidy` analysis.
+
+You could ignore them entirely, as we have so far. If you do, the data
+returned by `tabulateFlowHist()` will include only the relative G1 peak
+positions for your samples, from which you can determine which one is the
+standard, based on the expected ratios for your study. This is a bit
+tedious.
 
 A better option is telling `flowPloidy` the size of your standard when you
 load your files. You do this by providing the appropriate value of the
 standard as the `standards` argument to `batchFlowHist()`. For example, if
-we used _Raphananus satuvus_ Saxa, (genome size 1.11pg) as our standard,
+we used _Raphananus sativus_ Saxa, (genome size 1.11pg) as our standard,
 we'd call `batchFlowHist()` as:
 
 ```{r setting standards, eval = FALSE}
@@ -485,7 +497,7 @@ will be calculated for you when you run `tabulateFlowHist()`.
 
 If you have used more than one standard for different samples in batch, you
 can pass a vector of all the possible standard values to `batchFlowHist()`.
-For example, if some of your samples used _Raphananus satuvus_ Saxa, and
+For example, if some of your samples used _Raphananus sativus_ Saxa, and
 others used _Pisum sativum_ Ctirad (9.09pg), we'd call `batchFlowHist()`
 as:
 
@@ -600,9 +612,9 @@ characteristic shape. Typically, this shape has lower 'optical complexity'
 than the irregular debris particles.
 
 In order to see this, we'll need to zoom in on the gate plot. Dragging the
-zoom slider about halfway across[^1] we see this:
+zoom slider about halfway across[^2] we see this:
 
-[^1]: The zoom slider numbers aren't particularly meaningful in themselves;
+[^2]: The zoom slider numbers aren't particularly meaningful in themselves;
     higher numbers mean a higher zoom, measured on a log scale.
 
 ```{r, echo = FALSE, out.width = "100%"}
@@ -664,13 +676,16 @@ knitr::include_graphics("gated_analysis.png")
 ```
 
 The histogram plot now includes the **--GATED--** flag. This is a caution
-to remind us that applying a gate may influence the RCS value in unexpected
-ways, so the absolute value may not be so useful now.
+to remind us that applying a gate may influence the model-fitting process
+in a number of ways, including how effective the debris model components
+(SC and MC) capture the remaining debris, and the absolute value of RCS. In
+general, these issues are outweighed by the improved fit for high-debris
+samples.
 
-We now have a usable result. Sadly for those of us working with
-_Vaccinium_, we're usually limited to very low cell counts. But given the
-challenges presented by this difficult tissue, we have succeeded in
-isolating the nuclei necessary to get a GC estimate.
+The final outcome here is we have a usable result. Sadly for those of us
+working with _Vaccinium_, we're usually limited to very low cell counts.
+But given the challenges presented by this difficult tissue, we have
+succeeded in isolating the nuclei necessary to get a GC estimate.
 
 # Further Details
 

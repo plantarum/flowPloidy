@@ -2,6 +2,7 @@
 % Please edit documentation in R/flowAnalysis.R
 \name{fhDoCV}
 \alias{fhDoCV}
+\alias{PeakRatio}
 \title{Calculate CVs from a \code{\link{FlowHist}} object}
 \usage{
 fhDoCV(fh)
@@ -14,16 +15,15 @@ The updated \code{\link{FlowHist}} object.
 }
 \description{
 Extracts the model parameters (G1 peak means and standard deviations)
-and calculates the CVs. It also calculates the confidence intervals for
+and calculates the CVs. It also calculates the standard errors for
 the peak ratios.
 }
 \details{
-Note that the confidence intervals here are in fact the confidence
-interval for the model fit to the particular data set, NOT the
-confidence interval for the DNA content ratio. In other words, it's a
-measure of how well the model has fit the data, not a measure of
-confidence in the actual amount of DNA in the original samples. It's
-almost always very small, even with very noisy data.
+Note that the standard errors here are in fact the SE for the model fit
+to the particular data set, NOT the SE for the DNA content ratio. In
+other words, it's a measure of how well the model has fit the data, not
+a measure of confidence in the actual amount of DNA in the original
+samples. It's almost always very small, even with very noisy data.
 }
 \seealso{
 \code{\link{deltaMethod}}, \code{\link{fhDoCounts}},

@@ -2,7 +2,8 @@
 % Please edit documentation in R/flowAnalysis.R
 \name{fhDoRCS}
 \alias{fhDoRCS}
-\title{Calculcate the Residual Chi-Square for a \code{\link{FlowHist}} object}
+\alias{RCS}
+\title{Calculate the Residual Chi-Square for a \code{\link{FlowHist}} object}
 \usage{
 fhDoRCS(fh)
 }
@@ -13,27 +14,83 @@ fhDoRCS(fh)
 The updated \code{\link{FlowHist}} object.
 }
 \description{
-Calculcate the Residual Chi-Square value for a \code{\link{FlowHist}}
+Calculate the Residual Chi-Square value for a \code{\link{FlowHist}}
 model fit.
 }
-\details{
-This is only a rough guideline, and needs to be interpreted with some
-caution. The RCS is heavily influenced by the highest channels, where
-the expected value is close to zero. Consequently, observing 2 or 3
-stray events in one of these channels, where the expected value may be <
-0.02, produces a higher value of (obs - exp)^2 / exp than larger
-absolute differences in the main region of the histogram.
-                                                                    
-Rabinovitch 1994:                                                   
-                                                                    
-The x2 is affected by a large number of variables, not all related  
-to goodness of the fit; these include the number of cells acquired  
-in the histogram and the end points of the analysis region used     
-within the histogram.
+\section{Overview}{
+
+
+The algorithm used to fit the non-linear regression model works by
+adjusting the model parameters to minimize the Chi-Square value for the
+resulting fit. The Chi-Square value calculates the departure of observed
+values from the values predicted by the fitted model:
+
+\deq{\chi^2 = \sum \frac{(observed(x) - predicted(x))^2}{observed(x)}}
+
+This would make the Chi-Square value a natural choice for an index to
+determine the overall goodness-of-fit of the model. However, the
+Chi-Square value is sensitive to the number of data points in our
+histogram. We could aggregate the same data into 256, 512 or 1024 bins.
+All else being equal, the analysis based on 256 bins would give us a
+lower Chi-Square value than the analyses that use more bins, despite
+providing essentially identical results.
+
+Bagwell (1993) suggested using the Reduced Chi-Square (RCS) value as an
+superior alternative. It is defined as:
+
+\deqn{\Chi^2 = \frac{\Chi^2}{n - m}}
+
+Where n is the number of data points (bins), and m is the number of
+model parameters. Thus, we correct for the inflation of the Chi-Square
+value that obtains for higher numbers of bins. At the same time, we
+introduce a penalty for increasing model complexity, increasing the
+Chi-Square value proportional to the number of model parameters. This
+helps us protect against over-fitting the model.
+}
+
+\section{Guidelines}{
+
+
+As a rule of thumb, RCS values below 0.7 suggest over-fitting, and above
+4.0 suggest a poor fit.
+
+These are guidelines only, and should not be treated as significance
+tests. From a statistical perspective, there is limited value to a
+'goodness-of-fit' index for a single model. In other contexts we'd
+compare several competing models to determine which is better. For this
+application, the RCS is serving as a rough sanity check.
+
+Additionally, the absolute value of the RCS is influenced by particular
+design decisions I made in writing the model-fitting routines.
+Consequently, other, equally valid approaches may yield slightly
+different values (Rabinovitch 1994).
+
+With this in mind, as long as the values are close to the ideal range
+0.7-4.0, we can be reasonably confident that our anlaysis is acceptable.
+If we get values outside this range, it is a caution that we ought to
+carefully inspect our model fit, to make sure it appears sensible; the
+results may still be fine.
+
+The most common issue identified by extreme RCS values is poor fitting
+of the debris component. Occassionally, an otherwise sensible looking
+model fit will produce extremely high RCS values. Switching from
+Single-Cut to Multiple-Cut, or vice versa, will often provide a much
+better fit, with a corresondingly lower RCS value. Visually, the fit may
+not look much different, and usually the model parameters don't change
+much either way.
+}
+
+\references{
+Bagwell, C.B., 1993. Theoretical aspects of flow cytometry data
+analysis. pp.41-61 in Clinical flow cytometry: principles and
+applications. Baltimore: Williams & Wilkins.
+
+Rabinovitch, P. S. 1994. DNA content histogram and cell-cycle analysis.
+Methods in Cell Biology 41:263-296.
 }
 \seealso{
 \code{\link{fhDoCV}}, \code{\link{fhDoNLS}},
-  \code{\link{fhDoCounts}}
+  \code{\link{fhDoCounts}}, \code{\link{DebrisModels}}
 }
 \author{
 Tyler Smith
