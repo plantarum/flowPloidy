@@ -23,8 +23,12 @@ values in `intensity'.}
 process. Determined by the internal function \code{fhStart}.}
 }
 \value{
-\code{getSingleCutValsBase}, a vectorized function, returns the
-  fixed \code{SCvals} for the histogram.
+\code{getSingleCutVals}, the vectorized function built from
+  getSingleCutValsBase, returns the fixed \code{SCvals} for the
+  histogram.
+
+\code{getMultipleCutVals}, a vectorized function, returns the
+  fixed \code{MCvals} for the histogram.
 }
 \description{
 Implementation of debris models described by Bagwell et al. (1991).

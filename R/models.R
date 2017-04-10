@@ -75,7 +75,7 @@
 #'   Sa^2)))} 
 #'
 #' with the arguments \code{a1, Ma, Sa, xx}. \code{xx} is treated
-#' specially, by default, and we don't need to deal with it here. the
+#' specially, by default, and we don't need to deal with it here. The
 #' initial estimates for the other parameters are calculated in
 #' \code{initParams}:
 #' \preformatted{function(fh){
@@ -88,11 +88,12 @@
 #'
 #' \code{Ma} is the mean of the distribution, which should be very close to
 #' the peak. \code{Sa} is the standard distribution of the distribution.
-#' If we assume the CV is 5%, that means the \code{Sa} should be 5% of the
-#' distribution mean, which gives us a good first estimate. \code{a1} is a
-#' scaling parameter, and I came up with the initial estimate by
-#' trial-and-error. Given the other two values are going to be reasonably
-#' close, the starting value of \code{a1} doesn't seem to be that crucial.
+#' If we assume the CV is 5\%, that means the \code{Sa} should be 5\% of
+#' the distribution mean, which gives us a good first estimate.
+#' \code{a1} is a scaling parameter, and I came up with the initial
+#' estimate by trial-and-error. Given the other two values are going to be
+#' reasonably close, the starting value of \code{a1} doesn't seem to be
+#' that crucial.
 #' 
 #' The limits for these values are provided in \code{paramLimits}.
 #' \preformatted{paramLimits = list(Ma = c(0, Inf), Sa = c(0, Inf), a1 =
@@ -132,19 +133,32 @@
 #' initial values or limits. These values are already supplied in the
 #' definition of \code{fA1}, which is always present when \code{fA2} is.
 #'
-#' The Single-Cut component is unusual in two ways. It doesn't include the
-#' argument \code{xx}, but it uses the pre-computed values \code{SCvals}.
-#' Consequently, we must provide a function for \code{specialParamSetter}
-#' to deal with this:
-#' \preformatted{specialParamSetter = function(fh){
-#'   list(SCvals = substitute(SCvals))
-#' }
-#' }
-#' 
-#' The Multi-Cut component \code{MC} is similar, but it needs to include
-#' \code{xx} as a special parameter. The aggregate component \code{AG} also
-#' includes several special parameters.
+#' NB.: This isn't checked in the code! I know \code{fA1} is always
+#' present, but there is no automated checking of this fact. If you create
+#' a \code{ModelComponent} that has parameters that are not defined in that
+#' component, and are not defined in other components (like \code{Ma} is in
+#' this case), you will cause problems. There is also nothing to stop you
+#' from defining a parameter multiple times. That is, you could define
+#' initial estimates and limits for \code{Ma} in \code{fA1} and \code{fA2}.
+#' This may also cause problems. It would be nice to do some
+#' sanity-checking to protect against using parameters without defining
+#' initial estimates or limits, or providing multiple/conflicting
+#' definitions.
 #'
+#' The Single-Cut Debris component is unusual in two ways. It doesn't
+#' include the argument \code{xx}, but it uses the pre-computed values
+#' \code{SCvals}. Consequently, we must provide a function for
+#' \code{specialParamSetter} to deal with this:
+#' \preformatted{specialParamSetter = function(fh){ list(SCvals =
+#' substitute(SCvals)) } }
+#' 
+#' The Multi-Cut Debris component \code{MC} is similar, but it needs to
+#' include \code{xx} as a special parameter. The aggregate component
+#' \code{AG} also includes several special parameters.
+#'
+#' For more discussion of the debris components, see
+#' \code{\link{DebrisModels}}. 
+#' 
 #' The code responsible for this is in the file \code{models.R}. Accessor
 #' functions are provided (but not exported) for getting and setting
 #' \code{\link{ModelComponent}} slots. These functions are named
@@ -198,63 +212,35 @@
 #'   ## is used instead. As a temporary hack, you could add both and then
 #'   ## manually remove one with \code{dropComponents}. 
 #'   }
-setClass(
-  Class = "ModelComponent",
-  representation = representation(
-    name = "character",
-    desc = "character", 
-    color = "character",
-    includeTest = "function",
-    ## function with one argument, the FlowHist object.
-    ## Return TRUE if the component should be included, FALSE otherwise.
-    func = "function",
-    ## a single-line function that returns the value of the component.
-    ## Can take multiple arguments, usually one of which will be 'xx'
-    initParams = "function",
-        ## a function that returns a named list of initial parameter
-    ## estimates, based on the single argument of the FlowHist object 
-    ## list(param1 = param1, ...)
-    specialParams = "list",
-    ## A named list, the names are parameters to exclude from the default
-    ## argument list, as they aren't variables to fit in the NLS procedure.
-    ## the body of the list element is the object to insert into the model
-    ## formula to account for that variable. e.g., in the singleCut
-    ## component, the SCvals parameter is not a variable, and is instead
-    ## assigned to the SCvals column in the histData slot. Therefore, it
-    ## has a specialParams slot value of `list(SCvals =
-    ## substitute(SCvals))`
-    specialParamSetter = "function",
-    ## function with one argument, the FlowHist object, used to set the
-    ## value of specialParams. This allows parameters to be declared
-    ## "special" based on values in the fh. i.e., if it fh@linearity is
-    ## "fixed", we can declare the parameter d special with a set value of
-    ## 2; with linearity == "variable", d is a regular parameter to fit in
-    ## the model.
-    paramLimits = "list"
-    ## A list with the lower and upper limits of each parameter in the
-    ## function
-  )
-)
+setClass(Class = "ModelComponent",
+         representation =
+           representation(name = "character",
+                          desc = "character",
+                          color = "character",
+                          includeTest = "function", 
+                          func = "function",
+                          initParams = "function",
+                          specialParams = "list", 
+                          specialParamSetter = "function",
+                          paramLimits = "list"
+                          ))
 
-setMethod(
-  f = "show",
-  signature = "ModelComponent",
-  def = function(object){
-    cat("** flowHist model component: ")
-    cat(mcName(object)); cat(" ** \n")
-    cat(mcDesc(object)); cat(" \n")
-    cat("Parameters: ")
-    pnames <- names(formals(mcFunc(object)))
-    pnames <- pnames[which(pnames != "xx")]
-    cat(paste(pnames, collapse = ", "))
-    cat("\n")
-    if(length(mcSpecialParams(object)) > 0){
-      cat("Special Parameters: ")
-      cat(paste(names(mcSpecialParams(object)), collapse = ", "))
-      cat("\n")
-    }
-  }
-)
+setMethod(f = "show", signature = "ModelComponent",
+          def = function(object){
+            cat("** flowHist model component: ")
+            cat(mcName(object)); cat(" ** \n")
+            cat(mcDesc(object)); cat(" \n")
+            cat("Parameters: ")
+            pnames <- names(formals(mcFunc(object)))
+            pnames <- pnames[which(pnames != "xx")]
+            cat(paste(pnames, collapse = ", "))
+            cat("\n")
+            if(length(mcSpecialParams(object)) > 0){
+              cat("Special Parameters: ")
+              cat(paste(names(mcSpecialParams(object)), collapse = ", "))
+              cat("\n")
+            }
+          })
 
 ###############
 ## Accessors ##
@@ -702,8 +688,12 @@ fhComponents$brC <-
 #'   values in `intensity'.
 #' @param first.channel integer, the lowest bin to include in the modelling
 #'   process. Determined by the internal function \code{fhStart}.
-#' @return \code{getSingleCutValsBase}, a vectorized function, returns the
-#'   fixed \code{SCvals} for the histogram.
+#' @return \code{getSingleCutVals}, the vectorized function built from
+#'   getSingleCutValsBase, returns the fixed \code{SCvals} for the
+#'   histogram.
+#'
+#' \code{getMultipleCutVals}, a vectorized function, returns the
+#'   fixed \code{MCvals} for the histogram.
 #' 
 #' @references Bagwell, C. B., Mayo, S. W., Whetstone, S. D., Hitchcox, S.
 #' A., Baker, D. R., Herbert, D. J., Weaver, D. L., Jones, M. A. and

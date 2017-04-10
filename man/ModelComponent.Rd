@@ -79,7 +79,7 @@ The G1 component is defined by the function
   Sa^2)))} 
 
 with the arguments \code{a1, Ma, Sa, xx}. \code{xx} is treated
-specially, by default, and we don't need to deal with it here. the
+specially, by default, and we don't need to deal with it here. The
 initial estimates for the other parameters are calculated in
 \code{initParams}:
 \preformatted{function(fh){
@@ -92,11 +92,12 @@ initial estimates for the other parameters are calculated in
 
 \code{Ma} is the mean of the distribution, which should be very close to
 the peak. \code{Sa} is the standard distribution of the distribution.
-If we assume the CV is 5%, that means the \code{Sa} should be 5% of the
-distribution mean, which gives us a good first estimate. \code{a1} is a
-scaling parameter, and I came up with the initial estimate by
-trial-and-error. Given the other two values are going to be reasonably
-close, the starting value of \code{a1} doesn't seem to be that crucial.
+If we assume the CV is 5\%, that means the \code{Sa} should be 5\% of
+the distribution mean, which gives us a good first estimate.
+\code{a1} is a scaling parameter, and I came up with the initial
+estimate by trial-and-error. Given the other two values are going to be
+reasonably close, the starting value of \code{a1} doesn't seem to be
+that crucial.
 
 The limits for these values are provided in \code{paramLimits}.
 \preformatted{paramLimits = list(Ma = c(0, Inf), Sa = c(0, Inf), a1 =
@@ -136,18 +137,31 @@ Note that we use the arguments \code{Ma} and \code{Sa} appear in the
 initial values or limits. These values are already supplied in the
 definition of \code{fA1}, which is always present when \code{fA2} is.
 
-The Single-Cut component is unusual in two ways. It doesn't include the
-argument \code{xx}, but it uses the pre-computed values \code{SCvals}.
-Consequently, we must provide a function for \code{specialParamSetter}
-to deal with this:
-\preformatted{specialParamSetter = function(fh){
-  list(SCvals = substitute(SCvals))
-}
-}
+NB.: This isn't checked in the code! I know \code{fA1} is always
+present, but there is no automated checking of this fact. If you create
+a \code{ModelComponent} that has parameters that are not defined in that
+component, and are not defined in other components (like \code{Ma} is in
+this case), you will cause problems. There is also nothing to stop you
+from defining a parameter multiple times. That is, you could define
+initial estimates and limits for \code{Ma} in \code{fA1} and \code{fA2}.
+This may also cause problems. It would be nice to do some
+sanity-checking to protect against using parameters without defining
+initial estimates or limits, or providing multiple/conflicting
+definitions.
 
-The Multi-Cut component \code{MC} is similar, but it needs to include
-\code{xx} as a special parameter. The aggregate component \code{AG} also
-includes several special parameters.
+The Single-Cut Debris component is unusual in two ways. It doesn't
+include the argument \code{xx}, but it uses the pre-computed values
+\code{SCvals}. Consequently, we must provide a function for
+\code{specialParamSetter} to deal with this:
+\preformatted{specialParamSetter = function(fh){ list(SCvals =
+substitute(SCvals)) } }
+
+The Multi-Cut Debris component \code{MC} is similar, but it needs to
+include \code{xx} as a special parameter. The aggregate component
+\code{AG} also includes several special parameters.
+
+For more discussion of the debris components, see
+\code{\link{DebrisModels}}. 
 
 The code responsible for this is in the file \code{models.R}. Accessor
 functions are provided (but not exported) for getting and setting

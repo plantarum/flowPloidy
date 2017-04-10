@@ -1,7 +1,7 @@
 ---
 title: "flowPloidy: Getting Started"
 author: "Tyler Smith"
-date: "2017-03-16"
+date: "2017-04-07"
 output: 
     rmarkdown::html_vignette:
         fig_width: 6
@@ -22,8 +22,8 @@ bibliography: flowPloidy.bibtex
 
 This document provides a walk-through of the normal workflow for analyzing
 flow cytometry (FCM) histograms with `flowPloidy`. See the vignette
-"flowPloidy: Flow Cytometry Histograms" for a general overview of FCM
-histograms.
+"flowPloidy: Flow Cytometry Histograms" (aka "histogram-tour") for a
+general overview of FCM histograms.
 
 # Installation
 ## Stable Release
@@ -54,11 +54,10 @@ biocLite("flowPloidyData")
 ## Development Release
 
 The Bioconductor system emphasizes stable packages. As a consequence,
-updates are only released twice a year. At the moment (March, 2017),
-`flowPloidy` development is proceeding at a faster rate. Consequently, you
-may prefer to use the developmental version. This is available directly
-from the [GitHub](github.com) repository, but requires a few more steps to
-install.
+updates are only released twice a year. If you need the latest version of
+`flowPloidy`, you may prefer to use the developmental version. This is
+available directly from the [GitHub](github.com) repository, but requires a
+few more steps to install.
 
 First, you need to install `bioconductor`, if you haven't already:
 
@@ -199,7 +198,9 @@ batch1 <- browseFlowHist(batch1)
 Calling `browseFlowHist()` opens a window in your internet browser that
 will display your histograms. The first one looks like this:
 
-![](gs_browse1.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_browse1.png")
+```
 
 On the right we see the histogram. The graphical elements are:
 
@@ -228,7 +229,7 @@ regarding the model fit:
 * **RCS:** the residual Chi-Square value. This is a rough goodness-of-fit
   value. @bagwell_1993 suggests that values between 0.7 and 4 indicate an
   acceptable model fit. See below for further discussion.
-* **A and B:** the parameter estimates for samples A and B. The three
+* **A** and **B:** the parameter estimates for samples A and B. The three
   numbers are the peak position, the number of nuclei counted, and the
   coefficient of variation.
 * **Linearity:** The linearity parameter, discussed further below.
@@ -245,22 +246,22 @@ ratios, and perhaps running the standard on its own without an unknown. You
 can tell `flowPloidy` which peak is the standard by selecting the value in
 the "Standard Peak" drop-down selector, on the left side of the plot. By
 default this is "X", indicating the standard has not been identified. If
-you set it to "A", the value will be stored in the results. If you don't
-set the value, you will still be able to recover the peak ratio from your
-results.
+you set it to "A" or "B", the value will be stored in the results. If you
+don't set the value, you will still be able to recover the peak ratio from
+your results, but will have to calculate the pg values yourself. We'll
+return to this below.
 
-On the left side of the plot is the navigation panel. We will ignore the
-various options for now, but will discuss them further below. For now,
+We'll ignore the other options in the navigation panel for now (and the
+gating interface below), but will discuss them further below. For now,
 click the "Next" button to move on to the next histogram.
-
-(We'll discuss the gating interface at the bottom of the screen below. For
-now we ignore it.)
 
 ## Correcting a Failed Model Fit
 
 The second histogram didn't work at all:
 
-![](gs_browse2.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_browse2.png")
+```
 
 Since the model fitting failed, the plot shows only the raw data and the
 initial estimates. The fitting parameters are also absent. 
@@ -274,7 +275,15 @@ left-clicking on the plot will set the new position for that peak.
 Moving Peak B to the second big peak, and Peak A to the first peak, the
 analysis works as expected:
 
-![](gs_browse2c.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_browse2c.png")
+```
+
+In most cases, the exact placement of the initial peak isn't critical. As
+long as you put it somewhere near the top of the appropriate peak,
+`flowPloidy` will be able to find the true value. You can confirm this by
+clicking around within the peaks: you end up with the same result (within a
+small rounding error) for quite a range of initial peak positions.
 
 Note that the A peak must have a lower mean (i.e., be further left on the
 histogram) than the B peak. If you try to put the A peak above the B peak,
@@ -287,11 +296,15 @@ code to work properly.
 Moving on to the next histogram, we see that there were also problems with
 peak detection here:
 
-![](gs_browse3.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_browse3.png")
+```
 
 We can fix this the same way:
 
-![](gs_browse3b.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_browse3b.png")
+```
 
 Quick and easy. However, our RCS value is now off the charts! Two things
 are contributing to this. First, as we'll discuss below, RCS is sensitive
@@ -305,12 +318,20 @@ case, it may be a clue that the other debris model is more appropriate. We
 can check this by selecting "MC" from the "Debris Model" drop-down list at
 the left:
 
-![](gs_browse3c.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_browse3c.png")
+```
 
 With the Multi-Cut debris model, we have a much more sensible RCS value.
 You can also see the improved fit visually - note the top of the fitted
 model is much closer to the raw data with the "MC" debris model, especially
 in the region between 80 and 140.
+
+For the nitty-gritty details of the debris models, see `?DebrisModels`. In
+practice, use whichever one gives you a lower RCS value. Also keep in mind
+that there is usually only a very small difference between the two options
+when it comes to peak means and CVs, even if the difference in RCS can be
+very large.
 
 ## Local Minima Traps
 
@@ -323,24 +344,30 @@ easily detected by humans.
 
 An example is file 11, "`734.LMD`" in our sample data:
 
-![](gs_browse11.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_browse11.png")
+```
 
 Once again, we need to correct our peak estimates. If we move the B peak
 over we get the following fit:
 
-![](gs_browse11b.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_browse11b.png")
+```
 
 Other than the RCS value being a little high, the stats for this fit look
 ok. However, notice that the G2 peak for sample A doesn't match well with
 the raw data. That's strange, as the G1 peak looks fine, as does the sample
-B peak. This is an example of the model getting trapped in a local minima.
+B peak. This is an example of the model getting trapped in a local minimum.
 
 We can fix this by changing the initial estimates. Notice the initial
 estimate for the A peak is actually stuck on a 'noise' peak just below the
 real peak. If we shift that point closer to the true peak, we get a more
 sensible fit:
 
-![](gs_browse11c.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_browse11c.png")
+```
 
 The new fit is much better, and our RCS value is now down below 4 where we
 like to see it. Notice, however, that the parameters of most interest (peak
@@ -425,8 +452,8 @@ save(batch1, file = "my-FCM-analyses.Rdata")
 ```
 
 Note that this is a binary file format - you'll need to open it in R to
-access the data. We don't normally do this, as the FlowHist objects can be
-quite large, and if we need to we can quickly reload and review any
+access the data. We don't normally do this, as the `FlowHist` objects can
+be quite large, and if we need to we can quickly reload and review any
 histogram from the raw data files.
 
 # Size Standards
@@ -507,7 +534,9 @@ Now we can take a look at the histogram:
 vac <- browseFlowHist(vac)
 ```
 
-![](vac1.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("vac1.png")
+```
 
 That's terrible. The debris curve has completely obscured the histogram. To
 correct this we'll need to apply a gate, using the interface we've ignored
@@ -517,7 +546,9 @@ up to now.
 
 At the bottom of the browser window you'll see this:
 
-![](gate_ui.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gate_ui.png")
+```
 
 At the left side is a simple control panel. We can select the X and Y
 variables using the dropdown menus. All of the data channels in your raw
@@ -574,7 +605,9 @@ zoom slider about halfway across[^1] we see this:
 [^1]: The zoom slider numbers aren't particularly meaningful in themselves;
     higher numbers mean a higher zoom, measured on a log scale.
 
-![](gs_gate.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_gate.png")
+```
 
 Notice the dense cloud of points on the upper left. These particles have
 low fluorescence and high granularity. They could be bits of damaged
@@ -587,149 +620,61 @@ the X-axis are the G1 peaks for the sample and standard. The smaller
 cluster further right is the G2 peak for the standard. Zooming in further
 we can see these more clearly:
 
-![](gs_gate_zoom2.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gs_gate_zoom2.png")
+```
 
 Here, notice that the nuclei form tight, dark clusters, with particles
 trailing away upwards. Those upward 'side-scatter tails' are probably
 intact nuclei with bits of debris or fluorescent compounds stuck to them.
 This makes their shapes more irregular, increasing their side scatter
 values. Unfortunately, there is no clear dividing line between 'clean
-nuclei' and 'goopy nuclei'. In practice, we place our gates high enough to
-retain all the particles in the densest section of the clusters, and extend
-them upwards to include the bottom portion of the tails. There is an
-element of subjectivity here: we are balancing biasing our results with
-goopy nuclei by including too much of the tail, and reducing the amount of
-precious data in the analysis by being too aggressive with our gate.
+nuclei' and 'goopy nuclei'. 
+
+In practice, we place our gates high enough to retain all the particles in
+the densest section of the clusters, and extend them upwards to include the
+bottom portion of the tails. There is an element of subjectivity here: we
+are balancing biasing our results with goopy nuclei by including too much
+of the tail, and reducing the amount of precious data in the analysis by
+being too aggressive with our gate. Including more of the goopy nuclei
+increases our CV, and excluding them lowers our cell count.
 
 ## Applying a Gate
 
 Use the mouse to left-click and drag a box around the cell clouds:
 
-![](draw_gate.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("draw_gate.png")
+```
+
+The upper boundary of the gate is important - it will have a direct
+influence on both our cell counts and CVs. However, the left and right
+boundaries have very little impact. The model-fitting process does a very
+nice job of determining where our peaks start and stop, so we don't need to
+worry about drawing 'correct' boundaries on the left and right.
+Consequently, we set our gates to include the full width of the plot.
 
 We can see the effect of the gate in the middle window, and the events that
 we're excluding in the right window. At this point, we can see three peaks
 in the histogram preview. To apply this gate to the analysis, click the
 `Set Gate` button. The result should look something like this:
 
-![](gated_analysis.png)
+```{r, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("gated_analysis.png")
+```
 
 The histogram plot now includes the **--GATED--** flag. This is a caution
 to remind us that applying a gate may influence the RCS value in unexpected
 ways, so the absolute value may not be so useful now.
 
-We originally analyzed this sample by manually gating the two peaks in
-CellQuest, before we had developed `flowPloidy` to allow us to combine
-manual gating and model-fitting. It is interesting to compare the results
-of the two analyses:
+We now have a usable result. Sadly for those of us working with
+_Vaccinium_, we're usually limited to very low cell counts. But given the
+challenges presented by this difficult tissue, we have succeeded in
+isolating the nuclei necessary to get a GC estimate.
 
-parameter      flowPloidy CellQuest
--------------- ---------- ---------
-Peak Ratio     1.23       1.26
-pg             2.41       2.46
-Sample CV      9.7        4.1
-Sample Count   413.5      209
-Standard CV    2.8        4.09
-Standard Count 586.6      696
+# Further Details
 
-The sample CV for the CellQuest analysis is much lower than `flowPloidy`.
-This is a consequence of the manual gating approach. By applying hard gates
-to each peak, CellQuest artificially excludes nuclei in the peak tails,
-which will directly reduce the CVs below their true values, particularly
-when two peaks are close together as in this case. The CVs reported by
-`flowPloidy` are more accurate in this respect.
+Additional documentation is provided in the built-in R manuals.
+`?flowPloidy` provides links to all the help files.
 
-On the other hand, the standard CV is lower in `flowPloidy`. This is likely
-a consequence of some of the debris and s-phase nuclei getting collected in
-the gate applied to the standard in the CellQuest analysis, inflating the
-CV. 
-
-In addition, `flowPloidy` counted more nuclei in the sample peak than
-CellQuest. The same explanation holds - because `flowPloidy` does not
-impose a hard limit on the upper and lower bounds of each peak, it more
-effectively captures the full range of cells in each population.
-
-Another benefit of the `flowPloidy` approach is that it is relatively
-robust to a reasonable range in the gated region. Consider the following
-four analyses, which vary in how tight they gate the x and y axes around
-the cell populations:
-
-![](nw_high.png)
-
-![](nw_low.png)
-
-![](fw_high.png)
-
-![](fw_low.png)
-
-The peak ratio varies from 1.233 to 1.255, the sample cell count varies
-from 367.7 to 549.6, and the sample CVs vary from 8.2 to 10.7. Making
-comparable changes in the gate in CellQuest we can manipulate the CV from X
-to Y and cell count values from W to Z.
-
-**Is this actually better than CellQuest? How much variation can we
-generate with CellQuest on the same sample?**
-
-Vac.ON.DL.14.026
-
-# Nitty Gritty
-
-**This should probably be moved to a separate 'reference manual', as it has
-no particular narrative flow.**
-
-We have now run through the complete FCM workflow in `flowPloidy`. For more
-details, see the help files provided with the package (i.e., `?FlowHist`,
-`?browseFlowHist` etc.). The remainder of this vignette will discuss some
-of the finer details of the model-fitting procedure.
-
-## Residual Chi-Square
-@bagwell_1993 recommended the Residual Chi-Square as a measure of
-goodness-of-fit for FCM histogram models. The RCS is calculated as
-$\frac{\chi{}^2}{n - m}$ where $\chi{}^2$ is the familiar Chi-Square
-statistic ($\sum \frac{(\text{observed} -
-\text{expected})^2}{\text{observed}}$), $n$ is the number of data points,
-and $m$ is the number of model parameters. Values above 4.0 indicate a poor
-fit, while values less than 0.7 indicate over-fitting.
-
-This corrects a problem with the regular $\chi^2$, which is dependent on
-the number of data points. In the process of generating a histogram, the
-data channel is partitioned in to bins. A 256-bin histogram will produce a
-lower $\chi^2$ value than a 1024-bin histogram for the same data.
-Similarly, increasing the number of model parameters will lower the
-$\chi^2$, which could encourage over-fitting. Correcting the $\chi^2$ by a
-factor of $n-m$ addresses both of these issues.
-
-That said, the RCS is not without drawbacks of its own. @rabinovitch_1994
-note that the $\chi^2$ value is "affected by a large number of variables,
-not all related to goodness of fit; [including] ... the end points of the
-analysis region used within the histogram". This has been our experience
-with `flowPloidy`. FCM histograms are typically quite noisy in the first
-few (lowest) bins, and often have a long tail of low values at the upper
-end. These regions of the histogram have little, if any, influence on the
-parameter estimates of interest to us (i.e., peak means, CVs, and cell
-counts). However, they can have a large influence on the RCS. Making small
-changes in the start and end of the analysis region, or the way the upper
-bins are modeled (particularly with the aggregate or S-phase model
-components) can have a dramatic influence on the RCS value.
-
-In practice, the RCS is most useful as an indicator of potential problems
-with the model fit, as illustrated in the example above. However, it is
-most appropriately used as a general guideline, not an absolute criterion
-of quality.
-
-## Linearity
-Linearity measures the relationship between G1 and G2 peaks of the same
-sample. Theoretically, it *should* be 2. However, it frequently differs,
-presumably do to conditions particular to the operation of a particular
-flow cytometer at a given time. By default, `flowPloidy` will fit linearity
-as a model parameter, bounded between 1.9 and 2.1. However, in rare cases
-switching to a fixed value of 2 may help address models that get stuck in a
-local minimum. Toggling this option for a single file can be done in the
-`browseFlowHist()` interface, or it can be set for a batch of files during
-initial processing by passing the `linearity = "fixed"` argument to the 
-`batchFlowHist()` and `FlowHist()` functions.
-
-## Debris Models
-## GUI options
-
-## Working from the Console
+# References
