@@ -17,3 +17,4 @@ vignettes/michal*
 *_cache
 *.tex
 vignettes/auto
+*/*#
