@@ -318,7 +318,7 @@ text(x = 95, y = 400, "G1", cex = 2)
 
 Builds on existing tools for flow cytometry in R
 
-Installation is simple:
+## Installation is simple:
 
 ```{r biocLite1, eval=FALSE}
 source("https://bioconductor.org/biocLite.R")
@@ -360,3 +360,103 @@ batch1 <- browseFlowHist(batch1)
 # Correcting Histograms
 
 ![](gs_browse2c_crop.png)\ 
+
+# Changing Model Components: Debris
+
+![](gs_browse3b_crop.png)\ 
+
+# Changing Model Components: Debris
+
+\center
+
+![](gs_browse1_cropb.png)\ 
+
+# Changing Model Components: Debris
+
+![](gs_browse3b_crop.png)\ 
+
+![](gs_browse3c_crop.png)\ 
+
+# Changing Model Components: Debris
+
+## One size doesn't fit all
+
+Depends on:
+
+- species
+- preparation method
+- individual sample quality
+
+## Response
+
+Make Switching component quick and easy
+
+Impact on parameter estimates is usually small
+
+# Local Minima
+
+There is no direct solution for non-linear regression
+
+Sometimes the algorithm gets stuck in a local minima:
+
+![](gs_browse11b_crop.png)\ 
+
+# Local Minima
+
+![](gs_browse11b_crop.png)\ 
+
+![](gs_browse11c_crop.png)\ 
+
+# Exporting Results
+
+Save to file or use directly in R:
+
+```{r tabulateFlowHist, eval = FALSE}
+tabulateFlowHist(batch1)
+```
+
+```{r tabulateFlowHist table, echo = FALSE, results = "as-is"}
+kable(tabulateFlowHist(batch1)[c(1, 4, 5),
+                               c("countsA", "sizeA", "cvA", "AB")],
+      digits = 3)
+```
+
+# Gating
+
+## Flow data is not always pretty
+
+![](vac1.png)\ 
+
+# Gating
+
+![](vac1.png)\ 
+
+![](gate_ui.png)\ 
+
+# Gating
+
+\center
+
+![](gs_gate.png)\ 
+
+# Gating
+
+\center
+
+![](gs_gate_zoom2.png)\ 
+
+# Gating
+
+\center
+
+![](draw_gate.png)\ 
+
+# Gating
+
+\center
+
+![](gated_analysis.png)\ 
+
+# Future Extensions
+
+## Pulse Analysis
