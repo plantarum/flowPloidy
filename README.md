@@ -1,3 +1,9 @@
+A tutorial overview of `flowPloidy` is available on
+the
+[Bioconductor website](http://bioconductor.org/packages/release/bioc/vignettes/flowPloidy/inst/doc/flowPloidy-gettingStarted.html).
+This vignette is provided with the package, so once you have `flowPloidy`
+installed you can access it from with R (see below).
+
 # Installation
 
 ## Stable Version
