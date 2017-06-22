@@ -1,12 +1,5 @@
 # flowPloidy
 
-## Caution!
-
-The development version of flowPloidy is working well, and corrects a
-number of issues present in the stable version. However, the documentation
-is now (2017-03-03) out-dated! Work to update the help files and vignettes
-is ongoing.
-
 ## Installation
 
 ### Stable Version
@@ -36,11 +29,10 @@ which you can load the package with the normal function
 
 ### Development Version
 
-Bioconductor focuses on stable software, and consequently only releases
-updates once every 6 months. Development on `flowPloidy` is currently
-(March 2017) proceeding at a faster rate. You may install the development
-version directly from the GitHub repository if you wish to use the latest
-updates:
+Development on `flowPloidy` is currently (June 2017) in a reasonably stable
+state, and no major new features are in the works. However, if you'd like
+to install the latest version from the development branch, you can get it
+directly from the GitHub repository.
 
 ```{r}
 ## Install Bioconductor tools first:
