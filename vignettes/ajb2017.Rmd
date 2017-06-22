@@ -9,10 +9,11 @@ theme: "metropolis"
 themeoptions: [numbering=none]
 ---
 
-# Outline
-1. Motivation
-2. Histogram Analysis
-3. flowPloidy
+```{r setup, echo = FALSE}
+library(knitr)
+library(flowPloidy)
+library(flowPloidyData)
+```
 
 # Motivation
 
@@ -51,14 +52,16 @@ Measure the fluorescence properties of each nuclei:
 
 # Ideal Histogram
 
+\center
+
 ```{r ideal histogram, echo = FALSE}
 plot(x = 1, type = 'n', xlim = c(0, 256), ylim = c(0, 500),
      ylab = "Nuclei", xlab = "Fluorescence", main = "")
 abline(h = 0)
-lines(x = c(80, 80), y = c(0, 325))
-lines(x = c(160, 160), y = c(0, 150))
+lines(x = c(80, 80), y = c(0, 325), lwd = 3)
+lines(x = c(160, 160), y = c(0, 150), lwd = 3)
 tmpfun <- function(x) 100 * exp(-x/80)
-curve(tmpfun, 80, 160, add = TRUE)
+curve(tmpfun, 80, 160, add = TRUE, lwd = 3)
 text(x = 80, y = 325, "G1 Peak", pos = 3, cex = 2)
 text(x = 160, y = 150, "G2 Peak", pos = 3, cex = 2)
 text(x = 120, y = 30, "S Phase", pos = 3, cex = 2)
@@ -310,7 +313,11 @@ text(x = 95, y = 400, "G1", cex = 2)
 
 ## Open access for everyone in our lab and yours
 
+\vspace{1em}
+
 ## You can learn from my work
+
+\vspace{1em}
 
 ## You can improve and extend my work
 
@@ -389,9 +396,11 @@ Depends on:
 
 ## Response
 
-Make Switching component quick and easy
+Make switching components quick and easy
 
 Impact on parameter estimates is usually small
+
+RCS provides an objective basis for choice
 
 # Local Minima
 
@@ -457,6 +466,52 @@ kable(tabulateFlowHist(batch1)[c(1, 4, 5),
 
 ![](gated_analysis.png)\ 
 
-# Future Extensions
 
-## Pulse Analysis
+<!-- tight_gate.png -->
+
+<!-- 95.8 / 566.6 / 2.7 -->
+<!-- 114.8 / 44.6 / 2 -->
+
+<!-- tight_gate_narrow.png -->
+<!-- 95.9 / 534 / 2.6 -->
+<!-- 115 / 46.7 / 2.1 -->
+
+<!-- loose_gate.png -->
+<!-- 95.8 / 622.9 / 2.8 -->
+<!-- 118.5 / 407.5 / 8.5 -->
+
+<!-- ln_gate.png -->
+<!-- 96 / 512.9 / 2.5 -->
+<!-- 119.9 / 228.1 / 5.4 -->
+
+# `flowPloidy` Summary
+
+Compared to modFit:
+
+- parameter estimates within 1%
+- simpler interface
+- integration with R
+- cost
+
+Compared to manual analysis:
+
+- objective and repeatable
+
+Gating:
+
+- less sensitive to subjective gating decisions
+
+
+# `flowPloidy` Future Development
+
+Gating
+
+- better define or automate best practice
+- more sophisticated options for pulse analysis
+
+# Thank You!
+
+## `tyler@plantarum.ca`
+
+## `plantarum.github.io/flowPloidy`
+![](webpage.png)\
