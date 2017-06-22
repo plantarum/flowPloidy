@@ -64,6 +64,8 @@ fpVig ## open vignette in a browser
 edit(name = fpVig) ## open vignette source code in a text editor
 ```
 
+It is also available [online](http://bioconductor.org/packages/release/bioc/vignettes/flowPloidy/inst/doc/flowPloidy-gettingStarted.html).
+
 # Getting Help
 For general help using the package, you can post questions on
 the [Bioconductor Support Site](https://support.bioconductor.org/). Use the
