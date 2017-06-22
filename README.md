@@ -1,8 +1,6 @@
-# flowPloidy
+# Installation
 
-## Installation
-
-### Stable Version
+## Stable Version
 
 `flowPloidy` is available in [Bioconductor](https://bioconductor.org).
 
@@ -27,7 +25,7 @@ This should pull in all the package dependencies for `flowPloidy`, after
 which you can load the package with the normal function
 `library("flowPloidy")`.
 
-### Development Version
+## Development Version
 
 Development on `flowPloidy` is currently (June 2017) in a reasonably stable
 state, and no major new features are in the works. However, if you'd like
@@ -51,7 +49,7 @@ install_github("plantarum/flowPloidy", dependencies = TRUE,
     build_vignettes = TRUE)
 ```
 
-## Getting Started
+# Getting Started
 
 ```{r}
 library("flowPloidy")
@@ -66,7 +64,7 @@ fpVig ## open vignette in a browser
 edit(name = fpVig) ## open vignette source code in a text editor
 ```
 
-## Getting Help
+# Getting Help
 For general help using the package, you can post questions on
 the [Bioconductor Support Site](https://support.bioconductor.org/). Use the
 tag `flowploidy` to ensure your question is brought to my attention.
