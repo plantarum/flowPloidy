@@ -1,3 +1,6 @@
+![](vignettes/gs_browse1.png)
+
+# Introduction
 A tutorial overview of `flowPloidy` is available on
 the
 [Bioconductor website](http://bioconductor.org/packages/release/bioc/vignettes/flowPloidy/inst/doc/flowPloidy-gettingStarted.html).
