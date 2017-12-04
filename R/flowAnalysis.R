@@ -166,15 +166,15 @@ fhDoCV <- function(fh){
   CVa <- coef(fhNLS(fh))["Sa"]/coef(fhNLS(fh))["Ma"]
   if("fB1" %in% names(fhComps(fh))){
     CVb <- coef(fhNLS(fh))["Sb"]/coef(fhNLS(fh))["Mb"]
-    AB <- deltaMethod(fhNLS(fh), "Ma/Mb")
+    AB <- deltaMethod(fhNLS(fh), "Ma/Mb", vcov. = vcov)
   } else {
     CVb <- CI <- AB <- NULL
   }
 
   if("fC1" %in% names(fhComps(fh))){
     CVc <- coef(fhNLS(fh))["Sc"]/coef(fhNLS(fh))["Mc"]
-    AC <- deltaMethod(fhNLS(fh), "Ma/Mc")
-    BC <- deltaMethod(fhNLS(fh), "Mb/Mc")
+    AC <- deltaMethod(fhNLS(fh), "Ma/Mc", vcov. = vcov)
+    BC <- deltaMethod(fhNLS(fh), "Mb/Mc", vcov. = vcov)
   } else {
     CVc <- AC <- BC <- NULL
   }
