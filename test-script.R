@@ -4,7 +4,7 @@ load_all()
 
 badFiles <- list.files("/home/tws/research/flow/paul/badFiles", full.names
                        = TRUE)
-
+fpBad <- badFiles[8]
 bad <- batchFlowHist(badFiles, channel = "FL2.A")
 
 bad <- browseFlowHist(bad)
