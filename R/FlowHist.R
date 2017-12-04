@@ -755,9 +755,10 @@ viewFlowChannels <- function(file){
 batchFlowHist <- function(files, channel, verbose = TRUE, ...){ 
   res <- list()
   for(i in seq_along(files)){
-    if(verbose) message("processing ", files[i])
+    if(verbose) message(i, ": processing ", files[i])
     tmpRes <- FlowHist(file = files[i], channel = channel, ...)
     res[[fhFile(tmpRes)]] <- tmpRes
+    if(verbose) message(" ")
   }              
   return(res)
 }
