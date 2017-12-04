@@ -29,7 +29,7 @@ Genome size assessment:
 - repeat measurements of fresh/greenhouse tissue
 - high precision required
 
-Need **high-throughput**, **high-precision** GC estimates
+Need **high-throughput**, **high-precision** genome size estimates
 
 # Histogram Analysis
 ## Tissue preparation
@@ -44,7 +44,7 @@ Measure the fluorescence properties of each nuclei:
     
 - size (forward scatter)
 - DNA content (fluorescence)
-- shape (side scatter)
+- granularity (side scatter)
 
 ## Histogram Construction
 
@@ -220,6 +220,13 @@ Model histogram components using mathematical functions:
 ## Disadvantages
 - availability (few programs, expensive licenses)
 - conceptually complex
+
+## Source
+
+\footnotesize
+
+Bagwell, C. B. (1993). Chapt. 3 _In_ K. D. Bauer et al., Clinical flow
+cytometry: principles and applications. Williams \& Wilkins.
 
 # Non-linear Regression Histogram Analysis
 
@@ -466,24 +473,6 @@ kable(tabulateFlowHist(batch1)[c(1, 4, 5),
 
 ![](gated_analysis.png)\ 
 
-
-<!-- tight_gate.png -->
-
-<!-- 95.8 / 566.6 / 2.7 -->
-<!-- 114.8 / 44.6 / 2 -->
-
-<!-- tight_gate_narrow.png -->
-<!-- 95.9 / 534 / 2.6 -->
-<!-- 115 / 46.7 / 2.1 -->
-
-<!-- loose_gate.png -->
-<!-- 95.8 / 622.9 / 2.8 -->
-<!-- 118.5 / 407.5 / 8.5 -->
-
-<!-- ln_gate.png -->
-<!-- 96 / 512.9 / 2.5 -->
-<!-- 119.9 / 228.1 / 5.4 -->
-
 # `flowPloidy` Summary
 
 Compared to modFit:
@@ -508,6 +497,7 @@ Gating
 
 - better define or automate best practice
 - more sophisticated options for pulse analysis
+- impact of gating on theoretical model components
 
 # Thank You!
 
