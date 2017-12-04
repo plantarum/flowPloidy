@@ -48,7 +48,7 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
                           main = fhFile(x), ...){
   plotFH(x, main = main, ...)
 
-  if(init){
+  if(init && is.list(fhInit(x)) && length(fhInit(x))){
     yy <- with(fhHistData(x),
                do.call(fhModel(x),
                        args = c(getSpecialParams(x), fhInit(x)))) 
@@ -86,8 +86,11 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
              y = fhHistData(x)$intensity[round(2 * fhInit(x)$Mc, 0)],
              col = "green", cex = 1.5)
     }
+  } else {
+    if(init)
+      message("no init values available to plot!!")
   }
-
+  
   if(nls & (length(fhNLS(x)) > 0)){
     dat <- tabulateFlowHist(x)
     lines(x = fhHistData(x)$xx[-(1:(fhStart(fhHistData(x)$intensity) -

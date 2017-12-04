@@ -329,10 +329,15 @@ setMethod(
     .Object@linearity <- linearity
     .Object@debris <- debris
     .Object@opts <- opts
-    .Object <- addComponents(.Object)
-    .Object <- setLimits(.Object)
-    .Object <- makeModel(.Object)
-    .Object <- getInit(.Object)
+    if(! any(is.na(fhPeaks(.Object)))){
+      ## We have good peaks:
+      .Object <- addComponents(.Object)
+      .Object <- setLimits(.Object)
+      .Object <- makeModel(.Object)
+      .Object <- getInit(.Object)
+    } else {
+      message("WARNING: couldn't find peaks for ", fhFile(.Object))
+    }
     callNextMethod(.Object, ...)
   })
 
@@ -1198,8 +1203,19 @@ cleanPeaks <- function(fh, window = 20){
   peaks <- peaks[order(peaks[,2], decreasing = TRUE), ]
 
   ## eliminate the debris field?
-  peaks <- peaks[which(peaks[, "mean"] > 40), , drop = FALSE]
-
+  if(is.matrix(peaks)){
+    peaks <- peaks[which(peaks[, "mean"] > 40), , drop = FALSE]
+  } else {
+    ## We only have one or zero potential peaks!
+    if (is.vector(peaks) && peaks["mean"] > 40){
+      ## one peak, big enough to keep, convert it to a matrix:
+      peaks <- t(as.matrix(peaks))
+    } else {
+    ## else no peaks, so peaks is now empty...
+      peaks <- matrix(NA, nrow = 1, ncol = 2)
+      colnames(peaks) <- c("mean", "height")
+    }
+  }
   drop <- numeric()
   if(nrow(peaks) > 1)
     for(i in 2: nrow(peaks)){

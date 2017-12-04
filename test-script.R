@@ -2,6 +2,13 @@ library(devtools)
 library(flowPloidyData)
 load_all()
 
+badFiles <- list.files("/home/tws/research/flow/paul/badFiles", full.names
+                       = TRUE)
+
+bad <- batchFlowHist(badFiles, channel = "FL2.A")
+
+bad <- browseFlowHist(bad)
+
 
 etienne <- batchFlowHist(list.files("/home/tws/research/flow/etienne/",
                                     full.names = TRUE),
