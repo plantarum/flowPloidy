@@ -62,8 +62,9 @@ fhDoNLS <- function(fh){
   ## Ignore the lowest channels, before we start modeling the debris
   ## component.
   dat <- fhHistData(fh)
-  start <- fhStart(dat$intensity)
-  dat <- dat[-(1:(start - 1)), ]
+  datRange <- fhRange(dat$intensity)
+
+  dat <- dat[datRange, ]
 
   fhNLS(fh) <- nlsLM(formula = form, start = fhInit(fh),
                      data = dat, 

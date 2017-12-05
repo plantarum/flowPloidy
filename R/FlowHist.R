@@ -1069,7 +1069,21 @@ fhStart <- function(intensity){
   startBin <- which(intensity == startMax)[1]
   startBin
 }
-  
+
+fhStop <- function(intensity){
+  ## Returns the last channel to include in the modelling process. We want
+  ## to constrain our model to the range of the data. If there is no data
+  ## at the highest fluorescence values, including that in the model will
+  ## distort our RCS value. We'll consider singleton bins as 'empty', to
+  ## clear up stray noise at the top end as well.
+  Position(f = function(x) {x > 1}, x = intensity, right = TRUE)
+}
+
+fhRange <- function(intensity){
+  startM <- fhStart(intensity)
+  stopM <- fhStop(intensity)
+  startM:stopM
+}
 
 #' @importFrom caTools runmean runmax
 NULL
