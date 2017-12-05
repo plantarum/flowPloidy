@@ -1048,7 +1048,7 @@ setBins <- function(fh, bins = 256){
 #' useful data.
 #'
 #' After that, we call \code{\link{fhStart}} to skip to the highest value
-#' in the first 20 non-zero bins, and ignore everything below that. The
+#' in the first 10 non-zero bins, and ignore everything below that. The
 #' motivation here is the same - to get out beyond the noisy bins and into
 #' the actual data we're trying to fit.
 #' 
