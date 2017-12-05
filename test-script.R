@@ -2,6 +2,13 @@ library(devtools)
 library(flowPloidyData)
 load_all()
 
+lowPeaks <- list.files("/home/tws/research/flow/paul/low-peaks",
+                       full.names = TRUE)
+
+low <- batchFlowHist(lowPeaks, channel= "FL2.A", debrisLimit = 10)
+
+low <- browseFlowHist(low)
+
 badFiles <- list.files("/home/tws/research/flow/paul/badFiles", full.names
                        = TRUE)
 fpBad <- badFiles[8]

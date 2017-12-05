@@ -7,7 +7,7 @@
 \usage{
 findPeaks(fh, window = 20, smooth = 20)
 
-cleanPeaks(fh, window = 20)
+cleanPeaks(fh, window = 20, debrisLimit = 40)
 }
 \arguments{
 \item{fh}{a \code{\link{FlowHist}} object}
@@ -17,6 +17,9 @@ identifying local maxima via \code{\link{runmax}}}
 
 \item{smooth}{an integer, the width of the moving window to use in
 removing noise via \code{\link{runmean}}}
+
+\item{debrisLimit}{an integer value. Peaks with fluorescence values less than
+\code{debrisLimit} will be ignored by the automatic peak-finding algorithm.}
 }
 \value{
 Returns a matrix with two columns:
@@ -62,9 +65,11 @@ greater intensity than the G1 peak for another sample. We correct for
 this by removing detected peaks with means close to twice that of other
 peaks.
 
-\item ignore noise, by removing peaks with \code{intensity} < 40. A
-somewhat arbitrary value. It's tricky to deal with this issue when the
-debris field is large.
+\item ignore noise, by removing peaks with \code{fluorescence} <
+\code{debris}. The default is 40, which works well for moderate-to-large
+  debris fields. You may need to reduce this value if you have clean
+  histograms with peaks below 40. Note that this value does not affect
+  peaks selected manually.
 }
 }
 \examples{

@@ -231,6 +231,10 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   the unknown sample will not be done.
 #' @param verbose boolean; if TRUE, \code{\link{batchFlowHist}} will list
 #'   files as it processes them.
+#' @param debrisLimit an integer value, default is 40. Passed to
+#'   \code{\link{cleanPeaks}}. Peaks with fluorescence values less than
+#'   \code{debrisLimit} will be ignored by the automatic peak-finding
+#'   algorithm.
 #' 
 #' @slot raw a flowFrame object containing the raw data from the FCS file
 #' @slot channel character, the name of the data column to use
@@ -311,7 +315,7 @@ setMethod(
                         window = 20, smooth = 20, pick = FALSE,
                         linearity = "variable", debris = "SC",
                         gate = logical(), samples = 2, standards = 0,
-                        opts = list(),
+                        opts = list(), debrisLimit = 40,
                         ...){ 
     .Object@raw <- read.FCS(file, dataset = 1, alter.names = TRUE)
     .Object@channel <- channel
@@ -324,7 +328,8 @@ setMethod(
     } else {
       .Object <- findPeaks(.Object, window = window,
                            smooth = smooth)
-      .Object <- cleanPeaks(.Object, window = window)
+      .Object <- cleanPeaks(.Object, window = window,
+                            debrisLimit = debrisLimit) 
     }
     .Object@linearity <- linearity
     .Object@debris <- debris
@@ -709,12 +714,12 @@ resetFlowHist <- function(fh, from = "peaks"){
 FlowHist <- function(file, channel, standards = 0, bins = 256, window =
                      20, smooth = 20, pick = FALSE, linearity = "variable",
                      debris = "SC", opts = list(), samples = 2, gate =
-                     logical(), analyze = TRUE){ 
+                     logical(), analyze = TRUE, debrisLimit = 40){ 
   fh <-  new("FlowHist", file = file, channel = channel,
              bins = as.integer(bins), window = window, smooth = smooth,
              pick = pick, linearity = linearity, debris = debris,
              opts = opts, samples = samples, gate = gate,
-             standards = standards )
+             standards = standards, debrisLimit = debrisLimit)
   if(analyze)
     fh <- fhAnalyze(fh)
   return(fh)
@@ -1168,6 +1173,9 @@ findPeaks <- function(fh, window = 20, smooth = 20){
 
 #' @rdname findPeaks
 #'
+#' @param debrisLimit an integer value. Peaks with fluorescence values less than
+#'   \code{debrisLimit} will be ignored by the automatic peak-finding algorithm.
+#' 
 #' @details \code{\link{cleanPeaks}} filters the output of
 #'   \code{\link{findPeaks}} to:   
 #' \itemize{
@@ -1182,13 +1190,18 @@ findPeaks <- function(fh, window = 20, smooth = 20){
 #' this by removing detected peaks with means close to twice that of other
 #' peaks.
 #'
-#' \item ignore noise, by removing peaks with \code{intensity} < 40. A
-#' somewhat arbitrary value. It's tricky to deal with this issue when the
-#' debris field is large.
-#' }
+#' \item ignore noise, by removing peaks with \code{fluorescence} <
+#' \code{debrisLimit}. The default is 40, which works well for
+#' moderate-to-large debris fields. You may need to reduce this value if
+#' you have clean histograms with peaks below 40. Note that this value does
+#' not affect peaks selected manually. }
 #' 
-cleanPeaks <- function(fh, window = 20){
+cleanPeaks <- function(fh, window = 20, debrisLimit = 40){
   ## Remove ties and multiple peaks for histogram analysis
+
+  ## debrisLimit sets the lower bounds, on the x-axis,k for peak detection
+  ## - anything smaller than this is ignored. Needs to be lowered for
+  ## histograms with peaks closer to the y axis.
 
   ## Screen out any ties - if two peaks have the same height, and are
   ## within the same 'window', we need to drop one.
@@ -1204,10 +1217,10 @@ cleanPeaks <- function(fh, window = 20){
 
   ## eliminate the debris field?
   if(is.matrix(peaks)){
-    peaks <- peaks[which(peaks[, "mean"] > 40), , drop = FALSE]
+    peaks <- peaks[which(peaks[, "mean"] > debrisLimit), , drop = FALSE]
   } else {
     ## We only have one or zero potential peaks!
-    if (is.vector(peaks) && peaks["mean"] > 40){
+    if (is.vector(peaks) && peaks["mean"] > debrisLimit){
       ## one peak, big enough to keep, convert it to a matrix:
       peaks <- t(as.matrix(peaks))
     } else {

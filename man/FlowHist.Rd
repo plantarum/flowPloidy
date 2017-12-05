@@ -9,7 +9,8 @@
 \usage{
 FlowHist(file, channel, standards = 0, bins = 256, window = 20,
   smooth = 20, pick = FALSE, linearity = "variable", debris = "SC",
-  opts = list(), samples = 2, gate = logical(), analyze = TRUE)
+  opts = list(), samples = 2, gate = logical(), analyze = TRUE,
+  debrisLimit = 40)
 
 batchFlowHist(files, channel, verbose = TRUE, ...)
 }
@@ -58,6 +59,11 @@ normal usage this will be set interactively, not as a function
 argument.}
 
 \item{analyze}{boolean, if TRUE the model will be analyzed immediately}
+
+\item{debrisLimit}{an integer value, default is 40. Passed to
+\code{\link{cleanPeaks}}. Peaks with fluorescence values less than
+\code{debrisLimit} will be ignored by the automatic peak-finding
+algorithm.}
 
 \item{files}{character, a vector of file names to load}
 
