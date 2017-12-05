@@ -271,14 +271,10 @@ fhDoRCS <- function(fh){
   ## calculate RCS based on the number of channels fit in the model, not
   ## the full data set, which includes a number of empty/unmodelled
   ## channels at the beginning.
-  dat <- fhHistData(fh)
-  start <- fhStart(fhHistData(fh)$intensity)
-  dat <- dat[-(1:(start - 1)), ]
-  obs <- dat$intensity
 
-  exp <- predict(fhNLS(fh))
-  chi <- sum(((obs - exp)^2) / exp)
+  RCS <- sum(residuals(fhNLS(fh))^2 / predict(fhNLS(fh)))
+  RCS <- RCS / summary(fhNLS(fh))$df[2]
 
-  fhRCS(fh) <- chi/summary(fhNLS(fh))$df[2]
+  fhRCS(fh) <- RCS
   fh
 }
