@@ -5,6 +5,10 @@ institute: $^1$Agriculture and Agri-Food Canada, $^2$University of Guelph
 output:
     beamer_presentation:
         template: ty.beamer
+vignette: >
+  %\VignetteIndexEntry{flowPloidy: BSA 2017}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 theme: "metropolis"
 themeoptions: [numbering=none]
 ---
