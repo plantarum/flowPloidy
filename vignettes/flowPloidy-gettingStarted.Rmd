@@ -10,12 +10,12 @@ output:
         fig_width: 6
         fig_height: 4
         fig_caption: false
-        template: fpPandoc.latex
+        template: pandoc/fpPandoc.latex
 vignette: >
   %\VignetteIndexEntry{flowPloidy: Getting Started}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-bibliography: flowPloidy.bibtex
+bibliography: pandoc/flowPloidy.bibtex
 ---
 
 # Overview
@@ -199,7 +199,7 @@ Calling `browseFlowHist()` opens a window in your internet browser that
 will display your histograms. The first one looks like this:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_browse1.png")
+knitr::include_graphics("gsFigs/gs_browse1.png")
 ```
 
 On the right we see the histogram. The graphical elements are:
@@ -269,7 +269,7 @@ click the "Next" button to move on to the next histogram.
 The second histogram didn't work at all:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_browse2.png")
+knitr::include_graphics("gsFigs/gs_browse2.png")
 ```
 
 Since the model fitting failed, the plot shows only the raw data and the
@@ -285,7 +285,7 @@ Moving Peak B to the second big peak, and Peak A to the first peak, the
 analysis works as expected:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_browse2c.png")
+knitr::include_graphics("gsFigs/gs_browse2c.png")
 ```
 
 In most cases, the exact placement of the initial peak isn't critical. As
@@ -306,13 +306,13 @@ Moving on to the next histogram, we see that there were also problems with
 peak detection here:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_browse3.png")
+knitr::include_graphics("gsFigs/gs_browse3.png")
 ```
 
 We can fix this the same way:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_browse3b.png")
+knitr::include_graphics("gsFigs/gs_browse3b.png")
 ```
 
 Quick and easy. However, our RCS value is now off the charts! Two things
@@ -328,7 +328,7 @@ check this by selecting "MC" from the "Debris Model" drop-down list at the
 left:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_browse3c.png")
+knitr::include_graphics("gsFigs/gs_browse3c.png")
 ```
 
 With the Multi-Cut debris model, we have a much more sensible RCS value.
@@ -354,14 +354,14 @@ easily detected by humans.
 An example is file 11, "`734.LMD`" in our sample data:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_browse11.png")
+knitr::include_graphics("gsFigs/gs_browse11.png")
 ```
 
 Once again, we need to correct our peak estimates. If we move the B peak
 over we get the following fit:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_browse11b.png")
+knitr::include_graphics("gsFigs/gs_browse11b.png")
 ```
 
 Other than the RCS value being a little high, the stats for this fit look
@@ -375,7 +375,7 @@ real peak. If we shift that point closer to the true peak, we get a more
 sensible fit:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_browse11c.png")
+knitr::include_graphics("gsFigs/gs_browse11c.png")
 ```
 
 The new fit is much better, and our RCS value is now down below 4 where we
@@ -547,7 +547,7 @@ vac <- browseFlowHist(vac)
 ```
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("vac1.png")
+knitr::include_graphics("gsFigs/vac1.png")
 ```
 
 That's terrible. The debris curve has completely obscured the histogram. To
@@ -559,7 +559,7 @@ up to now.
 At the bottom of the browser window you'll see this:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gate_ui.png")
+knitr::include_graphics("gsFigs/gate_ui.png")
 ```
 
 At the left side is a simple control panel. We can select the X and Y
@@ -618,7 +618,7 @@ zoom slider about halfway across[^2] we see this:
     higher numbers mean a higher zoom, measured on a log scale.
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_gate.png")
+knitr::include_graphics("gsFigs/gs_gate.png")
 ```
 
 Notice the dense cloud of points on the upper left. These particles have
@@ -633,7 +633,7 @@ cluster further right is the G2 peak for the standard. Zooming in further
 we can see these more clearly:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gs_gate_zoom2.png")
+knitr::include_graphics("gsFigs/gs_gate_zoom2.png")
 ```
 
 Here, notice that the nuclei form tight, dark clusters, with particles
@@ -656,7 +656,7 @@ increases our CV, and excluding them lowers our cell count.
 Use the mouse to left-click and drag a box around the cell clouds:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("draw_gate.png")
+knitr::include_graphics("gsFigs/draw_gate.png")
 ```
 
 The upper boundary of the gate is important - it will have a direct
@@ -672,7 +672,7 @@ in the histogram preview. To apply this gate to the analysis, click the
 `Set Gate` button. The result should look something like this:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gated_analysis.png")
+knitr::include_graphics("gsFigs/gated_analysis.png")
 ```
 
 The histogram plot now includes the **--GATED--** flag. This is a caution

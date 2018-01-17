@@ -10,12 +10,12 @@ output:
         fig_width: 6
         fig_height: 4
         fig_caption: false
-        template: fpPandoc.latex
+        template: pandoc/fpPandoc.latex
 vignette: >
   %\VignetteIndexEntry{flowPloidy: FCM Histograms}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-bibliography: flowPloidy.bibtex
+bibliography: pandoc/flowPloidy.bibtex
 ---
 
 # Introduction

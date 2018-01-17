@@ -1,10 +1,10 @@
 ---
 title: "flowPloidy: Determining Genome Size and Ploidy from Flow Cytometry Histograms in R"
-author: \includegraphics[width=1\textwidth]{flowShiny01Crop.png}\newline{}Tyler Smith$^1$, Paul Kron$^2$ and Sara Martin$^1$
+author: \includegraphics[width=1\textwidth]{ajbFigs/flowShiny01Crop.png}\newline{}Tyler Smith$^1$, Paul Kron$^2$ and Sara Martin$^1$
 institute: $^1$Agriculture and Agri-Food Canada, $^2$University of Guelph
 output:
     beamer_presentation:
-        template: ty.beamer
+        template: pandoc/ajb.beamer
 vignette: >
   %\VignetteIndexEntry{flowPloidy: BSA 2017}
   %\VignetteEngine{knitr::rmarkdown}
@@ -359,41 +359,41 @@ batch1 <- browseFlowHist(batch1)
 
 # Reviewing Histograms
 
-![](gs_browse1.png)\ 
+![](gsFigs/gs_browse1.png)\ 
 
 # Reviewing Histograms
 
-![](gs_browse1_crop.png)\ 
+![](ajbFigs/gs_browse1_crop.png)\ 
 
 # Reviewing Histograms
 
 \center
 
-![](gs_browse1_cropb.png)\ 
+![](ajbFigs/gs_browse1_cropb.png)\ 
 
 # Correcting Histograms
 
-![](gs_browse2_crop.png)\ 
+![](ajbFigs/gs_browse2_crop.png)\ 
 
 # Correcting Histograms
 
-![](gs_browse2c_crop.png)\ 
+![](ajbFigs/gs_browse2c_crop.png)\ 
 
 # Changing Model Components: Debris
 
-![](gs_browse3b_crop.png)\ 
+![](ajbFigs/gs_browse3b_crop.png)\ 
 
 # Changing Model Components: Debris
 
 \center
 
-![](gs_browse1_cropb.png)\ 
+![](ajbFigs/gs_browse1_cropb.png)\ 
 
 # Changing Model Components: Debris
 
-![](gs_browse3b_crop.png)\ 
+![](ajbFigs/gs_browse3b_crop.png)\ 
 
-![](gs_browse3c_crop.png)\ 
+![](ajbFigs/gs_browse3c_crop.png)\ 
 
 # Changing Model Components: Debris
 
@@ -419,13 +419,13 @@ There is no direct solution for non-linear regression
 
 Sometimes the algorithm gets stuck in a local minima:
 
-![](gs_browse11b_crop.png)\ 
+![](ajbFigs/gs_browse11b_crop.png)\ 
 
 # Local Minima
 
-![](gs_browse11b_crop.png)\ 
+![](ajbFigs/gs_browse11b_crop.png)\ 
 
-![](gs_browse11c_crop.png)\ 
+![](ajbFigs/gs_browse11c_crop.png)\ 
 
 # Exporting Results
 
@@ -445,37 +445,37 @@ kable(tabulateFlowHist(batch1)[c(1, 4, 5),
 
 ## Flow data is not always pretty
 
-![](vac1.png)\ 
+![](gsFigs/vac1.png)\ 
 
 # Gating
 
-![](vac1.png)\ 
+![](gsFigs/vac1.png)\ 
 
-![](gate_ui.png)\ 
-
-# Gating
-
-\center
-
-![](gs_gate.png)\ 
+![](gsFigs/gate_ui.png)\ 
 
 # Gating
 
 \center
 
-![](gs_gate_zoom2.png)\ 
+![](gsFigs/gs_gate.png)\ 
 
 # Gating
 
 \center
 
-![](draw_gate.png)\ 
+![](gsFigs/gs_gate_zoom2.png)\ 
 
 # Gating
 
 \center
 
-![](gated_analysis.png)\ 
+![](gsFigs/draw_gate.png)\ 
+
+# Gating
+
+\center
+
+![](gsFigs/gated_analysis.png)\ 
 
 # `flowPloidy` Summary
 
@@ -508,4 +508,4 @@ Gating
 ## `tyler@plantarum.ca`
 
 ## `plantarum.github.io/flowPloidy`
-![](webpage.png)\
+![](ajbFigs/webpage.png)\
