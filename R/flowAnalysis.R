@@ -6,6 +6,10 @@ NULL
 #' @importFrom minpack.lm nlsLM
 NULL
 
+#' @importFrom stats residuals vcov
+NULL
+
+
 #' Complete non-linear regression analysis of FlowHist histogram data
 #'
 #' Completes the NLS analysis, and calculates the modelled events and CVs
