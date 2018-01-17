@@ -8,7 +8,6 @@ output:
 vignette: >
   %\VignetteIndexEntry{flowPloidy: BSA 2017}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
 theme: "metropolis"
 themeoptions: [numbering=none]
 ---

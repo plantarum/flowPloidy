@@ -14,7 +14,6 @@ output:
 vignette: >
   %\VignetteIndexEntry{flowPloidy: FCM Histograms}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
 bibliography: pandoc/flowPloidy.bibtex
 ---
 
