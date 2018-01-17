@@ -1,3 +1,31 @@
+Changes in version 1.5.3 (2018-01-17)
+-------------------------------------
+
+User Visible Changes:
+
+    * The browser interface will no longer allow users to enter arbitrary
+      text to select the number of samples. Only valid values, i.e., 1, 2,
+      or 3, will be offered as choices. The old version would crash with a
+      bad value for sample number.
+
+    * Improved file importing, so that low-quality samples for which peaks
+      cannot be detected can still be imported.
+
+    * Added a new argument to FlowHist, so users can set the threshold
+      below which the data is ignored when screening out debris. The
+      default remains the same, 40, but users with very clean histograms,
+      with peaks far to the left, can now lower this value if needed.
+
+    * Model fitting is now limited to the range of the data. That is, empty
+      bins at the right (upper) end of the histogram will not be included
+      when fitting the NLS. This addresses problems that generated inflated
+      RCS values.
+
+    * The limits for the linearity parameter have been extended from
+      1.9-2.1, to 1.5-2.5. This will improve/enable model fitting on
+      samples where the linearity (the ratio of the G2/G1 peaks) was outside
+      the range 1.9-2.1.
+
 Changes in version 1.5.1 (2017-12-04)
 -------------------------------------
 
