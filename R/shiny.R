@@ -118,9 +118,16 @@ browseFlowHist <- function(flowList, debug = FALSE){
                                                  label = "Next"))))),
                tags$hr(),
                fluidRow(
-                 column(6, 
-                        numericInput('sampSelect', 'Samples',
-                                     initialSamples, min = 1, max = 3)),
+                 column(6,
+                        ## If we use numericInput, the user is able to
+                        ## enter invalid values in the textbox. With
+                        ## selectInput we constrain the possible input
+                        ## values to those that won't break anything.
+                        selectInput('sampSelect', 'Samples',
+                                    initialSamples,
+                                    choices = list("1" = 1,
+                                                   "2" = 2,
+                                                   "3" = 3))), 
                  column(6,
                         selectInput(inputId = "peakPicker",
                                     label = "Peak",
