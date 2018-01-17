@@ -66,11 +66,10 @@ this by removing detected peaks with means close to twice that of other
 peaks.
 
 \item ignore noise, by removing peaks with \code{fluorescence} <
-\code{debris}. The default is 40, which works well for moderate-to-large
-  debris fields. You may need to reduce this value if you have clean
-  histograms with peaks below 40. Note that this value does not affect
-  peaks selected manually.
-}
+\code{debrisLimit}. The default is 40, which works well for
+moderate-to-large debris fields. You may need to reduce this value if
+you have clean histograms with peaks below 40. Note that this value does
+not affect peaks selected manually. }
 }
 \examples{
 \dontrun{

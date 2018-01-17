@@ -15,7 +15,7 @@
 
 \item{d}{numeric, the ratio of G2/G1 peak means. When linearity is
 fixed, this is set to 2. Otherwise, it is fit as a model parameter
-bounded between 1.9 and 2.1.}
+bounded between flowPloidy:::linL and flowPloidy:::linH.}
 }
 \value{
 NA
@@ -34,7 +34,9 @@ If the linearity parameter is set to "fixed", the G2 peaks will be fit
 as exactly 2 times the mean of the G1 peaks. If linearity is set to
 "variable", the ratio of the G2 peaks to the G1 peaks will be fit as a
 model parameter with an initial value of 2, and constrained to the range
-1.9 -- 2.1.
+1.5 -- 2.5. (The range is coded as linL and linH. If in doubt, check the
+values of those, i.e., flowPloidy:::linL, flowPloidy:::linH, to be sure
+Tyler hasn't changed the range without updating this documentation!!)
 
 Additionally, for each set of peaks (sample and standard(s)), a
 broadened rectangle component is included to model the S-phase. At

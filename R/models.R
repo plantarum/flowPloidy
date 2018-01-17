@@ -310,6 +310,16 @@ fhComponents <- list()
 ###########################################
 ## Helper Functions for Model Components ##
 ###########################################
+
+## Set the lower and upper bounds of linearity. We can't leave it
+## unconstrained, as in particularly messy histograms it may drift so far
+## that the G2 peak is lower than the G1 peak, which is impossible. Not
+## sure what the best values to use here actually are. The original range
+## of 1.9-2.1 is too constraining for some users.
+
+linL <- 1.5
+linH <- 2.5
+
 setLinearity <- function(fh){
   ## Helper function for components that include the linearity parameter d
   if(fh@linearity == "fixed")
@@ -377,7 +387,9 @@ erf <- function(x) {
 #' as exactly 2 times the mean of the G1 peaks. If linearity is set to
 #' "variable", the ratio of the G2 peaks to the G1 peaks will be fit as a
 #' model parameter with an initial value of 2, and constrained to the range
-#' 1.9 -- 2.1.
+#' 1.5 -- 2.5. (The range is coded as linL and linH. If in doubt, check the
+#' values of those, i.e., flowPloidy:::linL, flowPloidy:::linH, to be sure
+#' Tyler hasn't changed the range without updating this documentation!!)
 #'
 #' Additionally, for each set of peaks (sample and standard(s)), a
 #' broadened rectangle component is included to model the S-phase. At
@@ -392,7 +404,7 @@ erf <- function(x) {
 #' @param xx vector of histogram intensities
 #' @param d numeric, the ratio of G2/G1 peak means. When linearity is
 #'   fixed, this is set to 2. Otherwise, it is fit as a model parameter
-#'   bounded between 1.9 and 2.1.
+#'   bounded between flowPloidy:::linL and flowPloidy:::linH.
 #' @return NA
 #' @author Tyler Smith
 #' @name gauss
@@ -436,7 +448,7 @@ fhComponents$fA2 <-
       res
     },
     paramLimits = list(Ma = c(0, Inf), Sa = c(0, Inf), a2 = c(0, Inf),
-                       d = c(1.9, 2.1)),
+                       d = c(linL, linH)),
     specialParamSetter = function(fh){
       setLinearity(fh)
     }
@@ -462,7 +474,7 @@ fhComponents$brA <-
       res
     },
     ## paramLimits = list(BRA = c(0, Inf))
-    paramLimits = list(BRA = c(0, Inf), d = c(1.9, 2.1)),
+    paramLimits = list(BRA = c(0, Inf), d = c(linL, linH)),
     specialParamSetter = function(fh){
       setLinearity(fh)
     }
@@ -513,7 +525,7 @@ fhComponents$fB2 <-
       res
     },
     paramLimits = list(Mb = c(0, Inf), Sb = c(0, Inf), b2 = c(0, Inf),
-                       d = c(1.9, 2.1)),
+                       d = c(linL, linH)),
     specialParamSetter = function(fh){
       setLinearity(fh)
     }
@@ -538,7 +550,7 @@ fhComponents$brB <-
         res <- c(res, d = 2)
       res
     },
-    paramLimits = list(BRB = c(0, Inf), d = c(1.9, 2.1)),
+    paramLimits = list(BRB = c(0, Inf), d = c(linL, linH)),
     specialParamSetter = function(fh){
       setLinearity(fh)
     }
@@ -586,7 +598,7 @@ fhComponents$fC2 <-
       res
     },
     paramLimits = list(Mc = c(0, Inf), Sc = c(0, Inf), c2 = c(0, Inf),
-                       d = c(1.9, 2.1)),
+                       d = c(linL, linH)),
     specialParamSetter = function(fh){
       setLinearity(fh)
     }
@@ -613,7 +625,7 @@ fhComponents$brC <-
       if(fhLinearity(fh) == "variable")
         res <- c(res, d = 2)
     },
-    paramLimits = list(BRC = c(0, Inf), d = c(1.9, 2.1)),
+    paramLimits = list(BRC = c(0, Inf), d = c(linL, linH)),
     specialParamSetter = function(fh){
       setLinearity(fh)
     }

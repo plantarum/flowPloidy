@@ -36,10 +36,10 @@ which you can load the package with the normal function
 
 ## Development Version
 
-Development on `flowPloidy` is currently (June 2017) in a reasonably stable
-state, and no major new features are in the works. However, if you'd like
-to install the latest version from the development branch, you can get it
-directly from the GitHub repository.
+As of January 2018, I have a few relatively minor bug fixes and tweaks in
+the works for `flowPloidy`. They'll be part of the next BioConductor
+release in April 2018. If you'd like to try the new version out now, you
+can install it directly from the development branch in the GitHub.
 
 ```{r}
 ## Install Bioconductor tools first:
