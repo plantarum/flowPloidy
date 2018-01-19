@@ -899,7 +899,8 @@ exFlowHist <- function(fh){
     df$sizeB = coef(fhNLS(fh))["Mb"]
     df$sizeC = coef(fhNLS(fh))["Mc"]
 
-    df$countsA2 = fhCounts(fh)$firstG2Peak$value
+    df$countsA2 = ifelse(is.null(fhCounts(fh)$firstG2Peak$value), NA,
+                         fhCounts(fh)$firstG2Peak$value)
     df$countsB2 = ifelse(is.null(fhCounts(fh)$secondG2Peak$value), NA,
                         fhCounts(fh)$secondPeak$value)
     df$countsC2 = ifelse(is.null(fhCounts(fh)$thirdG2Peak$value), NA,
@@ -908,6 +909,13 @@ exFlowHist <- function(fh){
     df$sizeB2 = coef(fhNLS(fh))["Mb"] * coef(fhNLS(fh))["d"]
     df$sizeC2 = coef(fhNLS(fh))["Mc"] * coef(fhNLS(fh))["d"]
 
+    df$countsSA = ifelse(is.null(fhCounts(fh)[["S-phaseA"]]), NA,
+                         fhCounts(fh)[["S-phaseA"]])
+    df$countsSB = ifelse(is.null(fhCounts(fh)[["S-phaseB"]]), NA,
+                         fhCounts(fh)[["S-phaseB"]])
+    df$countsSC = ifelse(is.null(fhCounts(fh)[["S-phaseC"]]), NA,
+                         fhCounts(fh)[["S-phaseC"]])
+    
     df$cvA = fhCV(fh)$CVa
     df$cvB = ifelse(is.null(fhCV(fh)$CVb), NA, fhCV(fh)$CVb)
     df$cvC = ifelse(is.null(fhCV(fh)$CVc), NA, fhCV(fh)$CVc)
@@ -947,6 +955,7 @@ exFlowHist <- function(fh){
     df[,
        c("countsA", "countsB", "countsC", "sizeA", "sizeB", "sizeC",
          "countsA2", "countsB2", "countsC2", "sizeA2", "sizeB2", "sizeC2",
+         "countsSA", "countsSB", "countsSC",
          "cvA", "cvB", "cvC", "AB", "ABse", "AC", "ACse", "BC", "BCse",
          "rcs", "linearity", "pg")] <- NA 
   }
