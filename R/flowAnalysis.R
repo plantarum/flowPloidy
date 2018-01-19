@@ -120,6 +120,17 @@ fhDoCounts <- function(fh){
               Sa = coef(fhNLS(fh))["Sa"],
               lower = lower, upper = upper,
               subdivisions = 1000)
+  if("fA2" %in% names(fhComps(fh))){
+    firstG2Peak <-
+      integrate(mcFunc(fhComps(fh)$fA2), a2 = coef(fhNLS(fh))["a2"],
+                Ma = coef(fhNLS(fh))["Ma"],
+                Sa = coef(fhNLS(fh))["Sa"],
+                d = coef(fhNLS(fh))["d"],
+                lower = lower, upper = upper,
+                subdivisions = 1000)
+  } else {
+    firstG2Peak <- NULL
+  }
   if("fB1" %in% names(fhComps(fh))){
     secondPeak <-
       integrate(mcFunc(fhComps(fh)$fB1), b1 = coef(fhNLS(fh))["b1"],
@@ -129,6 +140,18 @@ fhDoCounts <- function(fh){
                 subdivisions = 1000)
   } else {
     secondPeak <- NULL
+  }
+
+  if("fB2" %in% names(fhComps(fh))){
+    secondG2Peak <-
+      integrate(mcFunc(fhComps(fh)$fB2), b2 = coef(fhNLS(fh))["b2"],
+                Mb = coef(fhNLS(fh))["Mb"],
+                Sb = coef(fhNLS(fh))["Sb"],
+                d = coef(fhNLS(fh))["d"],
+                lower = lower, upper = upper,
+                subdivisions = 1000)
+  } else {
+    secondG2Peak <- NULL
   }
 
   if("fC1" %in% names(fhComps(fh))){
@@ -142,9 +165,21 @@ fhDoCounts <- function(fh){
     thirdPeak <- NULL
   }
 
-  fhCounts(fh) <- list(firstPeak = firstPeak, secondPeak = secondPeak,
-                       thirdPeak = thirdPeak)
-
+  if("fC2" %in% names(fhComps(fh))){
+    thirdG2Peak <-
+      integrate(mcFunc(fhComps(fh)$fC2), c2 = coef(fhNLS(fh))["c2"],
+                Mc = coef(fhNLS(fh))["Mc"],
+                Sc = coef(fhNLS(fh))["Sc"],
+                d = coef(fhNLS(fh))["d"],
+                lower = lower, upper = upper,
+                subdivisions = 1000)
+  } else {
+    thirdG2Peak <- NULL
+  }
+  
+  fhCounts(fh) <- list(firstPeak = firstPeak, firstG2Peak = firstG2Peak,
+                       secondPeak = secondPeak, secondG2Peak = secondG2Peak,
+                       thirdPeak = thirdPeak, thirdG2Peak = thirdG2Peak)
   fh
 }  
 

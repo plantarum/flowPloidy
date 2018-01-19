@@ -433,6 +433,9 @@ fhComponents$fA2 <-
     includeTest = function(fh){
       (fhPeaks(fh)[1, "mean"] * 2) <= nrow(fhHistData(fh))
     },
+    ## This hard-codes the StdDev of the G2 peak to be exactly twice the
+    ## StdDev of the G1 peak, as suggested by bagwell_1993. Maybe this
+    ## should actually be set to the parameter d?
     func = function(a2, Ma, Sa, d, xx){
       (a2 / (sqrt(2 * pi) * Sa * 2) *
        exp(-((xx - Ma * d)^2)/(2 * (Sa * 2)^2))) 
