@@ -231,8 +231,7 @@ setMethod(f = "show", signature = "ModelComponent",
             cat(mcName(object)); cat(" ** \n")
             cat(mcDesc(object)); cat(" \n")
             cat("Parameters: ")
-            pnames <- names(formals(mcFunc(object)))
-            pnames <- pnames[which(pnames != "xx")]
+            pnames <- mcParams(object)
             cat(paste(pnames, collapse = ", "))
             cat("\n")
             if(length(mcSpecialParams(object)) > 0){
@@ -260,6 +259,12 @@ mcName <- function(mc){
 
 mcDesc <- function(mc){
   mc@desc
+}
+
+mcParams <- function(mc){
+  pnames <- names(formals(mcFunc(mc)))
+  pnames <- pnames[which(pnames != "xx")]
+  pnames
 }
 
 mcSpecialParams <- function(mc){
