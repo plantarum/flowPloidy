@@ -8,9 +8,7 @@ fh2 <- fh1
 
 ## ignore peak at 100, such that both A and B components have no G2 peak
 fhPeaks(fh2)[1, 1] <- fhPeaks(fh2)[1, 1] * 2
-fh2 <- addComponents(fh2)
-fh2 <- makeModel(fh2)
-fh2 <- getInit(fh2)
+fh2 <- updateFlowHist(fh2)
 
 ## replace peak at 100, A component should now have G1 and G2 peak
 fh3 <- fh2
