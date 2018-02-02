@@ -11,10 +11,6 @@ fh2 <- FlowHist(file = flowPloidyFiles["222.LMD"],
 fh3 <- FlowHist(file = flowPloidyFiles["240+S.LMD"],
                 channel = "FL3.INT.LIN", debris = "MC", analyze = TRUE)
 
-badFiles <- list.files("/home/tws/research/flow/paul/badFiles", full.names
-                       = TRUE)
-fpBad <- badFiles[8]
-
 test_that("FlowHist objects print without error", {
   expect_error(print(fh1), NA)
   expect_error(print(fh2), NA)
