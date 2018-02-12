@@ -910,11 +910,11 @@ exFlowHist <- function(fh){
     df$sizeC2 = coef(fhNLS(fh))["Mc"] * coef(fhNLS(fh))["d"]
 
     df$countsSA = ifelse(is.null(fhCounts(fh)[["S-phaseA"]]), NA,
-                         fhCounts(fh)[["S-phaseA"]])
+                         fhCounts(fh)[["S-phaseA"]]$value)
     df$countsSB = ifelse(is.null(fhCounts(fh)[["S-phaseB"]]), NA,
-                         fhCounts(fh)[["S-phaseB"]])
+                         fhCounts(fh)[["S-phaseB"]]$value)
     df$countsSC = ifelse(is.null(fhCounts(fh)[["S-phaseC"]]), NA,
-                         fhCounts(fh)[["S-phaseC"]])
+                         fhCounts(fh)[["S-phaseC"]]$value)
     
     df$cvA = fhCV(fh)$CVa
     df$cvB = ifelse(is.null(fhCV(fh)$CVb), NA, fhCV(fh)$CVb)
