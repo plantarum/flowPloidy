@@ -129,7 +129,8 @@ fhDoCounts <- function(fh){
         }
       }
       eval(parse(text =
-                   paste0("res[[countList[[i]]]] <- integrate(fun, ", args, ", ",
+                   paste0("res[[countList[[i]]]] <- integrate(fun, ",
+                          args, ", ", 
                          "lower = lower, upper = upper, subdivisions = 1000)")))
     }
   }

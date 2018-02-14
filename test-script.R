@@ -2,6 +2,21 @@ library(devtools)
 library(flowPloidyData)
 load_all()
 
+viewFlowChannels("~/research/flow/sample.001.fcs")
+
+brian <- FlowHist("~/research/flow/sample.001.fcs", channel = "FL2.A",
+                  samples = 1)
+
+library(digest)
+digest(brian@histData$intensity, "md5")
+# [1] "f0724874dd1beeb6bb5e20fac8e3de5e"
+brian@raw@description$`$DATE`
+# [1] "17-Jan-18"
+brian@raw@description$`$BTIM`
+# [1] "17:11:47"
+brian@raw@description$`FILE GUID`
+# [1] "8E581367-FBEC-11E7-AE75-001124882388"
+
 lowPeaks <- list.files("/home/tws/research/flow/paul/low-peaks",
                        full.names = TRUE)
 

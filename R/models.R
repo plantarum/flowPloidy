@@ -699,7 +699,32 @@ fhComponents$brC <-
 #' column \code{MCvals}. This is treated as a 'special parameter' when the
 #' Multiple-Cut model is applied, so we only need to fit the parameters k
 #' and MCa.
-#' 
+#'
+#' @section Debris Models and Gating:
+#'
+#' The debris models assume that all debris is composed of nuclei (G1 and
+#' G2), that have been cut into 2 or more fragments. In actual practice, at
+#' least when working with plant cells, the debris likely also includes
+#' other cellular debris, including secondary compounds. This non-nuclear
+#' debris may take up, and interact with, the stain in unpredictable ways.
+#' In extreme cases, such as the Vaccinium example in the ``flowPloidy
+#' Getting Started'' vignette, this cellular debris can completely obscure
+#' the G1 and G2 peaks, requiring gating.
+#'
+#' The ideal gate would be one that excludes all of the non-nuclear debris,
+#' and none of the nuclear debris (i.e., the nuclei fragments). If we could
+#' accomplish this, then gating would improve our model-fitting. Leaving
+#' non-nuclear debris in the data will result in it getting fit by some
+#' combination of the model components, with a negative impact on their
+#' accuracy. On the other hand, excluding nuclear debris will reduce the
+#' information used to fit the SC or MC components, which will also reduce
+#' model accuracy.
+#'
+#' Of course, we can't define an ideal gate, anymore than we can optimize
+#' our sample preparation such that our histograms are completely free of
+#' debris. As a practical approach, we recommend avoiding gating whenever
+#' possible, and taking a conservative approach when it is unavoidable.
+#'
 #' @name DebrisModels
 #'
 #' @param intensity a numeric vector, the histogram intensity in each

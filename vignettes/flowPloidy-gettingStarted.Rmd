@@ -679,7 +679,7 @@ to remind us that applying a gate may influence the model-fitting process
 in a number of ways, including how effective the debris model components
 (SC and MC) capture the remaining debris, and the absolute value of RCS. In
 general, these issues are outweighed by the improved fit for high-debris
-samples.
+samples. See `?DebrisModels` for further discussion.
 
 The final outcome here is we have a usable result. Sadly for those of us
 working with _Vaccinium_, we're usually limited to very low cell counts.
