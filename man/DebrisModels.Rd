@@ -118,8 +118,7 @@ model accuracy.
 Of course, we can't define an ideal gate, anymore than we can optimize
 our sample preparation such that our histograms are completely free of
 debris. As a practical approach, we recommend avoiding gating whenever
-possible, and using taking a conservative approach when it is
-unavoidable.
+possible, and taking a conservative approach when it is unavoidable.
 }
 
 \examples{
