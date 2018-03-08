@@ -512,7 +512,7 @@ fhComponents$fB2 <-
     name = "fB2", color = "orange",
     desc = "Gaussian curve for G2 peak of sample B",
     includeTest = function(fh){
-      if(nrow(fhPeaks(fh)) > 1 && fhSamples(fh) > 2)
+      if(nrow(fhPeaks(fh)) > 1 && fhSamples(fh) > 1)
         (fhPeaks(fh)[2, "mean"] * 2) <= nrow(fhHistData(fh))
       else
         FALSE
