@@ -1,7 +1,11 @@
-Changes in version 1.5.5 (2018-02-14)
+Changes in version 1.5.6 (2018-03-08)
 -------------------------------------
 
 User Visible Changes:
+
+    * BUG FIX: the G2 peak of the B sample was not getting incorporated
+      into model construction, which caused model fitting to fail on
+      samples with histograms skewed towards the left.
 
     * Updated DebrisModel documentation.
 
