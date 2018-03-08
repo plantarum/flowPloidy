@@ -2,6 +2,13 @@ library(devtools)
 library(flowPloidyData)
 load_all()
 
+chh <- FlowHist(file = "~/research/flow/problems/valentin/chh101.fcs",
+                channel = "FL4.A", standards = 1.99)
+
+chc <- FlowHist(file = "~/research/flow/problems/valentin/chc203.fcs",
+                channel = "FL4.A", standards = 1.99, debrisLimit = 0)
+
+
 viewFlowChannels("~/research/flow/sample.001.fcs")
 
 brian <- FlowHist("~/research/flow/sample.001.fcs", channel = "FL2.A",
@@ -66,6 +73,7 @@ plot(hct, ylim = c(0, 800))
 
 hct <- FlowHist("~/research/flow/160930_HCT116_Ca-new.fcs",
                 channel = "Propidium.Iodide.A", bins = 512)
+
 
 batch1 <- batchFlowHist(flowPloidyFiles, channel="FL3.INT.LIN",
                         standards = 2.5)
