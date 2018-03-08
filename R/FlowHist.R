@@ -847,7 +847,27 @@ setMethod(
 #' row for each object will be added to the data.frame.
 #'
 #' If a file name is provided, the data will be saved to that file.
-#' 
+#'
+#' The columns of the returned data.frame are:
+#'
+#' \describe{
+#'    \item{countsA, countsB, countsC: }{the cell counts for the G1 peak of
+#'    each sample}
+#'    \item{sizeA, sizeB, sizeC: }{the peak position for the G1 peak of each
+#'    sample}
+#'    \item{countsA2, countsB2, countsC2: }{the cell counts for the G2 peak
+#'    of each sample}
+#'    \item{sizeA2, sizeB2, sizeC2: }{the peak position for the G2 peak of each sample}
+#'    \item{countsSA, countsSB, countsSC: }{the cell counts for the S-phase
+#'    for each sample}
+#'    \item{cvA, cvB, cvC: }{the coefficient of variation for each sample}
+#'    \item{AB, AC, BC: }{the ratios of sizeA/sizeB, sizeA/sizeC, and sizeB/sizeC}
+#'    \item{ABse, ACse, BCse: }{the standard error for each ratio}
+#'    \item{rcs: }{the residual Chi-Square for the model fit}
+#'    \item{linearity: }{the linearity value, if not fixed at 2}
+#'    \item{pg: }{genome size estimate, if the sample peak was identified}
+#' }
+#'
 #' @title exportFlowHist
 #' @param fh a \code{\link{FlowHist}} object, or a list of
 #'   \code{\link{FlowHist}} objects.
