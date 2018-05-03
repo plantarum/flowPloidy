@@ -378,6 +378,98 @@ erf <- function(x) {
 ##       erf((Mb - xx)/sqrt(2 * 5))) / 2)
 ## }
 
+makeG1 <- function(l, clr, desc, num){
+  ## Generate a G1 peak model component
+  v1 <- paste(l, 1, sep = "")
+  vM <- paste("M", l, sep = "")
+  vS <- paste("S", l, sep = "")
+
+  pL <- list(c(0, Inf), c(0, Inf), c(0, Inf))
+  names(pL) <- c(vM, vS, v1)
+
+  makeFun <- function(l){
+    tmp <- function(){}
+    formals(tmp) <-
+      eval(parse(text = sprintf("alist(%s = , %s = , %s = , xx =  )",
+                                v1, vM, vS)))
+    body(tmp) <-
+      parse(text =
+        sprintf("(%s / (sqrt(2 * pi) * %s) * exp(-((xx - %s)^2)/(2 * %s^2)))",
+                v1, vS, vM, vS))
+    return(tmp)
+  }
+  
+  newComp <- ModelComponent(
+    name = paste("f", l, 1, sep = ""), color = clr,
+    desc = desc,
+    includeTest = function(fh){
+      nrow(fhPeaks(fh)) >= num && fhSamples(fh) >= num
+    },
+    func = makeFun(l),
+    initParams = function(fh){
+      mI <- as.numeric(fhPeaks(fh)[num, "mean"])
+      sI <- as.numeric(mI / 20)
+      iI <- as.numeric(fhPeaks(fh)[num, "height"] * sI / 0.45)
+      res <- list(mI, sI, iI)
+      names(res) <- c(vM, vS, v1)
+      res
+    },
+    paramLimits = pL
+  )
+
+  return(newComp)
+}
+
+makeG2 <- function(l, clr, desc, num){
+  ## Generate a G2 peak model component
+  v2 <- paste(l, 2, sep = "")
+  vM <- paste("M", l, sep = "")
+  vS <- paste("S", l, sep = "")
+
+  pL <- list(c(0, Inf), c(0, Inf), c(0, Inf), c(linL, linH))
+  names(pL) <- c(vM, vS, v2, "d")
+
+  makeFun <- function(l){
+    tmp <- function(){}
+    formals(tmp) <-
+      eval(parse(text = sprintf("alist(%s = , %s = , %s = , d = , xx = )",
+                                v2, vM, vS)))
+    body(tmp) <-
+      parse(text =
+    sprintf("(%s / (sqrt(2 * pi) * %s * 2) * exp(-((xx - %s * d)^2)/(2 * (%s * 2)^2)))",
+            v2, vS, vM, vS))
+    return(tmp)
+  }
+  
+  newComp <- ModelComponent(
+    name = sprintf("f%s2", l), color = clr,
+    desc = desc,
+    includeTest = function(fh){
+      fhG2(fh) && (fhPeaks(fh)[num, "mean"] * 2) <= nrow(fhHistData(fh))
+    },
+    
+    func = makeFun(l),
+    initParams = function(fh){
+      mI <- as.numeric(fhPeaks(fh)[num, "mean"])
+      sI <- as.numeric(mI / 20)
+      iI <- as.numeric(fhHistData(fh)[mI * 2, "intensity"] *
+                       sI * 2 / 0.45)
+      res <- list(iI)
+      names(res) <- v2
+      if(fhLinearity(fh) == "variable")
+        res <- c(res, d = 2)
+      res
+    },
+    paramLimits = pL,
+    specialParamSetter = function(fh){
+      setLinearity(fh)
+    }
+
+  )
+
+  return(newComp)
+}
+
 #' Gaussian model components
 #'
 #' Components for modeling Gaussian features in flow histograms
@@ -415,52 +507,41 @@ erf <- function(x) {
 #' @name gauss
 #' @aliases GaussianComponents
 fhComponents$fA1 <-
-  ModelComponent(
-    name = "fA1", color = "blue",
-    desc = "Gaussian curve for G1 peak of sample A",
-    includeTest = function(fh) {TRUE},
-    func = function(a1, Ma, Sa, xx){
-      (a1 / (sqrt(2 * pi) * Sa) * exp(-((xx - Ma)^2)/(2 * Sa^2)))
-    },
-    initParams = function(fh){
-      Ma <- as.numeric(fhPeaks(fh)[1, "mean"])
-      Sa <- as.numeric(Ma / 20)
-      a1 <- as.numeric(fhPeaks(fh)[1, "height"] * Sa / 0.45)
-      list(Ma = Ma, Sa = Sa, a1 = a1)
-    },
-    paramLimits = list(Ma = c(0, Inf), Sa = c(0, Inf), a1 = c(0, Inf))
-  )
+  makeG1("a", "blue", "Gaussian curve for G1 peak of sample A", 1)
 
 fhComponents$fA2 <-
-  ModelComponent(
-    name = "fA2", color = "blue",
-    desc = "Gaussian curve for G2 peak of sample A",
-    includeTest = function(fh){
-      (fhPeaks(fh)[1, "mean"] * 2) <= nrow(fhHistData(fh))
-    },
-    ## This hard-codes the StdDev of the G2 peak to be exactly twice the
-    ## StdDev of the G1 peak, as suggested by bagwell_1993. Maybe this
-    ## should actually be set to the parameter d?
-    func = function(a2, Ma, Sa, d, xx){
-      (a2 / (sqrt(2 * pi) * Sa * 2) *
-       exp(-((xx - Ma * d)^2)/(2 * (Sa * 2)^2))) 
-    },
-    initParams = function(fh){
-      Ma <- as.numeric(fhPeaks(fh)[1, "mean"])
-      Sa <- as.numeric(Ma / 20)
-      a2 <- as.numeric(fhHistData(fh)[Ma * 2, "intensity"] *
-                       Sa * 2 / 0.45)
-      res <- list(a2 = a2)
-      if(fhLinearity(fh) == "variable")
-        res <- c(res, d = 2)
-      res
-    },
-    paramLimits = list(Ma = c(0, Inf), Sa = c(0, Inf), a2 = c(0, Inf),
-                       d = c(linL, linH)),
-    specialParamSetter = function(fh){
-      setLinearity(fh)
-    }
-  )
+  makeG2("a", "blue", "Gaussian curve for G2 peak of sample A", 1)
+
+## fhComponents$fA2 <-
+##   ModelComponent(
+##     name = "fA2", color = "blue",
+##     desc = "Gaussian curve for G2 peak of sample A",
+##     includeTest = function(fh){
+##       fhG2(fh) && (fhPeaks(fh)[1, "mean"] * 2) <= nrow(fhHistData(fh))
+##     },
+##     ## This hard-codes the StdDev of the G2 peak to be exactly twice the
+##     ## StdDev of the G1 peak, as suggested by bagwell_1993. Maybe this
+##     ## should actually be set to the parameter d?
+##     func = function(a2, Ma, Sa, d, xx){
+##       (a2 / (sqrt(2 * pi) * Sa * 2) *
+##        exp(-((xx - Ma * d)^2)/(2 * (Sa * 2)^2))) 
+##     },
+##     initParams = function(fh){
+##       Ma <- as.numeric(fhPeaks(fh)[1, "mean"])
+##       Sa <- as.numeric(Ma / 20)
+##       a2 <- as.numeric(fhHistData(fh)[Ma * 2, "intensity"] *
+##                        Sa * 2 / 0.45)
+##       res <- list(a2 = a2)
+##       if(fhLinearity(fh) == "variable")
+##         res <- c(res, d = 2)
+##       res
+##     },
+##     paramLimits = list(Ma = c(0, Inf), Sa = c(0, Inf), a2 = c(0, Inf),
+##                        d = c(linL, linH)),
+##     specialParamSetter = function(fh){
+##       setLinearity(fh)
+##     }
+##   )
 
 fhComponents$brA <-
   ModelComponent(
@@ -489,30 +570,14 @@ fhComponents$brA <-
   )
 
 fhComponents$fB1 <-
-  ModelComponent(
-    name = "fB1", color = "orange",
-    desc = "Gaussian curve for G1 peak of sample B",
-    includeTest = function(fh){
-      nrow(fhPeaks(fh)) > 1 && fhSamples(fh) > 1
-    },
-    func = function(b1, Mb, Sb, xx){
-      (b1 / (sqrt(2 * pi) * Sb) * exp(-((xx - Mb)^2)/(2 * Sb^2)))
-    },
-    initParams = function(fh){
-      Mb <- as.numeric(fhPeaks(fh)[2, "mean"])
-      Sb <- as.numeric(Mb / 20)
-      b1 <- as.numeric(fhPeaks(fh)[2, "height"] * Sb / 0.45)
-      list(Mb = Mb, Sb = Sb, b1 = b1)
-    },
-    paramLimits = list(Mb = c(0, Inf), Sb = c(0, Inf), b1 = c(0, Inf)),
-  )
+  makeG1("b", "orange", "Gaussian curve for G1 peak of sample B", 2)
 
 fhComponents$fB2 <-
   ModelComponent(
     name = "fB2", color = "orange",
     desc = "Gaussian curve for G2 peak of sample B",
     includeTest = function(fh){
-      if(nrow(fhPeaks(fh)) > 1 && fhSamples(fh) > 1)
+      if(fhG2(fh) && nrow(fhPeaks(fh)) > 1 && fhSamples(fh) > 1)
         (fhPeaks(fh)[2, "mean"] * 2) <= nrow(fhHistData(fh))
       else
         FALSE
@@ -565,30 +630,14 @@ fhComponents$brB <-
   )
 
 fhComponents$fC1 <-
-  ModelComponent(
-    name = "fC1", color = "darkgreen",
-    desc = "Gaussian curve for G1 peak of sample C",
-    includeTest = function(fh) {
-      nrow(fhPeaks(fh)) > 2 && fhSamples(fh) > 2
-      },
-    func = function(c1, Mc, Sc, xx){
-      (c1 / (sqrt(2 * pi) * Sc) * exp(-((xx - Mc)^2)/(2 * Sc^2)))
-    },
-    initParams = function(fh){
-      Mc <- as.numeric(fhPeaks(fh)[3, "mean"])
-      Sc <- as.numeric(Mc / 20)
-      c1 <- as.numeric(fhPeaks(fh)[3, "height"] * Sc / 0.45)
-      list(Mc = Mc, Sc = Sc, c1 = c1)
-    },
-    paramLimits = list(Mc = c(0, Inf), Sc = c(0, Inf), c1 = c(0, Inf))
-  )
+  makeG1("c", "darkgreen", "Gaussian curve for G1 peak of sample C", 3)
 
 fhComponents$fC2 <-
   ModelComponent(
     name = "fC2", color = "darkgreen",
     desc = "Gaussian curve for G2 peak of sample C",
     includeTest = function(fh){
-      nrow(fhPeaks(fh)) > 2 && fhSamples(fh) > 2 &&
+      fhG2(fh) && nrow(fhPeaks(fh)) > 2 && fhSamples(fh) > 2 &&
         (fhPeaks(fh)[3, "mean"] * 2) <= nrow(fhHistData(fh))
     },
     func = function(c2, Mc, Sc, d, xx){
