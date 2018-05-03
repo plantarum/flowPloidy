@@ -235,6 +235,8 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   \code{\link{cleanPeaks}}. Peaks with fluorescence values less than
 #'   \code{debrisLimit} will be ignored by the automatic peak-finding
 #'   algorithm.
+#' @param g2 a boolean value, default is TRUE. Should G2 peaks be included
+#'   in the model?
 #' 
 #' @slot raw a flowFrame object containing the raw data from the FCS file
 #' @slot channel character, the name of the data column to use
@@ -274,6 +276,9 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   default is 2 (i.e., unknown and standard), but if two standards are
 #'   used it should be set to 3.
 #' @slot standards a \code{\link{FlowStandards}} object.
+#' @slot g2 boolean, if TRUE the model will include G2 peaks for each
+#'   sample (as long as the G1 peak is less than half-way across the
+#'   histogram).
 #' 
 #' @return \code{\link{FlowHist}} returns a \code{\link{FlowHist}} object.
 #' @author Tyler Smith
@@ -301,7 +306,8 @@ setClass(
     counts = "list", ## cell counts in each peak
     CV = "list", ## CVs
     RCS = "numeric", ## residual chi-square
-    standards = "FlowStandards" ## a FlowStandards object
+    standards = "FlowStandards", ## a FlowStandards object
+    g2 = "logical" ## should G2 peaks be included in the model?
   ),
   prototype = prototype(
     ## TODO complete this?
@@ -315,7 +321,7 @@ setMethod(
                         window = 20, smooth = 20, pick = FALSE,
                         linearity = "variable", debris = "SC",
                         gate = logical(), samples = 2, standards = 0,
-                        opts = list(), debrisLimit = 40,
+                        opts = list(), debrisLimit = 40, g2 = TRUE,
                         ...){ 
     .Object@raw <- read.FCS(file, dataset = 1, alter.names = TRUE)
     .Object@channel <- channel
@@ -334,6 +340,7 @@ setMethod(
     .Object@linearity <- linearity
     .Object@debris <- debris
     .Object@opts <- opts
+    .Object@g2 <- g2
     if(! any(is.na(fhPeaks(.Object)))){
       ## We have good peaks:
       .Object <- addComponents(.Object)
@@ -636,6 +643,17 @@ fhOpts <- function(fh){
 
 `fhOpts<-` <- function(fh, value){
   fh@opts <- value
+  fh
+}
+
+#' @rdname fhAccessors
+#' @export
+fhG2 <- function(fh){
+  fh@g2
+}
+
+`fhOpts<-` <- function(fh, value){
+  fh@g2 <- value
   fh
 }
 
