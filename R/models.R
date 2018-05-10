@@ -445,7 +445,8 @@ makeG2 <- function(l, clr, desc, num){
     name = sprintf("f%s2", l), color = clr,
     desc = desc,
     includeTest = function(fh){
-      fhG2(fh) && (fhPeaks(fh)[num, "mean"] * 2) <= nrow(fhHistData(fh))
+      fhG2(fh) && nrow(fhPeaks(fh)) >= num &&
+        (fhPeaks(fh)[num, "mean"] * 2) <= nrow(fhHistData(fh))
     },
     
     func = makeFun(l),
