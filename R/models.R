@@ -669,11 +669,14 @@ fhComponents$brC <-
       FALSE
     },
     func = function(BRC, Mc, d, xx){
+
       ## 2 * 1 is a placeholder for 2 * sd, should we decide it's worth
       ## adding sd as a separate parameter
-      ## WARNING: this is a bug - need to replace '2' with 'd' to account
-      ## for variable linearity. As is, the upper end of the S-phase will
-      ## not match the G2 peak!!
+      
+      ## WARNING: do I need to replace '2' with 'd' to account
+      ## for variable linearity? Bagwell uses "2" in his formula in
+      ## bagwell_1993, but I'm not sure if that's because d is usually 2,
+      ## or if this is a coincidence. 
       BRC * ((flowPloidy:::erf(((d * Mc) - xx)/sqrt(2 * 1)) -
               flowPloidy:::erf((Mc - xx)/sqrt(2 * 1))) / 2)
     },
