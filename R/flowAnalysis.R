@@ -97,9 +97,9 @@ fhDoCounts <- function(fh){
   ## To add anything to the output here, just add it to the list. The
   ## element name is the component name, and the value is how it will be
   ## reported in the output.
-  countList <- list(fA1 = "firstPeak", fA2 = "firstG2Peak",
-                    fB1 = "secondPeak", fB2 = "secondG2Peak",
-                    fC1 = "thirdPeak", fC2 = "thirdG2Peak",
+  countList <- list(fa1 = "firstPeak", fa2 = "firstG2Peak",
+                    fb1 = "secondPeak", fb2 = "secondG2Peak",
+                    fc1 = "thirdPeak", fc2 = "thirdG2Peak",
                     brA = "S-phaseA", brB = "S-phaseB", brC = "S-phaseC")
   ## lower and upper were originally arguments to fhCount, but I don't
   ## think we actually need to alter them ever?
@@ -159,7 +159,7 @@ fhDoCounts <- function(fh){
 #' @keywords internal
 fhDoCV <- function(fh){
   CVa <- coef(fhNLS(fh))["Sa"]/coef(fhNLS(fh))["Ma"]
-  if("fB1" %in% names(fhComps(fh))){
+  if("fb1" %in% names(fhComps(fh))){
     CVb <- coef(fhNLS(fh))["Sb"]/coef(fhNLS(fh))["Mb"]
     AB <- deltaMethod(fhNLS(fh), "Ma/Mb", vcov. = vcov)
   } else {
