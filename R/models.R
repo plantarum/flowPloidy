@@ -471,6 +471,46 @@ makeG2 <- function(l, clr, desc, num){
   return(newComp)
 }
 
+makeS <- function(l, clr, desc, num){
+  vBR <- paste("BR", l, sep = "")
+  vM <- paste("M", l, sep = "")
+  
+  pL <- list(c(0, Inf), d = c(linL, linH))
+  names(pL) <- c(vBR, "d")
+  
+  makeFun <- function(l){
+    tmp <- function(){}
+    formals(tmp) <-
+      eval(parse(text = sprintf("alist(%s = , %s = , d = , xx = )",
+                                vBR, vM)))
+    body(tmp) <-
+      parse(text =
+              sprintf("%s * ((flowPloidy:::erf(((d * %s) - xx)/sqrt(2 * 1)) - flowPloidy:::erf((%s - xx)/sqrt(2 * 1))) / 2)",
+                      vBR, vM, vM))
+    return(tmp)
+  }
+  
+  newComp <- ModelComponent(
+    name = sprintf("br%s", l), color = clr, desc = desc,
+    includeTest = function(fh){
+      nrow(fhPeaks(fh)) >= num && fhSamples(fh) >= num
+    },
+    func = makeFun(l),
+    initParams <- function(fh, vBR. = vBR){
+      res <- list(10)
+      names(res) <- vBR.
+      if(fhLinearity(fh) == "variable")
+        res <- c(res, d = 2)
+      return(res)
+    },
+    paramLimits = pL,
+    specialParamSetter = function(fh){
+      setLinearity(fh)
+    }
+  )
+  return(newComp)
+}
+
 #' Gaussian model components
 #'
 #' Components for modeling Gaussian features in flow histograms
