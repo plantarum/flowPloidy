@@ -553,184 +553,54 @@ fhComponents$fA1 <-
 fhComponents$fA2 <-
   makeG2("a", "blue", "Gaussian curve for G2 peak of sample A", 1)
 
-## fhComponents$fA2 <-
-##   ModelComponent(
-##     name = "fA2", color = "blue",
-##     desc = "Gaussian curve for G2 peak of sample A",
-##     includeTest = function(fh){
-##       fhG2(fh) && (fhPeaks(fh)[1, "mean"] * 2) <= nrow(fhHistData(fh))
-##     },
-##     ## This hard-codes the StdDev of the G2 peak to be exactly twice the
-##     ## StdDev of the G1 peak, as suggested by bagwell_1993. Maybe this
-##     ## should actually be set to the parameter d?
-##     func = function(a2, Ma, Sa, d, xx){
-##       (a2 / (sqrt(2 * pi) * Sa * 2) *
-##        exp(-((xx - Ma * d)^2)/(2 * (Sa * 2)^2))) 
-##     },
-##     initParams = function(fh){
-##       Ma <- as.numeric(fhPeaks(fh)[1, "mean"])
-##       Sa <- as.numeric(Ma / 20)
-##       a2 <- as.numeric(fhHistData(fh)[Ma * 2, "intensity"] *
-##                        Sa * 2 / 0.45)
-##       res <- list(a2 = a2)
-##       if(fhLinearity(fh) == "variable")
-##         res <- c(res, d = 2)
-##       res
-##     },
-##     paramLimits = list(Ma = c(0, Inf), Sa = c(0, Inf), a2 = c(0, Inf),
-##                        d = c(linL, linH)),
-##     specialParamSetter = function(fh){
-##       setLinearity(fh)
-##     }
-##   )
-
 fhComponents$brA <-
-  ModelComponent(
-    name = "brA", color = "magenta",
-    desc = "Broadened rectangle for S-phase of sample A",
-    includeTest = function(fh){
-      TRUE
-    },
-    func = function(BRA, Ma, d, xx){
-      ## 2 * 1 is a placeholder for 2 * sd, should we decide it's worth
-      ## adding sd as a separate parameter
-      BRA * ((flowPloidy:::erf(((d * Ma) - xx)/sqrt(2 * 1)) -
-              flowPloidy:::erf((Ma - xx)/sqrt(2 * 1))) / 2)
-    },
-    initParams = function(fh){
-      res <- list(BRA = 10)
-      if(fhLinearity(fh) == "variable")
-        res <- c(res, d = 2)
-      res
-    },
-    ## paramLimits = list(BRA = c(0, Inf))
-    paramLimits = list(BRA = c(0, Inf), d = c(linL, linH)),
-    specialParamSetter = function(fh){
-      setLinearity(fh)
-    }
-  )
+  makeS("a", "blue", "Broadened rectangle for S-phase of sample A", 1)
 
 fhComponents$fB1 <-
   makeG1("b", "orange", "Gaussian curve for G1 peak of sample B", 2)
 
 fhComponents$fB2 <-
-  ModelComponent(
-    name = "fB2", color = "orange",
-    desc = "Gaussian curve for G2 peak of sample B",
-    includeTest = function(fh){
-      if(fhG2(fh) && nrow(fhPeaks(fh)) > 1 && fhSamples(fh) > 1)
-        (fhPeaks(fh)[2, "mean"] * 2) <= nrow(fhHistData(fh))
-      else
-        FALSE
-    },
-    func = function(b2, Mb, Sb, d, xx){
-      (b2 / (sqrt(2 * pi) * Sb * 2) *
-       exp(-((xx - Mb * d)^2)/(2 * (Sb * 2)^2))) 
-    },
-    initParams = function(fh){
-      Mb <- fhPeaks(fh)[2, "mean"]
-      Sb <- Mb / 20
-      b2 <- as.numeric(fhHistData(fh)[fhPeaks(fh)[2, "mean"] * 2,
-                                      "intensity"]
-                       * Sb * 2 / 0.45)
-      res <- list(b2 = b2)
-      if(fhLinearity(fh) == "variable")
-        res <- c(res, d = 2)
-      res
-    },
-    paramLimits = list(Mb = c(0, Inf), Sb = c(0, Inf), b2 = c(0, Inf),
-                       d = c(linL, linH)),
-    specialParamSetter = function(fh){
-      setLinearity(fh)
-    }
-  )
+  makeG2("b", "orange", "Gaussian curve for G2 peak of sample B", 2)
 
 fhComponents$brB <-
-  ModelComponent(
-    name = "brB", color = "turquoise",
-    desc = "Broadened rectangle for S-phase of sample B",
-    includeTest = function(fh){
-      nrow(fhPeaks(fh)) > 1 && fhSamples(fh) > 2
-    },
-    func = function(BRB, Mb, d, xx){
-      ## 2 * 1 is a placeholder for 2 * sd, should we decide it's worth
-      ## adding sd as a separate parameter
-      BRB * ((flowPloidy:::erf(((d * Mb) - xx)/sqrt(2 * 1)) -
-              flowPloidy:::erf((Mb - xx)/sqrt(2 * 1))) / 2)
-    },
-    initParams = function(fh){
-      res <- list(BRB = 10)
-      if(fhLinearity(fh) == "variable")
-        res <- c(res, d = 2)
-      res
-    },
-    paramLimits = list(BRB = c(0, Inf), d = c(linL, linH)),
-    specialParamSetter = function(fh){
-      setLinearity(fh)
-    }
-  )
+  makeS("b", "orange", "Broadened rectangle for S-phase of sample B", 2)
 
 fhComponents$fC1 <-
   makeG1("c", "darkgreen", "Gaussian curve for G1 peak of sample C", 3)
 
 fhComponents$fC2 <-
-  ModelComponent(
-    name = "fC2", color = "darkgreen",
-    desc = "Gaussian curve for G2 peak of sample C",
-    includeTest = function(fh){
-      fhG2(fh) && nrow(fhPeaks(fh)) > 2 && fhSamples(fh) > 2 &&
-        (fhPeaks(fh)[3, "mean"] * 2) <= nrow(fhHistData(fh))
-    },
-    func = function(c2, Mc, Sc, d, xx){
-      (c2 / (sqrt(2 * pi) * Sc * 2) *
-       exp(-((xx - Mc * d)^2)/(2 * (Sc * 2)^2))) 
-    },
-    initParams = function(fh){
-      Mc <- as.numeric(fhPeaks(fh)[3, "mean"])
-      Sc <- as.numeric(Mc / 20)
-      c2 <- as.numeric(fhHistData(fh)[Mc * 2, "intensity"] *
-                       Sc * 2 / 0.45)
-      res <- list(c2 = c2)
-      if(fhLinearity(fh) == "variable")
-        res <- c(res, d = 2)
-      res
-    },
-    paramLimits = list(Mc = c(0, Inf), Sc = c(0, Inf), c2 = c(0, Inf),
-                       d = c(linL, linH)),
-    specialParamSetter = function(fh){
-      setLinearity(fh)
-    }
-  )
+  makeG2("c", "darkgreen", "Gaussian curve for G2 peak of sample C", 3)
 
 fhComponents$brC <-
-  ModelComponent(
-    name = "brC", color = "magenta",
-    desc = "Broadened rectangle for S-phase of sample C",
-    includeTest = function(fh){
-      FALSE
-    },
-    func = function(BRC, Mc, d, xx){
+  makeS("c", "darkgreen", "Broadened rectangle for S-phase of sample C", 4)
 
-      ## 2 * 1 is a placeholder for 2 * sd, should we decide it's worth
-      ## adding sd as a separate parameter
-      
-      ## WARNING: do I need to replace '2' with 'd' to account
-      ## for variable linearity? Bagwell uses "2" in his formula in
-      ## bagwell_1993, but I'm not sure if that's because d is usually 2,
-      ## or if this is a coincidence. 
-      BRC * ((flowPloidy:::erf(((d * Mc) - xx)/sqrt(2 * 1)) -
-              flowPloidy:::erf((Mc - xx)/sqrt(2 * 1))) / 2)
-    },
-    initParams = function(fh){
-      res <- list(BRC = 10)
-      if(fhLinearity(fh) == "variable")
-        res <- c(res, d = 2)
-    },
-    paramLimits = list(BRC = c(0, Inf), d = c(linL, linH)),
-    specialParamSetter = function(fh){
-      setLinearity(fh)
-    }
-  )
+fhComponents$fD1 <-
+  makeG1("d", "salmon", "Gaussian curve for G1 peak of sample D", 4)
+
+fhComponents$fD2 <-
+  makeG2("d", "salmon", "Gaussian curve for G2 peak of sample D", 4)
+
+fhComponents$brD <-
+  makeS("d", "salmon", "Broadened rectangle for S-phase of sample D", 4)
+
+fhComponents$fE1 <-
+  makeG1("e", "plum", "Gaussian curve for G1 peak of sample E", 5)
+
+fhComponents$fE2 <-
+  makeG2("e", "plum", "Gaussian curve for G2 peak of sample E", 5)
+
+fhComponents$brE <-
+  makeS("e", "plum", "Broadened rectangle for S-phase of sample E", 5)
+
+fhComponents$fF1 <-
+  makeG1("f", "papayawhip", "Gaussian curve for G1 peak of sample F", 6)
+
+fhComponents$fF2 <-
+  makeG2("f", "papayawhip", "Gaussian curve for G2 peak of sample F", 6)
+
+fhComponents$brF <-
+  makeS("f", "papayawhip", "Broadened rectangle for S-phase of sample F",
+        6) 
 
 #' Histogram Debris Models
 #'
@@ -1026,7 +896,8 @@ addComponents <- function(fh){
       ## fhLimits(fh) <- newLims
     }
   if(fhLinearity(fh) == "variable")
-    if(sum(c("fA2", "fB2", "fC2") %in% names(fhComps(fh))) == 0){
+    if(sum(c("fa2", "fb2", "fc2", "fd2", "fe2", "ff2") %in%
+           names(fhComps(fh))) == 0){ 
       message("No G2 peaks, using fixed linearity")
       fh <- updateFlowHist(fh, linearity = "fixed")
     }
