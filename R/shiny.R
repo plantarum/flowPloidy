@@ -127,12 +127,16 @@ browseFlowHist <- function(flowList, debug = FALSE){
                                     initialSamples,
                                     choices = list("1" = 1,
                                                    "2" = 2,
-                                                   "3" = 3))), 
+                                                   "3" = 3,
+                                                   "4" = 4,
+                                                   "5" = 5,
+                                                   "6" = 6))), 
                  column(6,
                         selectInput(inputId = "peakPicker",
                                     label = "Peak",
                                     selected = "A",
-                                    choices = list("A", "B", "C")))),
+                                    choices = list("A", "B", "C", "D", "E",
+                                                   "F")))),
                fluidRow(
                  column(6, 
                         selectInput(inputId = 'standardSelect',
@@ -143,8 +147,8 @@ browseFlowHist <- function(flowList, debug = FALSE){
                         selectInput(inputId = "standardPeak",
                                     label = "Standard Peak",
                                     selected = initialStdPeak,
-                                    choices = list("X", "A",
-                                                   "B", "C")))) ,
+                                    choices = list("X", "A", "B", "C", "D",
+                                                   "E", "F")))), 
                fluidRow(
                  column(6,
                         selectInput(inputId = "linearity",
@@ -281,7 +285,35 @@ browseFlowHist <- function(flowList, debug = FALSE){
                         fhInit(.fhList[[fhCurrent()]])$Mb,
                         xPt[1,1])
           .fhList[[fhCurrent()]] <<- fhAnalyze(.fhList[[fhCurrent()]])
+        } else if(input$peakPicker == "D"){
+          .fhList[[fhCurrent()]] <<-
+            selectPeaks(.fhList[[fhCurrent()]],
+                        fhInit(.fhList[[fhCurrent()]])$Ma,
+                        fhInit(.fhList[[fhCurrent()]])$Mb,
+                        fhInit(.fhList[[fhCurrent()]])$Mc,
+                        xPt[1,1])
+          .fhList[[fhCurrent()]] <<- fhAnalyze(.fhList[[fhCurrent()]])
+        } else if(input$peakPicker == "E"){
+          .fhList[[fhCurrent()]] <<-
+            selectPeaks(.fhList[[fhCurrent()]],
+                        fhInit(.fhList[[fhCurrent()]])$Ma,
+                        fhInit(.fhList[[fhCurrent()]])$Mb,
+                        fhInit(.fhList[[fhCurrent()]])$Mc,
+                        fhInit(.fhList[[fhCurrent()]])$Md,
+                        xPt[1,1])
+          .fhList[[fhCurrent()]] <<- fhAnalyze(.fhList[[fhCurrent()]])
+        } else if(input$peakPicker == "F"){
+          .fhList[[fhCurrent()]] <<-
+            selectPeaks(.fhList[[fhCurrent()]],
+                        fhInit(.fhList[[fhCurrent()]])$Ma,
+                        fhInit(.fhList[[fhCurrent()]])$Mb,
+                        fhInit(.fhList[[fhCurrent()]])$Mc,
+                        fhInit(.fhList[[fhCurrent()]])$Md,
+                        fhInit(.fhList[[fhCurrent()]])$Me,
+                        xPt[1,1])
+          .fhList[[fhCurrent()]] <<- fhAnalyze(.fhList[[fhCurrent()]])
         }
+
         rv$FH <- .fhList[[fhCurrent()]]
       }
     })

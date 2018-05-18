@@ -1415,21 +1415,30 @@ pickPeaks <- function(fh){
   selectPeaks(fh, peakA[1], peakB[1], NULL)
 }
 
-selectPeaks <- function(fh, peakA, peakB, peakC){
+selectPeaks <- function(fh, peakA, peakB, peakC, peakD = NULL,
+                        peakE = NULL, peakF = NULL){ 
   pA <- fhHistData(fh)[round(peakA, 0), c("xx", "intensity")]
+  pB <- pC <- pD <- pE <- pF <- NULL
   if(is.numeric(peakB))                 
     pB <- fhHistData(fh)[round(peakB, 0), c("xx", "intensity")]
   if(is.numeric(peakC))                 
     pC <- fhHistData(fh)[round(peakC, 0), c("xx", "intensity")]
+  if(is.numeric(peakD))                 
+    pD <- fhHistData(fh)[round(peakD, 0), c("xx", "intensity")]
+  if(is.numeric(peakE))                 
+    pE <- fhHistData(fh)[round(peakE, 0), c("xx", "intensity")]
+  if(is.numeric(peakF))                 
+    pF <- fhHistData(fh)[round(peakF, 0), c("xx", "intensity")]
   
   fh <- resetFlowHist(fh)
-
-  if(is.numeric(peakC))
-    newPeaks <- as.matrix(rbind(pA, pB, pC))
-  else if(is.numeric(peakB))
-    newPeaks <- as.matrix(rbind(pA, pB))
-  else
-    newPeaks <- as.matrix(rbind(pA))
+  newPeaks <- as.matrix(rbind(pA, pB, pC, pD, pE, pF))
+  
+  ## if(is.numeric(peakC))
+  ##   newPeaks <- as.matrix(rbind(pA, pB, pC))
+  ## else if(is.numeric(peakB))
+  ##   newPeaks <- as.matrix(rbind(pA, pB))
+  ## else
+  ##   newPeaks <- as.matrix(rbind(pA))
   
   colnames(newPeaks) <- c("mean", "height")
   newPeaks <- newPeaks[order(newPeaks[, "mean"]), ]
@@ -1495,10 +1504,10 @@ updateFlowHist <- function(fh, linearity = NULL, debris = NULL,
     else
       stop("Invalid debris value")
   if(!is.null(samples))
-    if(samples > 0 && samples < 4)
+    if(samples > 0 && samples < 7)
       fhSamples(fh) <- as.integer(samples)
     else
-      stop("Invalid sample number: must be between 1 and 3")
+      stop("Invalid sample number: must be between 1 and 6")
   
   fh <- resetFlowHist(fh, from = "comps")
   
