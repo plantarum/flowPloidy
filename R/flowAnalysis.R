@@ -166,7 +166,7 @@ fhDoCV <- function(fh){
     CVb <- CI <- AB <- NULL
   }
 
-  if("fC1" %in% names(fhComps(fh))){
+  if("fc1" %in% names(fhComps(fh))){
     CVc <- coef(fhNLS(fh))["Sc"]/coef(fhNLS(fh))["Mc"]
     AC <- deltaMethod(fhNLS(fh), "Ma/Mc", vcov. = vcov)
     BC <- deltaMethod(fhNLS(fh), "Mb/Mc", vcov. = vcov)
