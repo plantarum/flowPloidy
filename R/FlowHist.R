@@ -729,15 +729,9 @@ resetFlowHist <- function(fh, from = "peaks"){
 #' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
 #' fh1
 #' @export
-FlowHist <- function(file, channel, standards = 0, bins = 256, window =
-                     20, smooth = 20, pick = FALSE, linearity = "variable",
-                     debris = "SC", opts = list(), samples = 2, gate =
-                     logical(), analyze = TRUE, debrisLimit = 40){ 
+FlowHist <- function(file, channel, bins = 256, analyze = TRUE, ...){ 
   fh <-  new("FlowHist", file = file, channel = channel,
-             bins = as.integer(bins), window = window, smooth = smooth,
-             pick = pick, linearity = linearity, debris = debris,
-             opts = opts, samples = samples, gate = gate,
-             standards = standards, debrisLimit = debrisLimit)
+             bins = as.integer(bins), ...)
   if(analyze)
     fh <- fhAnalyze(fh)
   return(fh)
