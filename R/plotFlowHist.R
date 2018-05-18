@@ -55,36 +55,25 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
     lines(x = fhHistData(x)$xx,
           y = yy, 
           col = "grey", lwd = 1, lty = 5)
-    points(x = fhInit(x)$Ma,
-           y  = fhHistData(x)$intensity[round(fhInit(x)$Ma, 0)],
-           cex = 1.5, pch = 16, col = "blue")
-    text("A", cex = 1,
-         x = fhInit(x)$Ma, col = "blue", pos = 2,
-         y = fhHistData(x)$intensity[round(fhInit(x)$Ma, 0)])
-    points(x = 2 * fhInit(x)$Ma,
-           y = fhHistData(x)$intensity[round(2 * fhInit(x)$Ma, 0)],
-           col = "blue", cex = 1.5)
-    if(! is.null(fhInit(x)$Mb)){
-      points(x = fhInit(x)$Mb,
-             y = fhHistData(x)$intensity[round(fhInit(x)$Mb, 0)],
-             cex = 1.5, pch = 16, col = "orange")
-      text("B", cex = 1,
-           x = fhInit(x)$Mb, col = "orange", pos = 2,
-           y = fhHistData(x)$intensity[round(fhInit(x)$Mb, 0)])
-      points(x = 2 * fhInit(x)$Mb,
-             y = fhHistData(x)$intensity[round(2 * fhInit(x)$Mb, 0)],
-             col = "orange", cex = 1.5)
-    }
-    if(! is.null(fhInit(x)$Mc)){
-      points(x = fhInit(x)$Mc,
-             y = fhHistData(x)$intensity[round(fhInit(x)$Mc, 0)],
-             cex = 1.5, pch = 16, col = "darkgreen")
-      text("C", cex = 1,
-           x = fhInit(x)$Mc, col = "darkgreen", pos = 2,
-           y = fhHistData(x)$intensity[round(fhInit(x)$Mc, 0)])
-      points(x = 2 * fhInit(x)$Mc,
-             y = fhHistData(x)$intensity[round(2 * fhInit(x)$Mc, 0)],
-             col = "green", cex = 1.5)
+
+    for(comp in letters[1:6]){
+      NAME <- paste("f", comp, 1, sep = "")
+      if(NAME %in% names(fhComps(x))){
+        MEAN <- paste("M", comp, sep = "")
+        COL <- mcColor(fhComps(x)[[NAME]])
+        
+        points(x = fhInit(x)[[MEAN]],
+               y  = fhHistData(x)$intensity[round(fhInit(x)[[MEAN]], 0)],
+               cex = 1.5, pch = 16, col = COL)
+        text(toupper(comp), cex = 1,
+             x = fhInit(x)[[MEAN]], col = COL, pos = 2,
+             y = fhHistData(x)$intensity[round(fhInit(x)[[MEAN]], 0)])
+
+        if(fhG2(x))
+          points(x = 2 * fhInit(x)$Ma,
+                 y = fhHistData(x)$intensity[round(2 * fhInit(x)[[MEAN]], 0)],
+                 col = COL, cex = 1.5)
+      }
     }
   } else {
     if(init)
