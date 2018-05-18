@@ -224,7 +224,8 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   to use for starting values. Otherwise (the default), starting values
 #'   will be detected automatically.
 #' @param samples integer; the number of samples in the data. Default is 2
-#'   (unknown and standard), but can be set to 3 if two standards are used.
+#'   (unknown and standard), but can be set to 3 if two standards are used,
+#'   or up to 6 for endopolyploidy analysis.
 #' @param standards numeric; the size of the internal standard in pg. When
 #'   loading a data set where different samples have different standards, a
 #'   vector of all the standard sizes. If set to 0, calculation of pg for
@@ -274,11 +275,14 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @slot RCS numeric, the residual chi-square for the fitted model.
 #' @slot samples numeric, the number of samples included in the data. The
 #'   default is 2 (i.e., unknown and standard), but if two standards are
-#'   used it should be set to 3.
+#'   used it should be set to 3. It can be up to 6 for endopolyploidy
+#'   analysis, and can be interactively increased (or decreased) via
+#'   \code{\link{browseFlowHist}} 
 #' @slot standards a \code{\link{FlowStandards}} object.
 #' @slot g2 boolean, if TRUE the model will include G2 peaks for each
 #'   sample (as long as the G1 peak is less than half-way across the
-#'   histogram).
+#'   histogram). Set to FALSE to drop the G2 peaks for endopolyploidy
+#'   analyses.
 #' 
 #' @return \code{\link{FlowHist}} returns a \code{\link{FlowHist}} object.
 #' @author Tyler Smith
@@ -652,7 +656,7 @@ fhG2 <- function(fh){
   fh@g2
 }
 
-`fhOpts<-` <- function(fh, value){
+`fhG2<-` <- function(fh, value){
   fh@g2 <- value
   fh
 }
