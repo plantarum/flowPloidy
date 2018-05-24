@@ -138,6 +138,47 @@ fhDoCounts <- function(fh){
   fh
 }
 
+fhDoCounts2 <- function(fh){
+  ## lower and upper were originally arguments to fhCount, but I don't
+  ## think we actually need to alter them ever?
+  lower = 0
+  upper = nrow(fhHistData(fh))
+  subdivisions = upper * 2              # anything more than upper should
+                                        # be ok I think?
+  res <- list()
+  coefs <- coef(fhNLS(fh))
+
+  countNames <- names(fhComps(fh))
+  countNames <- names(fhComps(fh)[sapply(fhComps(fh)[countNames], mcDoCounts)])
+
+  for(i in countNames){
+    comp <- fhComps(fh)[[i]]
+    fun <- mcFunc(comp)
+    sParams <- mcSpecialParams(comp)
+    params <- setdiff(mcParams(comp), names(sParams))
+    sParams[["xx"]] <- NULL
+    args <- ""
+    for(j in params){
+      if (args != "")
+        args <- paste0(args, ", ")
+      args <- paste0(args, j, " = ", coefs[j])
+    }
+    if(length(sParams) > 0) {
+      for(k in names(sParams)){
+        args <- paste0(args, ", ", k, " = ", sParams[[k]])
+      }
+    }
+    eval(parse(text =
+                 paste0("res[[i]] <- integrate(fun, ",
+                        args, ", ", 
+                        "lower = lower, upper = upper, subdivisions = 1000)")))
+  }
+
+  fhCounts(fh) <- res
+  fh
+}
+
+
 #' Calculate CVs from a \code{\link{FlowHist}} object
 #'
 #' Extracts the model parameters (G1 peak means and standard deviations)
