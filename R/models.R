@@ -56,6 +56,10 @@
 #' @slot paramLimits list, a named list with the upper and lower limits of
 #'   each parameter in the function.
 #'
+#' @slot doCounts logical, should cell counts be evaluated for this
+#'   component? Used to exclude the debris models, which don't work with
+#'   R's Integrate function.
+#' 
 #' @section Coding Concepts:
 #'
 #' See the source code file \code{models.R} for the actual code used in
@@ -222,7 +226,8 @@ setClass(Class = "ModelComponent",
                           initParams = "function",
                           specialParams = "list", 
                           specialParamSetter = "function",
-                          paramLimits = "list"
+                          paramLimits = "list",
+                          doCounts = "logical"
                           ))
 
 setMethod(f = "show", signature = "ModelComponent",
@@ -292,14 +297,19 @@ mcParamLimits <- function(mc){
   mc@paramLimits
 }
 
+mcDoCounts <- function(mc){
+  mc@doCounts
+}
+
 ModelComponent <- function(name, color, desc, includeTest, func,
                            initParams,
                            specialParamSetter = function(fh)
                              list(xx = substitute(xx)),
-                           paramLimits = list()){ 
+                           paramLimits = list(), doCounts = TRUE){ 
   new("ModelComponent", name = name, color = color, desc = desc,
       includeTest = includeTest, func = func, initParams = initParams,
-      specialParamSetter = specialParamSetter, paramLimits = paramLimits)
+      specialParamSetter = specialParamSetter, paramLimits = paramLimits,
+      doCounts = doCounts)
 }
 
 ######################
@@ -765,7 +775,8 @@ fhComponents$SC <-
     paramLimits = list(SCa = c(0, Inf)),
     specialParamSetter = function(fh){
       list(SCvals = substitute(SCvals))
-    }
+    },
+    doCounts = FALSE
   )
 
 #' @rdname DebrisModels
@@ -795,7 +806,8 @@ fhComponents$MC <-
     paramLimits = list(MCa = c(1e-10, Inf), k = c(1e-10, Inf)),
     specialParamSetter = function(fh){
       list(xx= substitute(xx), MCvals = substitute(MCvals))
-    }
+    },
+    doCounts = FALSE
   )
 
 getDoubletVals <- function(intensity){
@@ -846,7 +858,8 @@ fhComponents$AG <-
     specialParamSetter = function(fh){
       list(DBvals = substitute(DBvals), TRvals = substitute(TRvals),
            QDvals = substitute(QDvals))
-    }
+    },
+    doCounts = FALSE
   )
 
 
