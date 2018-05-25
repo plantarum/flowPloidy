@@ -818,33 +818,21 @@ setMethod(
       cat(paste("\nAnalysis\n========\n"))
       ## cat(paste("Modelled events: ",
       ##           round(object$counts$total$value, 1)))
-      counts <- c(fhCounts(object)$firstPeak$value,
-                  fhCounts(object)$secondPeak$value)
-      size <- c(coef(fhNLS(object))["Ma"], coef(fhNLS(object))["Mb"])
-      if(is.na(size[2])) size <- size[1]
-    }
-  
-    if(length(object@CV) > 0){
-    cvs <- c(fhCV(object)$CVa, fhCV(object)$CVb)
-    if(!is.null(fhCV(object)$CVb)){
-      cat(paste("\nRatio Peak A / Peak B: ", round(fhCV(object)$AB[1], 3),
-                ", SE: ", round(fhCV(object)$AB[2], 5), sep = ""))
-    }
-  }
+      cat(paste("\nCounts\n------\n"))
+      print(sapply(fhCounts(object), function(x) round(x[[1]], 2)))
+      
+      cat(paste("\nPeak Sizes\n----------\n"))
+      sizeInd <- grep("^M", names(coef(fhNLS(object))))
+      print(round(coef(fhNLS(object))[sizeInd], 2))
+      
+      cat(paste("\nCVs\n---\n"))
+      print(round(100 * sapply(fhCV(object), function(x) x[[1]]), 1))
 
-  if(length(fhCounts(object)) > 0 & length(fhCV(object)) > 0){
-    if(length(counts) == 2)
-      rnames <- c("Peak A", "Peak B")
-    else if (length(counts) == 1)
-      rnames <- "Peak A"
-    print(kable(data.frame(counts = counts, size = size, cvs = cvs,
-                           row.names = rnames), format = "markdown",
-                digits = 3))
-  }
-  
-  if(!is.null(fhRCS(object))){
-    cat(paste("\nRCS:", round(fhRCS(object), 3), "\n"))
-  }
+    }
+
+    if(!is.null(fhRCS(object))){
+      cat(paste("\nRCS:", round(fhRCS(object), 3), "\n"))
+    }
 
   }
 )
@@ -897,13 +885,13 @@ setMethod(
 #' tabulateFlowHist(fh1)
 #' @export
 tabulateFlowHist <- function(fh, file = NULL){
-  if(class(fh) == "FlowHist")
-    res <- exFlowHist(fh)
-  else if (class(fh) == "list" && all(sapply(fh, class) == "FlowHist")){
-    res <- do.call(rbind, lapply(fh, exFlowHist))
+  if(class(fh) == "FlowHist"){
+    fhName <- fhFile(fh)
+    fh <- list(fh)
+    names(fh) <- fhName
   }
-  row.names(res) <- res$file
-  res$file <- NULL
+
+  res <- exFlowHist(fh)
   
   if(! is.null(file))
     write.table(x = res, file = file)
@@ -911,91 +899,77 @@ tabulateFlowHist <- function(fh, file = NULL){
   res
 }
 
-exFlowHist <- function(fh){
-  df <- data.frame(file = fhFile(fh), channel = fhChannel(fh),
-                   components = paste(names(fhComps(fh)), collapse = ";"),
-                   totalEvents = sum(fhHistData(fh)$intensity))
-  if(fhStdSelected(fh) != 0)
-    df$standard <- fhStdSelected(fh)
-  else
-    df$standard <- NA
-  
-  if(fhStdPeak(fh) == "X")
-    df$stdpeak <- NA
-  else
-    df$stdpeak <- fhStdPeak(fh)
-  
-  if(length(fhNLS(fh)) > 0){
-    df$countsA = fhCounts(fh)$firstPeak$value
-    df$countsB = ifelse(is.null(fhCounts(fh)$secondPeak$value), NA,
-                        fhCounts(fh)$secondPeak$value)
-    df$countsC = ifelse(is.null(fhCounts(fh)$thirdPeak$value), NA,
-                        fhCounts(fh)$thirdPeak$value)
-    df$sizeA = coef(fhNLS(fh))["Ma"]
-    df$sizeB = coef(fhNLS(fh))["Mb"]
-    df$sizeC = coef(fhNLS(fh))["Mc"]
+exFlowHist <- function(fhList, file = NULL){
+  samples <- names(fhList)
+  if(is.null(samples)){
+    ## If the user passes a list of FlowHist objects they created manually,
+    ## they need to have names that match fhFile!
 
-    df$countsA2 = ifelse(is.null(fhCounts(fh)$firstG2Peak$value), NA,
-                         fhCounts(fh)$firstG2Peak$value)
-    df$countsB2 = ifelse(is.null(fhCounts(fh)$secondG2Peak$value), NA,
-                        fhCounts(fh)$secondPeak$value)
-    df$countsC2 = ifelse(is.null(fhCounts(fh)$thirdG2Peak$value), NA,
-                        fhCounts(fh)$thirdPeak$value)
-    df$sizeA2 = coef(fhNLS(fh))["Ma"] * coef(fhNLS(fh))["d"]
-    df$sizeB2 = coef(fhNLS(fh))["Mb"] * coef(fhNLS(fh))["d"]
-    df$sizeC2 = coef(fhNLS(fh))["Mc"] * coef(fhNLS(fh))["d"]
-
-    df$countsSA = ifelse(is.null(fhCounts(fh)[["S-phaseA"]]), NA,
-                         fhCounts(fh)[["S-phaseA"]]$value)
-    df$countsSB = ifelse(is.null(fhCounts(fh)[["S-phaseB"]]), NA,
-                         fhCounts(fh)[["S-phaseB"]]$value)
-    df$countsSC = ifelse(is.null(fhCounts(fh)[["S-phaseC"]]), NA,
-                         fhCounts(fh)[["S-phaseC"]]$value)
-    
-    df$cvA = fhCV(fh)$CVa
-    df$cvB = ifelse(is.null(fhCV(fh)$CVb), NA, fhCV(fh)$CVb)
-    df$cvC = ifelse(is.null(fhCV(fh)$CVc), NA, fhCV(fh)$CVc)
-
-    df$AB = unlist(ifelse(is.null(fhCV(fh)$AB[1]), NA,
-                          fhCV(fh)$AB[1]))
-    df$ABse = unlist(ifelse(is.null(fhCV(fh)$AB[2]), NA,
-                            fhCV(fh)$AB[2]))
-
-    df$AC = unlist(ifelse(is.null(fhCV(fh)$AC[1]), NA,
-                          fhCV(fh)$AC[1]))
-    df$ACse = unlist(ifelse(is.null(fhCV(fh)$AC[2]), NA,
-                            fhCV(fh)$AC[2]))
-
-    df$BC = unlist(ifelse(is.null(fhCV(fh)$BC[1]), NA,
-                                     fhCV(fh)$BC[1]))
-    df$BCse = unlist(ifelse(is.null(fhCV(fh)$BC[2]), NA,
-                            fhCV(fh)$BC[2]))
-
-    df$rcs = fhRCS(fh)
-
-    if(fhLinearity(fh) == "variable")
-      df$linearity = coef(fhNLS(fh))["d"]
-    else
-      df$linearity = NA
-
-    if(! anyNA(c(df[, c("stdpeak", "standard")]))){
-      if(df$stdpeak == "A"){
-        df$pg <- df$standard * (df$sizeB/df$sizeA)
-      } else if(df$stdpeak == "B"){
-        df$pg <- df$standard * (df$sizeA/df$sizeB)
-      }} else {
-         df$pg <- NA
-       }
-    row.names(df) = NULL
-  } else {
-    df[,
-       c("countsA", "countsB", "countsC", "sizeA", "sizeB", "sizeC",
-         "countsA2", "countsB2", "countsC2", "sizeA2", "sizeB2", "sizeC2",
-         "countsSA", "countsSB", "countsSC",
-         "cvA", "cvB", "cvC", "AB", "ABse", "AC", "ACse", "BC", "BCse",
-         "rcs", "linearity", "pg")] <- NA 
+    ## fhFile and the names of the list elements are redundant at this
+    ## point, it may make sense to drop the names and rely soley on fhFile
+    ## for consistency?
+    if (class(fhList) == "list" && all(sapply(fhList, class) ==
+                                       "FlowHist")){
+      ## list of flowHist objects, but without proper names:
+      samples <- names(fhList) <- sapply(fhList, fhFile)
+    } else {
+      stop("tabulateFlowHist needs a FlowHist object, or a list of FlowHist objects!")
+    }
   }
-  df
+  outFields <- character()
+  coefs <- character()
+  counts <- character()
+  CVs <- character()
+  for(i in fhList){
+    if(fhStdPeak(i) != "X")
+      outFields <- union(outFields, c("StdPeak", "ratio"))
+    if(stdSelected(fhStandards(i)) != 0)
+      outFields <- union(outFields, c("StdSize"))
+    if(fhStdPeak(i) != "X" && stdSelected(fhStandards(i)) != 0)
+      outFields <- union(outFields, c("pg"))
+    if(length(fhNLS(i)) > 0){
+      coefs <- union(names(coef(fhNLS(i))), coefs)
+      counts <- union(names(fhCounts(i)), counts)
+      CVs <- union(names(fhCV(i)), CVs)
+      outFields <- union(outFields, c("RCS", "linearity"))
+    }
+  }
+  out <- data.frame(row.names = samples)
+  for(i in c(outFields, coefs, counts, CVs))
+    out[[i]] <- NA
+
+  for(i in fhList){
+    if(fhStdPeak(i) != "X"){
+      out[fhFile(i), "StdPeak"] <- fhStdPeak(i)
+      if(fhStdPeak(i) == "A"){
+        out[fhFile(i), "ratio"] <- coef(fhNLS(i))$Mb/coef(fhNLS(i))$Ma
+      } else if(fhStdPeak(i) == "B"){
+        out[fhFile(i), "ratio"] <- coef(fhNLS(i))$Ma/coef(fhNLS(i))$Mb
+      } else {
+        message("More than three peaks, can't calculate ratio")
+      }
+    }
+    if(stdSelected(fhStandards(i)) != 0)
+      out[fhFile(i), "StdSize"] <- stdSelected(fhStandards(i))
+    if(fhStdPeak(i) != "X" && stdSelected(fhStandards(i)) != 0)
+      out[fhFile(i), "pg"] <- stdSelected(fhStandards(i)) *
+        out[fhFile(i), "ratio"]
+    if(length(fhNLS(i)) > 0){
+      coefValues <- coef(fhNLS(i))
+      coefNames <- names(coefValues)
+      out[fhFile(i), coefNames] <- coefValues
+      countValues <- sapply(fhCounts(i), function(x) x[[1]])
+      countNames <- names(countValues)
+      out[fhFile(i), countNames] <- countValues      
+      CVs <- fhCV(i)
+      CVNames <- names(CVs)
+      out[fhFile(i), CVNames] <- CVs
+      out[fhFile(i), "RCS"] <- fhRCS(i)
+      if(fhLinearity(i) == "variable")
+        out[fhFile(i), "linearity"] <- coef(fhNLS(i))["d"]
+    }
+  }
+  out
 }
 
 #################################################
