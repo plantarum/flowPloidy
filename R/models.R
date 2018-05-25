@@ -227,7 +227,8 @@ setClass(Class = "ModelComponent",
                           specialParams = "list", 
                           specialParamSetter = "function",
                           paramLimits = "list",
-                          doCounts = "logical"
+                          doCounts = "logical",
+                          doCV = "logical"
                           ))
 
 setMethod(f = "show", signature = "ModelComponent",
@@ -301,15 +302,20 @@ mcDoCounts <- function(mc){
   mc@doCounts
 }
 
+mcDoCV <- function(mc){
+  mc@doCV
+}
+
 ModelComponent <- function(name, color, desc, includeTest, func,
                            initParams,
                            specialParamSetter = function(fh)
                              list(xx = substitute(xx)),
-                           paramLimits = list(), doCounts = TRUE){ 
+                           paramLimits = list(), doCounts = TRUE,
+                           doCV = FALSE){ 
   new("ModelComponent", name = name, color = color, desc = desc,
       includeTest = includeTest, func = func, initParams = initParams,
       specialParamSetter = specialParamSetter, paramLimits = paramLimits,
-      doCounts = doCounts)
+      doCounts = doCounts, doCV = doCV)
 }
 
 ######################
@@ -424,7 +430,8 @@ makeG1 <- function(l, clr, desc, num){
       names(res) <- c(vM, vS, v1)
       res
     },
-    paramLimits = pL
+    paramLimits = pL,
+    doCV = TRUE
   )
 
   return(newComp)

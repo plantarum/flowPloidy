@@ -94,51 +94,6 @@ fhDoNLS <- function(fh){
 #' @seealso \code{\link{integrate}}, \code{\link{fhDoCV}}
 #'   \code{\link{fhDoNLS}}, \code{\link{fhDoRCS}}.
 fhDoCounts <- function(fh){
-  ## To add anything to the output here, just add it to the list. The
-  ## element name is the component name, and the value is how it will be
-  ## reported in the output.
-  countList <- list(fa1 = "firstPeak", fa2 = "firstG2Peak",
-                    fb1 = "secondPeak", fb2 = "secondG2Peak",
-                    fc1 = "thirdPeak", fc2 = "thirdG2Peak",
-                    brA = "S-phaseA", brB = "S-phaseB", brC = "S-phaseC")
-  ## lower and upper were originally arguments to fhCount, but I don't
-  ## think we actually need to alter them ever?
-  lower = 0
-  upper = nrow(fhHistData(fh))
-  subdivisions = upper * 2              # anything more than upper should
-                                        # be ok I think?
-  res <- list()
-  coefs <- coef(fhNLS(fh))
-  
-  for(i in names(countList)){
-    if(i %in% names(fhComps(fh))){
-      comp <- fhComps(fh)[[i]]
-      fun <- mcFunc(comp)
-      sParams <- mcSpecialParams(comp)
-      params <- setdiff(mcParams(comp), names(sParams))
-      sParams[["xx"]] <- NULL
-      args <- ""
-      for(j in params){
-        if (args != "")
-          args <- paste0(args, ", ")
-        args <- paste0(args, j, " = ", coefs[j])
-      }
-      if(length(sParams) > 0) {
-        for(k in names(sParams)){
-          args <- paste0(args, ", ", k, " = ", sParams[[k]])
-        }
-      }
-      eval(parse(text =
-                   paste0("res[[countList[[i]]]] <- integrate(fun, ",
-                          args, ", ", 
-                         "lower = lower, upper = upper, subdivisions = 1000)")))
-    }
-  }
-  fhCounts(fh) <- res
-  fh
-}
-
-fhDoCounts2 <- function(fh){
   ## lower and upper were originally arguments to fhCount, but I don't
   ## think we actually need to alter them ever?
   lower = 0
@@ -169,7 +124,7 @@ fhDoCounts2 <- function(fh){
       }
     }
     eval(parse(text =
-                 paste0("res[[i]] <- integrate(fun, ",
+                 paste0("res[[paste(i, \"_count\", sep = \"\")]] <- integrate(fun, ",
                         args, ", ", 
                         "lower = lower, upper = upper, subdivisions = 1000)")))
   }
@@ -199,24 +154,20 @@ fhDoCounts2 <- function(fh){
 #' @aliases PeakRatio
 #' @keywords internal
 fhDoCV <- function(fh){
-  CVa <- coef(fhNLS(fh))["Sa"]/coef(fhNLS(fh))["Ma"]
-  if("fb1" %in% names(fhComps(fh))){
-    CVb <- coef(fhNLS(fh))["Sb"]/coef(fhNLS(fh))["Mb"]
-    AB <- deltaMethod(fhNLS(fh), "Ma/Mb", vcov. = vcov)
-  } else {
-    CVb <- CI <- AB <- NULL
-  }
 
-  if("fc1" %in% names(fhComps(fh))){
-    CVc <- coef(fhNLS(fh))["Sc"]/coef(fhNLS(fh))["Mc"]
-    AC <- deltaMethod(fhNLS(fh), "Ma/Mc", vcov. = vcov)
-    BC <- deltaMethod(fhNLS(fh), "Mb/Mc", vcov. = vcov)
-  } else {
-    CVc <- AC <- BC <- NULL
-  }
+  CVNames <- names(fhComps(fh))
+  CVNames <- names(fhComps(fh)[sapply(fhComps(fh)[CVNames], mcDoCV)])
+
+  res <- list()
   
-  fhCV(fh) <- list(CVa = CVa, CVb = CVb, CVc = CVc,
-                   AB = AB, AC = AC, BC = BC)
+  for(i in CVNames){
+    L <- tolower(substr(i, 2, 2))
+    CV <- coef(fhNLS(fh))[paste("S", L, sep = "")]/
+      coef(fhNLS(fh))[paste("M", L, sep = "")]
+    res[[paste(L, "_CV", sep = "")]] <- CV
+    names(res[[paste(L, "_CV", sep = "")]]) <- "CV"
+  }
+  fhCV(fh) <- res
   fh
 }
 
