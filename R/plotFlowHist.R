@@ -94,32 +94,32 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
            y = yPos)
       yPos <- yPos - lHt
     }
-    text(paste("RCS: ", round(dat$rcs, 3)), cex = 1, pos = 2,
+    text(paste("RCS: ", round(dat$RCS, 2)), cex = 1, pos = 2,
          x = grconvertX(0.975, from = "npc", to = "user"),
          y = yPos)
     yPos <- yPos - lHt
-    text(paste("A: ", round(dat$sizeA, 1), "/",
-               round(dat$countsA, 1), "/",
-               round(100 * dat$cvA, 1)),
+    text(paste("A: ", round(dat$Ma, 1), "/",
+               round(dat$fa1_count, 1), "/",
+               round(100 * dat$a_CV, 1)),
          cex = 1, pos = 2, col = "blue",
          x = grconvertX(0.975, from = "npc", to = "user"),
          y = yPos)
     yPos <- yPos - lHt
 
-    if(!is.na(dat$sizeB)){
-      text(paste("B: ", round(dat$sizeB, 1), "/",
-                 round(dat$countsB, 1), "/",
-                 round(100 * dat$cvB, 1)),
+    if(!is.null(dat$Mb) && !is.na(dat$Mb)){
+      text(paste("B: ", round(dat$Mb, 1), "/",
+                 round(dat$fb1_count, 1), "/",
+                 round(100 * dat$b_CV, 1)),
            cex = 1, pos = 2, col = "orange",
            x = grconvertX(0.975, from = "npc", to = "user"),
            y = yPos)
       yPos <- yPos - lHt
     }
 
-    if(!is.na(dat$sizeC)){
-      text(paste("C: ", round(dat$sizeC, 1), "/",
-                 round(dat$countsC, 1), "/",
-                 round(100 * dat$cvC, 1)),
+    if(!is.null(dat$Mc) && !is.na(dat$Mc)){
+      text(paste("C: ", round(dat$Mc, 1), "/",
+                 round(dat$fc1_count, 1), "/",
+                 round(100 * dat$c_CV, 1)),
            cex = 1, pos = 2, col = "darkgreen",
            x = grconvertX(0.975, from = "npc", to = "user"),
            y = yPos)
@@ -129,7 +129,7 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
     if(is.na(dat$linearity))
       linval <- "fixed"
     else
-      linval <- round(dat$linearity, 3)
+      linval <- round(dat$linearity, 2)
     
     text(paste("Linearity: ", linval), cex = 1,
          pos = 2, 
@@ -137,8 +137,8 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
          y = yPos) 
     yPos <- yPos - lHt
     
-    if(!is.na(dat$pg)){
-      text(paste("Sample ", ifelse(dat$stdpeak == "A", "B", "A"),
+    if(!is.null(dat$pg) && !is.na(dat$pg)){
+      text(paste("Sample ", ifelse(dat$StdPeak == "A", "B", "A"),
                  ": ", round(dat$pg, 3), "pg"),
            cex = 1, pos = 2, 
            x = grconvertX(0.975, from = "npc", to = "user"),
