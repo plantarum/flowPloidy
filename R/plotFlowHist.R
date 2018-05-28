@@ -98,29 +98,20 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
          x = grconvertX(0.975, from = "npc", to = "user"),
          y = yPos)
     yPos <- yPos - lHt
-    text(paste("A: ", round(dat$Ma, 1), "/",
-               round(dat$fa1_count, 1), "/",
-               round(100 * dat$a_CV, 1)),
-         cex = 1, pos = 2, col = "blue",
-         x = grconvertX(0.975, from = "npc", to = "user"),
-         y = yPos)
-    yPos <- yPos - lHt
 
-    if(!is.null(dat$Mb) && !is.na(dat$Mb)){
-      text(paste("B: ", round(dat$Mb, 1), "/",
-                 round(dat$fb1_count, 1), "/",
-                 round(100 * dat$b_CV, 1)),
-           cex = 1, pos = 2, col = "orange",
-           x = grconvertX(0.975, from = "npc", to = "user"),
-           y = yPos)
-      yPos <- yPos - lHt
-    }
+    MEANS <- names(coef(fhNLS(x)))[grep(pattern = "M[a-z]",
+                                        names(coef(fhNLS(x))))]
 
-    if(!is.null(dat$Mc) && !is.na(dat$Mc)){
-      text(paste("C: ", round(dat$Mc, 1), "/",
-                 round(dat$fc1_count, 1), "/",
-                 round(100 * dat$c_CV, 1)),
-           cex = 1, pos = 2, col = "darkgreen",
+    for(i in MEANS){
+      L = substring(i, 2, 2)
+      COUNT = paste("f", L, "1_count", sep = "")
+      CV = paste(L, "_CV", sep = "")
+      NAME = paste("f", L, 1, sep = "")
+      COL <- mcColor(fhComps(x)[[NAME]])
+      text(paste(toupper(L), ": ", round(dat[i], 1), "/",
+               round(dat[COUNT], 1), "/",
+               round(100 * dat[CV], 1)),
+           cex = 1, pos = 2, col = COL,
            x = grconvertX(0.975, from = "npc", to = "user"),
            y = yPos)
       yPos <- yPos - lHt
