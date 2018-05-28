@@ -36,10 +36,14 @@ which you can load the package with the normal function
 
 ## Development Version
 
-As of January 2018, I have a few relatively minor bug fixes and tweaks in
-the works for `flowPloidy`. They'll be part of the next BioConductor
-release in April 2018. If you'd like to try the new version out now, you
-can install it directly from the development branch in the GitHub.
+As of May 2018, I have a new analysis method in the works. This is aimed at
+assessing endopolyploidy, where a single sample may have four or more
+peaks. The intent is to compare the number of cells in each peak, rather
+than to determine a ratio relative to a co-chopped standard.
+
+This new code will be incorporated into Bioconductor for the next release.
+If you'd like to try it now, you can install it directly from the GitHub
+repository as follows: 
 
 ```{r}
 ## Install Bioconductor tools first:
@@ -55,8 +59,34 @@ library(devtools)
 
 ## Install flowPloidy:
 install_github("plantarum/flowPloidy", dependencies = TRUE, 
-    build_vignettes = TRUE)
+    build_vignettes = TRUE, ref = "endopolyploidy")
 ```
+
+If the last command fails, particularly with complaints about building a
+vignette, or reference to Pandoc, try with `build_vignettes = FALSE`
+instead.
+
+Note that I haven't yet updated the documentation to match the new code. To
+use the endopolyploidy workflow, you need to use a new argument, `G2 =
+FALSE` in your call to `FlowHist` or `batchFlowHist`. This excludes the G2
+peaks from peak fitting, treating each peak as an independent group of
+cells. You may also want to increase the `samples` argument to match the
+number of peaks; however, you can correct this in `browseFlowHist`, so
+that's not critical.
+
+
+```{r }
+## loading files for endopolyploidy analysis:
+batch1 <- batchFlowHist(endo_files, channel="FL3.INT.LIN", G2 = FALSE,
+    samples = 5)
+
+batch1 <- browseFlowHist(batch1)
+```
+
+Expanding `flowPloidy` to handle up to six peaks (and now potentially an
+unlimited number if needed) required reworking a bunch of the existing
+code, and as part of this the column headings in the tables produced by
+`tabulateFlowHist` are now different from the previous release.
 
 # Getting Started
 
