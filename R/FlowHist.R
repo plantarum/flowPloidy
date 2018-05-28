@@ -942,9 +942,9 @@ exFlowHist <- function(fhList, file = NULL){
     if(fhStdPeak(i) != "X"){
       out[fhFile(i), "StdPeak"] <- fhStdPeak(i)
       if(fhStdPeak(i) == "A"){
-        out[fhFile(i), "ratio"] <- coef(fhNLS(i))$Mb/coef(fhNLS(i))$Ma
+        out[fhFile(i), "ratio"] <- coef(fhNLS(i))["Mb"]/coef(fhNLS(i))["Ma"]
       } else if(fhStdPeak(i) == "B"){
-        out[fhFile(i), "ratio"] <- coef(fhNLS(i))$Ma/coef(fhNLS(i))$Mb
+        out[fhFile(i), "ratio"] <- coef(fhNLS(i))["Ma"]/coef(fhNLS(i))["Mb"]
       } else {
         message("More than three peaks, can't calculate ratio")
       }

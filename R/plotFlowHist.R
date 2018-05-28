@@ -70,7 +70,7 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
              y = fhHistData(x)$intensity[round(fhInit(x)[[MEAN]], 0)])
 
         if(fhG2(x))
-          points(x = 2 * fhInit(x)$Ma,
+          points(x = 2 * fhInit(x)[[MEAN]],
                  y = fhHistData(x)$intensity[round(2 * fhInit(x)[[MEAN]], 0)],
                  col = COL, cex = 1.5)
       }

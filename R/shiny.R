@@ -147,8 +147,7 @@ browseFlowHist <- function(flowList, debug = FALSE){
                         selectInput(inputId = "standardPeak",
                                     label = "Standard Peak",
                                     selected = initialStdPeak,
-                                    choices = list("X", "A", "B", "C", "D",
-                                                   "E", "F")))), 
+                                    choices = list("X", "A", "B")))), 
                fluidRow(
                  column(6,
                         selectInput(inputId = "linearity",
