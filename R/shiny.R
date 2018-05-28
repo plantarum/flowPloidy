@@ -63,6 +63,8 @@ browseFlowHist <- function(flowList, debug = FALSE){
   initialDebris <- fhDebris(.fhList[[1]])
 
   initialSamples <- fhSamples(.fhList[[1]])
+
+  initialAnnotation <- fhAnnotation(.fhList[[1]])
   
   if(debug) message("init Debris: ", initialDebris)
 
@@ -167,6 +169,12 @@ browseFlowHist <- function(flowList, debug = FALSE){
       column(width = 9,
              plotOutput("fhHistogram", click = "pointPicker"))
     ),
+    tabsetPanel(type = "tabs",
+      tabPanel("Annotation",
+               textInput("annotation", "",
+                         initialAnnotation, width = "100%"), 
+               actionButton("updateAnnotation", label = "Annotate")),
+      tabPanel("Gating", 
     fluidRow(
       column(width = 3,
              tags$div(class = "sidepanel",
@@ -205,7 +213,9 @@ browseFlowHist <- function(flowList, debug = FALSE){
              ),
       column(width = 3,
              plotOutput("gateResiduals")))
-
+    )
+    )
+    
   )
     
   server <- function(input, output, session){
@@ -242,7 +252,9 @@ browseFlowHist <- function(flowList, debug = FALSE){
       updateSelectInput(session, "standardSelect",
                          selected = fhStdSelected(.fhList[[rv$fhI]]))
       updateSelectInput(session, "standardPeak",
-                         selected = fhStdPeak(.fhList[[rv$fhI]]))
+                        selected = fhStdPeak(.fhList[[rv$fhI]]))
+      updateTextInput(session, "annotation",
+                      value = fhAnnotation(.fhList[[rv$fhI]]))
       rv$FH <- .fhList[[rv$fhI]]
       rv$fhI
     })      
@@ -258,6 +270,10 @@ browseFlowHist <- function(flowList, debug = FALSE){
       rv$FH <- .fhList[[fhCurrent()]]
     })
 
+    fhUpdateAnnotation <- observeEvent(input$updateAnnotation, {
+      fhAnnotation(.fhList[[fhCurrent()]]) <<- input$annotation
+    })
+    
     fhPickPeaks <- observeEvent(input$pointPicker, {
       xPt <- nearPoints(fhHistData(.fhList[[fhCurrent()]]),
                         input$pointPicker, "xx", "intensity",
