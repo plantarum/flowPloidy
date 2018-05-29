@@ -2,6 +2,22 @@ library(devtools)
 library(flowPloidyData)
 load_all()
 
+batch1 <- batchFlowHist(flowPloidyFiles, channel="FL3.INT.LIN",
+                        standards = 2.5)
+
+batch1 <- batchFlowHist(flowPloidyFiles, channel="FL3.INT.LIN")
+
+b1 <- batch1[[1]]
+
+b1Br <- browseFlowHist(batch1)
+
+
+nuria <- FlowHist(file = "~/research/flow/nuria.fcs", channel = "DAPI.A",
+                  g2 = FALSE, debrisLimit = 10, samples = 5)
+
+browseFlowHist(nuria)
+
+
 chh <- FlowHist(file = "~/research/flow/problems/valentin/chh101.fcs",
                 channel = "FL4.A", standards = 1.99)
 
@@ -11,8 +27,8 @@ chc <- FlowHist(file = "~/research/flow/problems/valentin/chc203.fcs",
 
 viewFlowChannels("~/research/flow/sample.001.fcs")
 
-brian <- FlowHist("~/research/flow/sample.001.fcs", channel = "FL2.A",
-                  samples = 1)
+brian <- FlowHist("~/research/flow/problems/brian/sample.001.fcs",
+                  channel = "FL2.A", samples = 1)
 
 library(digest)
 digest(brian@histData$intensity, "md5")
