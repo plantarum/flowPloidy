@@ -808,7 +808,7 @@ setMethod(
   def = function(object){
     cat("FlowHist object '")
     cat(fhFile(object)); cat("'\n")
-    if(!is.null(fhAnnotation(object)))
+    if(length(fhAnnotation(object)) > 0 && fhAnnotation(object) != "")
       cat("#", fhAnnotation(object), "\n\n")
 
     cat("channel: "); cat(fhChannel(object)); cat("\n")
@@ -950,6 +950,8 @@ exFlowHist <- function(fhList, file = NULL){
       outFields <- union(outFields, c("RCS", "linearity"))
     }
   }
+  if(length(fhAnnotation(i)) > 0 && fhAnnotation(i) != "")
+    outFields <- union(outFields, c("annotation"))
   out <- data.frame(row.names = samples)
   for(i in c(outFields, coefs, counts, CVs))
     out[[i]] <- NA
@@ -984,6 +986,8 @@ exFlowHist <- function(fhList, file = NULL){
       if(fhLinearity(i) == "variable")
         out[fhFile(i), "linearity"] <- coef(fhNLS(i))["d"]
     }
+    if(length(fhAnnotation(i)) > 0 && fhAnnotation(i) != "")
+      out[fhFile(i), "annotation"] <- fhAnnotation(i)
   }
   out
 }
