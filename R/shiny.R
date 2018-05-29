@@ -5,6 +5,7 @@
 #'   renderTable renderText runApp selectInput shinyApp sidebarLayout
 #'   sidebarPanel sliderInput stopApp tags titlePanel updateNumericInput
 #'   updateRadioButtons updateSelectInput updateSliderInput wellPanel
+#'   tabsetPanel tabPanel textInput
 NULL
 
 #' @importFrom utils str
