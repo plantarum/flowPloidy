@@ -283,6 +283,7 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   sample (as long as the G1 peak is less than half-way across the
 #'   histogram). Set to FALSE to drop the G2 peaks for endopolyploidy
 #'   analyses.
+#' @slot annotation character, user-added annotation for the sample.
 #' 
 #' @return \code{\link{FlowHist}} returns a \code{\link{FlowHist}} object.
 #' @author Tyler Smith
@@ -311,7 +312,8 @@ setClass(
     CV = "list", ## CVs
     RCS = "numeric", ## residual chi-square
     standards = "FlowStandards", ## a FlowStandards object
-    g2 = "logical" ## should G2 peaks be included in the model?
+    g2 = "logical", ## should G2 peaks be included in the model?
+    annotation = "character"
   ),
   prototype = prototype(
     ## TODO complete this?
@@ -661,6 +663,17 @@ fhG2 <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
+fhAnnotation <- function(fh){
+  fh@annotation
+}
+
+`fhAnnotation<-` <- function(fh, value){
+  fh@annotation <- value
+  fh
+}
+
 #' Reset the values in a \code{\link{FlowHist}} object
 #'
 #' NB: This function isn't required for normal use, and isn't exported for
@@ -795,6 +808,9 @@ setMethod(
   def = function(object){
     cat("FlowHist object '")
     cat(fhFile(object)); cat("'\n")
+    if(length(fhAnnotation(object)) > 0 && fhAnnotation(object) != "")
+      cat("#", fhAnnotation(object), "\n\n")
+
     cat("channel: "); cat(fhChannel(object)); cat("\n")
     cat(fhSamples(object)); cat(" samples"); cat("\n")
     cat("bins: "); cat(fhBins(object)); cat("\n")
@@ -934,6 +950,8 @@ exFlowHist <- function(fhList, file = NULL){
       outFields <- union(outFields, c("RCS", "linearity"))
     }
   }
+  if(length(fhAnnotation(i)) > 0 && fhAnnotation(i) != "")
+    outFields <- union(outFields, c("annotation"))
   out <- data.frame(row.names = samples)
   for(i in c(outFields, coefs, counts, CVs))
     out[[i]] <- NA
@@ -968,6 +986,8 @@ exFlowHist <- function(fhList, file = NULL){
       if(fhLinearity(i) == "variable")
         out[fhFile(i), "linearity"] <- coef(fhNLS(i))["d"]
     }
+    if(length(fhAnnotation(i)) > 0 && fhAnnotation(i) != "")
+      out[fhFile(i), "annotation"] <- fhAnnotation(i)
   }
   out
 }
