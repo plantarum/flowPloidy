@@ -331,6 +331,10 @@ browseFlowHist <- function(flowList, debug = FALSE){
         }
 
         rv$FH <- .fhList[[fhCurrent()]]
+        ## Changing peaks may change the linearity setting, need to update
+        ## the picker:
+        updateSelectInput(session, "linearity",
+                          selected = fhLinearity(.fhList[[rv$fhI]]))
       }
     })
 
