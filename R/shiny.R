@@ -284,48 +284,48 @@ browseFlowHist <- function(flowList, debug = FALSE){
           .fhList[[fhCurrent()]] <<-
             selectPeaks(.fhList[[fhCurrent()]],
                         xPt[1,1],
-                        fhInit(.fhList[[fhCurrent()]])$Mb,
-                        fhInit(.fhList[[fhCurrent()]])$Mc) 
+                        fhInit(.fhList[[fhCurrent()]])$b_mean,
+                        fhInit(.fhList[[fhCurrent()]])$c_mean) 
           .fhList[[fhCurrent()]] <<- fhAnalyze(.fhList[[fhCurrent()]])
         } else if(input$peakPicker == "B"){
           .fhList[[fhCurrent()]] <<-
             selectPeaks(.fhList[[fhCurrent()]],
-                        fhInit(.fhList[[fhCurrent()]])$Ma,
+                        fhInit(.fhList[[fhCurrent()]])$a_mean,
                         xPt[1,1],
-                        fhInit(.fhList[[fhCurrent()]])$Mc)
+                        fhInit(.fhList[[fhCurrent()]])$c_mean)
           .fhList[[fhCurrent()]] <<- fhAnalyze(.fhList[[fhCurrent()]])
         } else if(input$peakPicker == "C"){
           .fhList[[fhCurrent()]] <<-
             selectPeaks(.fhList[[fhCurrent()]],
-                        fhInit(.fhList[[fhCurrent()]])$Ma,
-                        fhInit(.fhList[[fhCurrent()]])$Mb,
+                        fhInit(.fhList[[fhCurrent()]])$a_mean,
+                        fhInit(.fhList[[fhCurrent()]])$b_mean,
                         xPt[1,1])
           .fhList[[fhCurrent()]] <<- fhAnalyze(.fhList[[fhCurrent()]])
         } else if(input$peakPicker == "D"){
           .fhList[[fhCurrent()]] <<-
             selectPeaks(.fhList[[fhCurrent()]],
-                        fhInit(.fhList[[fhCurrent()]])$Ma,
-                        fhInit(.fhList[[fhCurrent()]])$Mb,
-                        fhInit(.fhList[[fhCurrent()]])$Mc,
+                        fhInit(.fhList[[fhCurrent()]])$a_mean,
+                        fhInit(.fhList[[fhCurrent()]])$b_mean,
+                        fhInit(.fhList[[fhCurrent()]])$c_mean,
                         xPt[1,1])
           .fhList[[fhCurrent()]] <<- fhAnalyze(.fhList[[fhCurrent()]])
         } else if(input$peakPicker == "E"){
           .fhList[[fhCurrent()]] <<-
             selectPeaks(.fhList[[fhCurrent()]],
-                        fhInit(.fhList[[fhCurrent()]])$Ma,
-                        fhInit(.fhList[[fhCurrent()]])$Mb,
-                        fhInit(.fhList[[fhCurrent()]])$Mc,
-                        fhInit(.fhList[[fhCurrent()]])$Md,
+                        fhInit(.fhList[[fhCurrent()]])$a_mean,
+                        fhInit(.fhList[[fhCurrent()]])$b_mean,
+                        fhInit(.fhList[[fhCurrent()]])$c_mean,
+                        fhInit(.fhList[[fhCurrent()]])$d_mean,
                         xPt[1,1])
           .fhList[[fhCurrent()]] <<- fhAnalyze(.fhList[[fhCurrent()]])
         } else if(input$peakPicker == "F"){
           .fhList[[fhCurrent()]] <<-
             selectPeaks(.fhList[[fhCurrent()]],
-                        fhInit(.fhList[[fhCurrent()]])$Ma,
-                        fhInit(.fhList[[fhCurrent()]])$Mb,
-                        fhInit(.fhList[[fhCurrent()]])$Mc,
-                        fhInit(.fhList[[fhCurrent()]])$Md,
-                        fhInit(.fhList[[fhCurrent()]])$Me,
+                        fhInit(.fhList[[fhCurrent()]])$a_mean,
+                        fhInit(.fhList[[fhCurrent()]])$b_mean,
+                        fhInit(.fhList[[fhCurrent()]])$c_mean,
+                        fhInit(.fhList[[fhCurrent()]])$d_mean,
+                        fhInit(.fhList[[fhCurrent()]])$e_mean,
                         xPt[1,1])
           .fhList[[fhCurrent()]] <<- fhAnalyze(.fhList[[fhCurrent()]])
         }
