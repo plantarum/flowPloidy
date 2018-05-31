@@ -838,7 +838,7 @@ setMethod(
       print(sapply(fhCounts(object), function(x) round(x[[1]], 2)))
       
       cat(paste("\nPeak Sizes\n----------\n"))
-      sizeInd <- grep("^M", names(coef(fhNLS(object))))
+      sizeInd <- grep("_mean", names(coef(fhNLS(object))))
       print(round(coef(fhNLS(object))[sizeInd], 2))
       
       cat(paste("\nCVs\n---\n"))
@@ -947,11 +947,14 @@ exFlowHist <- function(fhList, file = NULL){
       coefs <- union(names(coef(fhNLS(i))), coefs)
       counts <- union(names(fhCounts(i)), counts)
       CVs <- union(names(fhCV(i)), CVs)
-      outFields <- union(outFields, c("RCS", "linearity"))
+      outFields <- union(outFields, c("RCS"))
     }
   }
   if(length(fhAnnotation(i)) > 0 && fhAnnotation(i) != "")
     outFields <- union(outFields, c("annotation"))
+  
+  coefs <- coefs[grep(".*P$", coefs, invert = TRUE)]
+
   out <- data.frame(row.names = samples)
   for(i in c(outFields, coefs, counts, CVs))
     out[[i]] <- NA
@@ -960,9 +963,9 @@ exFlowHist <- function(fhList, file = NULL){
     if(fhStdPeak(i) != "X"){
       out[fhFile(i), "StdPeak"] <- fhStdPeak(i)
       if(fhStdPeak(i) == "A"){
-        out[fhFile(i), "ratio"] <- coef(fhNLS(i))["Mb"]/coef(fhNLS(i))["Ma"]
+        out[fhFile(i), "ratio"] <- coef(fhNLS(i))["b_mean"]/coef(fhNLS(i))["a_mean"]
       } else if(fhStdPeak(i) == "B"){
-        out[fhFile(i), "ratio"] <- coef(fhNLS(i))["Ma"]/coef(fhNLS(i))["Mb"]
+        out[fhFile(i), "ratio"] <- coef(fhNLS(i))["a_mean"]/coef(fhNLS(i))["b_mean"]
       } else {
         message("More than three peaks, can't calculate ratio")
       }
@@ -975,6 +978,9 @@ exFlowHist <- function(fhList, file = NULL){
     if(length(fhNLS(i)) > 0){
       coefValues <- coef(fhNLS(i))
       coefNames <- names(coefValues)
+      P <- grep(".*P$", coefNames, invert = TRUE)
+      coefValues <- coefValues[P]
+      coefNames <- coefNames[P]
       out[fhFile(i), coefNames] <- coefValues
       countValues <- sapply(fhCounts(i), function(x) x[[1]])
       countNames <- names(countValues)
@@ -983,8 +989,6 @@ exFlowHist <- function(fhList, file = NULL){
       CVNames <- names(CVs)
       out[fhFile(i), CVNames] <- CVs
       out[fhFile(i), "RCS"] <- fhRCS(i)
-      if(fhLinearity(i) == "variable")
-        out[fhFile(i), "linearity"] <- coef(fhNLS(i))["d"]
     }
     if(length(fhAnnotation(i)) > 0 && fhAnnotation(i) != "")
       out[fhFile(i), "annotation"] <- fhAnnotation(i)

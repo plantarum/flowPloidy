@@ -82,8 +82,6 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
   
   if(nls & (length(fhNLS(x)) > 0)){
     dat <- tabulateFlowHist(x)
-    ## lines(x = fhHistData(x)$xx[-(1:(fhStart(fhHistData(x)$intensity) -
-    ##                                 1))], 
     lines(x = fhHistData(x)$xx[fhRange(fhHistData(x)$intensity)], 
           y = predict(fhNLS(x)), col = 2)
     yPos <- grconvertY(0.95, from = "npc", to = "user") # starting pos
@@ -117,7 +115,7 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
       yPos <- yPos - lHt
     }
 
-    if(is.na(dat$linearity))
+    if(is.null(dat$linearity))
       linval <- "fixed"
     else
       linval <- round(dat$linearity, 2)

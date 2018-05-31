@@ -344,7 +344,7 @@ linH <- 2.5
 setLinearity <- function(fh){
   ## Helper function for components that include the linearity parameter d
   if(fh@linearity == "fixed")
-    return(list(xx = substitute(xx), d = 2))
+    return(list(xx = substitute(xx), linearity = 2))
   else if(fh@linearity == "variable")
     return(list(xx = substitute(xx)))
   else
@@ -396,9 +396,9 @@ erf <- function(x) {
 
 makeG1 <- function(l, clr, desc, num){
   ## Generate a G1 peak model component
-  v1 <- paste(l, 1, sep = "")
-  vM <- paste("M", l, sep = "")
-  vS <- paste("S", l, sep = "")
+  v1 <- paste(l, 1, "P", sep = "")
+  vM <- paste(l, "mean", sep = "_")
+  vS <- paste(l, "stddev", sep = "_")
 
   pL <- list(c(0, Inf), c(0, Inf), c(0, Inf))
   names(pL) <- c(vM, vS, v1)
@@ -416,7 +416,7 @@ makeG1 <- function(l, clr, desc, num){
   }
   
   newComp <- ModelComponent(
-    name = paste("f", l, 1, sep = ""), color = clr,
+    name = paste(l, 1, sep = ""), color = clr,
     desc = desc,
     includeTest = function(fh){
       nrow(fhPeaks(fh)) >= num && fhSamples(fh) >= num
@@ -439,27 +439,27 @@ makeG1 <- function(l, clr, desc, num){
 
 makeG2 <- function(l, clr, desc, num){
   ## Generate a G2 peak model component
-  v2 <- paste(l, 2, sep = "")
-  vM <- paste("M", l, sep = "")
-  vS <- paste("S", l, sep = "")
+  v2 <- paste(l, 2, "P", sep = "")
+  vM <- paste(l, "mean", sep = "_")
+  vS <- paste(l, "stddev", sep = "_")
 
   pL <- list(c(0, Inf), c(0, Inf), c(0, Inf), c(linL, linH))
-  names(pL) <- c(vM, vS, v2, "d")
+  names(pL) <- c(vM, vS, v2, "linearity")
 
   makeFun <- function(l){
     tmp <- function(){}
     formals(tmp) <-
-      eval(parse(text = sprintf("alist(%s = , %s = , %s = , d = , xx = )",
+      eval(parse(text = sprintf("alist(%s = , %s = , %s = , linearity = , xx = )",
                                 v2, vM, vS)))
     body(tmp) <-
       parse(text =
-    sprintf("(%s / (sqrt(2 * pi) * %s * 2) * exp(-((xx - %s * d)^2)/(2 * (%s * 2)^2)))",
+    sprintf("(%s / (sqrt(2 * pi) * %s * 2) * exp(-((xx - %s * linearity)^2)/(2 * (%s * 2)^2)))",
             v2, vS, vM, vS))
     return(tmp)
   }
   
   newComp <- ModelComponent(
-    name = sprintf("f%s2", l), color = clr,
+    name = sprintf("%s2", l), color = clr,
     desc = desc,
     includeTest = function(fh){
       fhG2(fh) && nrow(fhPeaks(fh)) >= num &&
@@ -475,7 +475,7 @@ makeG2 <- function(l, clr, desc, num){
       res <- list(iI)
       names(res) <- v2
       if(fhLinearity(fh) == "variable")
-        res <- c(res, d = 2)
+        res <- c(res, linearity = 2)
       res
     },
     paramLimits = pL,
@@ -489,26 +489,26 @@ makeG2 <- function(l, clr, desc, num){
 }
 
 makeS <- function(l, clr, desc, num){
-  vBR <- paste("BR", l, sep = "")
-  vM <- paste("M", l, sep = "")
+  vBR <- paste(l, "sP", sep = "_")
+  vM <- paste(l, "mean", sep = "_")
   
-  pL <- list(c(0, Inf), d = c(linL, linH))
-  names(pL) <- c(vBR, "d")
+  pL <- list(c(0, Inf), linearity = c(linL, linH))
+  names(pL) <- c(vBR, "linearity")
   
   makeFun <- function(l){
     tmp <- function(){}
     formals(tmp) <-
-      eval(parse(text = sprintf("alist(%s = , %s = , d = , xx = )",
+      eval(parse(text = sprintf("alist(%s = , %s = , linearity = , xx = )",
                                 vBR, vM)))
     body(tmp) <-
       parse(text =
-              sprintf("%s * ((flowPloidy:::erf(((d * %s) - xx)/sqrt(2 * 1)) - flowPloidy:::erf((%s - xx)/sqrt(2 * 1))) / 2)",
+              sprintf("%s * ((flowPloidy:::erf(((linearity * %s) - xx)/sqrt(2 * 1)) - flowPloidy:::erf((%s - xx)/sqrt(2 * 1))) / 2)",
                       vBR, vM, vM))
     return(tmp)
   }
   
   newComp <- ModelComponent(
-    name = sprintf("br%s", l), color = clr, desc = desc,
+    name = sprintf("%s_s", l), color = clr, desc = desc,
     includeTest = function(fh){
       nrow(fhPeaks(fh)) >= num && fhSamples(fh) >= num
     },
@@ -517,7 +517,7 @@ makeS <- function(l, clr, desc, num){
       res <- list(10)
       names(res) <- vBR.
       if(fhLinearity(fh) == "variable")
-        res <- c(res, d = 2)
+        res <- c(res, linearity = 2)
       return(res)
     },
     paramLimits = pL,
@@ -557,62 +557,62 @@ makeS <- function(l, clr, desc, num){
 #' @param Ma,Mb,Mc curve mean parameter
 #' @param Sa,Sb,Sc curve standard deviation parameter
 #' @param xx vector of histogram intensities
-#' @param d numeric, the ratio of G2/G1 peak means. When linearity is
+#' @param linearity numeric, the ratio of G2/G1 peak means. When linearity is
 #'   fixed, this is set to 2. Otherwise, it is fit as a model parameter
 #'   bounded between flowPloidy:::linL and flowPloidy:::linH.
 #' @return NA
 #' @author Tyler Smith
 #' @name gauss
 #' @aliases GaussianComponents
-fhComponents$fA1 <-
+fhComponents$a1 <-
   makeG1("a", "blue", "Gaussian curve for G1 peak of sample A", 1)
 
-fhComponents$fA2 <-
+fhComponents$a2 <-
   makeG2("a", "blue", "Gaussian curve for G2 peak of sample A", 1)
 
 fhComponents$brA <-
   makeS("a", "blue", "Broadened rectangle for S-phase of sample A", 1)
 
-fhComponents$fB1 <-
+fhComponents$b1 <-
   makeG1("b", "orange", "Gaussian curve for G1 peak of sample B", 2)
 
-fhComponents$fB2 <-
+fhComponents$b2 <-
   makeG2("b", "orange", "Gaussian curve for G2 peak of sample B", 2)
 
 fhComponents$brB <-
   makeS("b", "orange", "Broadened rectangle for S-phase of sample B", 2)
 
-fhComponents$fC1 <-
+fhComponents$c1 <-
   makeG1("c", "darkgreen", "Gaussian curve for G1 peak of sample C", 3)
 
-fhComponents$fC2 <-
+fhComponents$c2 <-
   makeG2("c", "darkgreen", "Gaussian curve for G2 peak of sample C", 3)
 
 fhComponents$brC <-
   makeS("c", "darkgreen", "Broadened rectangle for S-phase of sample C", 4)
 
-fhComponents$fD1 <-
+fhComponents$d1 <-
   makeG1("d", "salmon", "Gaussian curve for G1 peak of sample D", 4)
 
-fhComponents$fD2 <-
+fhComponents$d2 <-
   makeG2("d", "salmon", "Gaussian curve for G2 peak of sample D", 4)
 
 fhComponents$brD <-
   makeS("d", "salmon", "Broadened rectangle for S-phase of sample D", 4)
 
-fhComponents$fE1 <-
+fhComponents$e1 <-
   makeG1("e", "plum", "Gaussian curve for G1 peak of sample E", 5)
 
-fhComponents$fE2 <-
+fhComponents$e2 <-
   makeG2("e", "plum", "Gaussian curve for G2 peak of sample E", 5)
 
 fhComponents$brE <-
   makeS("e", "plum", "Broadened rectangle for S-phase of sample E", 5)
 
-fhComponents$fF1 <-
+fhComponents$f1 <-
   makeG1("f", "papayawhip", "Gaussian curve for G1 peak of sample F", 6)
 
-fhComponents$fF2 <-
+fhComponents$f2 <-
   makeG2("f", "papayawhip", "Gaussian curve for G2 peak of sample F", 6)
 
 fhComponents$brF <-
@@ -636,7 +636,7 @@ fhComponents$brF <-
 #' \enumerate{
 #' \item \code{x} the histogram channel that we're estimating the debris
 #' value for.
-#' \item \code{SCa} the amplitude parameter.
+#' \item \code{SCaP} the amplitude parameter.
 #' \item \code{Y_j} the histogram intensity for channel j.
 #' }
 #' 
@@ -651,7 +651,7 @@ fhComponents$brF <-
 #' for channel x depends not just on the intensity for channel x, but also
 #' the intensities at all channels > x. I deal with this by pre-calculating
 #' the raw values, which don't actually depend on the only parameter,
-#' \code{SCa}. These raw values are stored in the \code{histData} matrix
+#' \code{SCaP}. These raw values are stored in the \code{histData} matrix
 #' (which is a slot in the \code{\link{FlowHist}} object). This must be
 #' accomodated by treating \code{SCvals} as a 'special parameter' in the
 #' \code{\link{ModelComponent}} definition. See that help page for details.
@@ -663,13 +663,13 @@ fhComponents$brF <-
 #' fragments.
 #'
 #' The model is:
-#' \deqn{S(x) = MCa e^{-kx}\sum_{j = x + 1}^{n} Y_j}
+#' \deqn{S(x) = MCaP e^{-kx}\sum_{j = x + 1}^{n} Y_j}
 #'
 #' \enumerate{
 #' \item \code{x} the histogram channel that we're estimating the debris
 #' value for.
 #' \item \code{k} an exponential fitting parameter
-#' \item \code{MCa} the amplitiude parameter
+#' \item \code{MCaP} the amplitiude parameter
 #' \item \code{Y_j} the histogram intensity for channel j.
 #' }
 #'
@@ -678,7 +678,7 @@ fhComponents$brF <-
 #' can pre-compute that and add it to the \code{histData} slot, in the
 #' column \code{MCvals}. This is treated as a 'special parameter' when the
 #' Multiple-Cut model is applied, so we only need to fit the parameters k
-#' and MCa.
+#' and MCaP.
 #'
 #' @section Debris Models and Gating:
 #'
@@ -773,13 +773,13 @@ fhComponents$SC <-
     includeTest = function(fh){
       fhDebris(fh) == "SC"
     },
-    func = function(SCa, SCvals){
-      SCa * SCvals
+    func = function(SCaP, SCvals){
+      SCaP * SCvals
     },
     initParams = function(fh){
-      list(SCa = 0.1)
+      list(SCaP = 0.1)
     },
-    paramLimits = list(SCa = c(0, Inf)),
+    paramLimits = list(SCaP = c(0, Inf)),
     specialParamSetter = function(fh){
       list(SCvals = substitute(SCvals))
     },
@@ -804,13 +804,13 @@ fhComponents$MC <-
     includeTest = function(fh){
       fhDebris(fh) == "MC"
     },
-    func = function(xx, MCa, k, MCvals){
-      MCa * exp(-k * xx) * MCvals ##[xx]
+    func = function(xx, MCaP, k, MCvals){
+      MCaP * exp(-k * xx) * MCvals ##[xx]
     },
     initParams = function(fh){
-      list(MCa = 0.01, k = 0.001)
+      list(MCaP = 0.01, k = 0.001)
     },
-    paramLimits = list(MCa = c(1e-10, Inf), k = c(1e-10, Inf)),
+    paramLimits = list(MCaP = c(1e-10, Inf), k = c(1e-10, Inf)),
     specialParamSetter = function(fh){
       list(xx= substitute(xx), MCvals = substitute(MCvals))
     },
@@ -855,13 +855,13 @@ fhComponents$AG <-
     includeTest = function(fh){
       TRUE
     },
-    func = function(Ap, DBvals, TRvals, QDvals){
-      Ap * DBvals + Ap * Ap * TRvals + Ap * Ap * Ap * QDvals
+    func = function(AP, DBvals, TRvals, QDvals){
+      AP * DBvals + AP * AP * TRvals + AP * AP * AP * QDvals
     },
     initParams = function(fh){
-      list(Ap = 1e-9)
+      list(AP = 1e-9)
     },
-    paramLimits = list(Ap = c(0, Inf)),
+    paramLimits = list(AP = c(0, Inf)),
     specialParamSetter = function(fh){
       list(DBvals = substitute(DBvals), TRvals = substitute(TRvals),
            QDvals = substitute(QDvals))
@@ -916,7 +916,7 @@ addComponents <- function(fh){
       ## fhLimits(fh) <- newLims
     }
   if(fhLinearity(fh) == "variable")
-    if(sum(c("fa2", "fb2", "fc2", "fd2", "fe2", "ff2") %in%
+    if(sum(c("a2", "b2", "c2", "d2", "e2", "f2") %in%
            names(fhComps(fh))) == 0){ 
       message("No G2 peaks, using fixed linearity")
       fh <- updateFlowHist(fh, linearity = "fixed")

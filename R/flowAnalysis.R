@@ -161,9 +161,9 @@ fhDoCV <- function(fh){
   res <- list()
   
   for(i in CVNames){
-    L <- tolower(substr(i, 2, 2))
-    CV <- coef(fhNLS(fh))[paste("S", L, sep = "")]/
-      coef(fhNLS(fh))[paste("M", L, sep = "")]
+    L <- substr(i, 1, 1)
+    CV <- coef(fhNLS(fh))[paste(L, "stddev", sep = "_")]/
+      coef(fhNLS(fh))[paste(L, "mean", sep = "_")]
     res[[paste(L, "_CV", sep = "")]] <- CV
     names(res[[paste(L, "_CV", sep = "")]]) <- "CV"
   }
