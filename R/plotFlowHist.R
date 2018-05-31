@@ -57,9 +57,9 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
           col = "grey", lwd = 1, lty = 5)
 
     for(comp in letters[1:6]){
-      NAME <- paste("f", comp, 1, sep = "")
+      NAME <- paste(comp, 1, sep = "")
       if(NAME %in% names(fhComps(x))){
-        MEAN <- paste("M", comp, sep = "")
+        MEAN <- paste(comp, "mean", sep = "_")
         COL <- mcColor(fhComps(x)[[NAME]])
         
         points(x = fhInit(x)[[MEAN]],
@@ -99,14 +99,14 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
          y = yPos)
     yPos <- yPos - lHt
 
-    MEANS <- names(coef(fhNLS(x)))[grep(pattern = "M[a-z]",
+    MEANS <- names(coef(fhNLS(x)))[grep(pattern = "[a-z]_mean",
                                         names(coef(fhNLS(x))))]
 
     for(i in MEANS){
-      L = substring(i, 2, 2)
-      COUNT = paste("f", L, "1_count", sep = "")
+      L = substring(i, 1, 1)
+      COUNT = paste(L, "1_count", sep = "")
       CV = paste(L, "_CV", sep = "")
-      NAME = paste("f", L, 1, sep = "")
+      NAME = paste(L, 1, sep = "")
       COL <- mcColor(fhComps(x)[[NAME]])
       text(paste(toupper(L), ": ", round(dat[i], 1), "/",
                round(dat[COUNT], 1), "/",
