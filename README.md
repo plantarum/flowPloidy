@@ -36,7 +36,7 @@ which you can load the package with the normal function
 
 ## Development Version
 
-As of May 2018, I have a new analysis method in the works. This is aimed at
+As of June 2018, I have added a new analysis method. This is aimed at
 assessing endopolyploidy, where a single sample may have four or more
 peaks. The intent is to compare the number of cells in each peak, rather
 than to determine a ratio relative to a co-chopped standard.
