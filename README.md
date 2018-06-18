@@ -59,7 +59,7 @@ library(devtools)
 
 ## Install flowPloidy:
 install_github("plantarum/flowPloidy", dependencies = TRUE, 
-    build_vignettes = TRUE, ref = "endopolyploidy")
+    build_vignettes = TRUE)
 ```
 
 If the last command fails, particularly with complaints about building a
