@@ -11,6 +11,7 @@ b1 <- batch1[[1]]
 
 b1Br <- browseFlowHist(batch1)
 
+b3 <- b1Br[[3]]
 
 nuria <- FlowHist(file = "~/research/flow/nuria.fcs", channel = "DAPI.A",
                   g2 = FALSE, debrisLimit = 10, samples = 5)
