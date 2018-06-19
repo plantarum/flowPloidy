@@ -463,7 +463,8 @@ makeG2 <- function(l, clr, desc, num){
     desc = desc,
     includeTest = function(fh){
       fhG2(fh) && nrow(fhPeaks(fh)) >= num &&
-        (fhPeaks(fh)[num, "mean"] * 2) <= nrow(fhHistData(fh))
+        (fhPeaks(fh)[num, "mean"] * 2) <= nrow(fhHistData(fh)) &&
+        fhSamples(fh) >= num
     },
     
     func = makeFun(l),
