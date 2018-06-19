@@ -1417,8 +1417,8 @@ pickPeaks <- function(fh){
   selectPeaks(fh, peakA[1], peakB[1], NULL)
 }
 
-selectPeaks <- function(fh, peakA, peakB, peakC, peakD = NULL,
-                        peakE = NULL, peakF = NULL){ 
+selectPeaks <- function(fh, peakA, peakB = NULL, peakC = NULL,
+                        peakD = NULL, peakE = NULL, peakF = NULL){ 
   pA <- fhHistData(fh)[round(peakA, 0), c("xx", "intensity")]
   pB <- pC <- pD <- pE <- pF <- NULL
   if(is.numeric(peakB))                 
@@ -1434,13 +1434,6 @@ selectPeaks <- function(fh, peakA, peakB, peakC, peakD = NULL,
   
   fh <- resetFlowHist(fh)
   newPeaks <- as.matrix(rbind(pA, pB, pC, pD, pE, pF))
-  
-  ## if(is.numeric(peakC))
-  ##   newPeaks <- as.matrix(rbind(pA, pB, pC))
-  ## else if(is.numeric(peakB))
-  ##   newPeaks <- as.matrix(rbind(pA, pB))
-  ## else
-  ##   newPeaks <- as.matrix(rbind(pA))
   
   colnames(newPeaks) <- c("mean", "height")
   newPeaks <- newPeaks[order(newPeaks[, "mean"]), ]
@@ -1510,8 +1503,9 @@ updateFlowHist <- function(fh, linearity = NULL, debris = NULL,
       fhSamples(fh) <- as.integer(samples)
     else
       stop("Invalid sample number: must be between 1 and 6")
-  
-  fh <- resetFlowHist(fh, from = "comps")
+
+  # this call is redundant, resetFlowHist is called from addComponents
+  # fh <- resetFlowHist(fh, from = "comps")
   
   fh <- addComponents(fh)
   fh <- setLimits(fh)
