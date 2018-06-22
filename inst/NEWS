@@ -1,4 +1,4 @@
-Changes in version NEXT (2018-06-18)
+Changes in version NEXT (2018-06-22)
 ------------------------------------
 
 WARNING:
@@ -15,6 +15,13 @@ User Visible Changes:
       names reported in previous versions of flowPloidy. The output now
       includes the counts for the G1 and G2 peaks, as well as for each
       S-phase component.
+
+    * The browseFlowHist interface now has a "fail" button. This provides
+      the user with the ability to reject a sample, even if flowPloidy can
+      fit a model to it. For situations where flowPloidy succeeds in
+      fitting a model to noise, or where only your standard is visible;
+      selecting "fail" for these samples will guarantee that they show up
+      as NAs in your summary data.
 
     * The browseFlowHist interface now includes the option to add
       annotations. These are text comments, not part of the analysis. This
@@ -43,6 +50,9 @@ Internal Changes:
       hard-code the output of tabulateFlowHist. Parameters that the user
       won't need are indicated with the suffix 'P'; any parameter ending
       with 'P' is excluded from the output.
+
+    * Added a 'fail' slot to the FlowHist class, to support the fail button
+      described above.
 
 Changes in version 1.5.6 (2018-03-08)
 -------------------------------------

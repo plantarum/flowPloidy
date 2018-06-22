@@ -66,6 +66,8 @@ browseFlowHist <- function(flowList, debug = FALSE){
   initialSamples <- fhSamples(.fhList[[1]])
 
   initialAnnotation <- fhAnnotation(.fhList[[1]])
+
+  initialFail <- fhFail(.fhList[[1]])
   
   if(debug) message("init Debris: ", initialDebris)
 
@@ -119,7 +121,7 @@ browseFlowHist <- function(flowList, debug = FALSE){
                           column(5, actionButton("prev", label = "Prev")),
                           column(7, actionButton("nxt",
                                                  label = "Next"))))),
-               tags$hr(),
+##               tags$hr(),
                fluidRow(
                  column(6,
                         ## If we use numericInput, the user is able to
@@ -165,7 +167,15 @@ browseFlowHist <- function(flowList, debug = FALSE){
                                     choices = list("MC" = "MC",
                                                    "SC" = "SC", 
                                                    "none" = "none"),  
-                                    selected = initialDebris)))
+                                    selected = initialDebris))),
+               fluidRow(
+                 column(6,
+                        radioButtons(inputId = "failButton",
+                                     label = "Sample Quality",
+                                     choiceNames = c("Pass", "Fail"),
+                                     choiceValues = c(FALSE, TRUE),
+                                     selected = initialFail,
+                                     inline = TRUE)))
              ))),
       column(width = 9,
              plotOutput("fhHistogram", click = "pointPicker"))
@@ -254,6 +264,8 @@ browseFlowHist <- function(flowList, debug = FALSE){
                          selected = fhStdSelected(.fhList[[rv$fhI]]))
       updateSelectInput(session, "standardPeak",
                         selected = fhStdPeak(.fhList[[rv$fhI]]))
+      updateRadioButtons(session, "failButton",
+                        selected = fhFail(.fhList[[rv$fhI]]))
       updateTextInput(session, "annotation",
                       value = fhAnnotation(.fhList[[rv$fhI]]))
       rv$FH <- .fhList[[rv$fhI]]
@@ -363,6 +375,16 @@ browseFlowHist <- function(flowList, debug = FALSE){
         .fhList[[fhCurrent()]] <<-
           updateFlowHist(.fhList[[fhCurrent()]],
                          samples = input$sampSelect, analyze = TRUE)
+        rv$FH <- .fhList[[fhCurrent()]]
+      }
+    })
+
+    fhUpdateFail <- observeEvent(input$failButton, {
+      if(input$failButton){
+        .fhList[[fhCurrent()]] <<- failFlowHist(.fhList[[fhCurrent()]])
+        rv$FH <- .fhList[[fhCurrent()]]
+      } else {
+        .fhList[[fhCurrent()]] <<- passFlowHist(.fhList[[fhCurrent()]])
         rv$FH <- .fhList[[fhCurrent()]]
       }
     })

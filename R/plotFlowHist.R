@@ -79,8 +79,12 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
     if(init)
       message("no init values available to plot!!")
   }
-  
-  if(nls & (length(fhNLS(x)) > 0)){
+
+  if(fhFail(x)){
+    text("** FAIL! **", cex = 1, pos = 2, col = 2,
+         x = grconvertX(0.975, from = "npc", to = "user"),
+         y = grconvertY(0.95, from = "npc", to = "user"))
+  } else if(nls && (length(fhNLS(x)) > 0)){
     dat <- tabulateFlowHist(x)
     lines(x = fhHistData(x)$xx[fhRange(fhHistData(x)$intensity)], 
           y = predict(fhNLS(x)), col = 2)

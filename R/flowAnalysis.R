@@ -28,6 +28,10 @@ NULL
 #' @export
 fhAnalyze <- function(fh){
   message("analyzing ", fhFile(fh))
+  if(fhFail(fh)){
+    message(" ** sample failed, not analyzing! **")
+    return(fh)
+  }
   tryVal <- try(fh <- fhDoNLS(fh), silent = TRUE)
   if(inherits(tryVal, "try-error")){
     message("    *** Model Fit Needs Attention: ", fhFile(fh), " ***")

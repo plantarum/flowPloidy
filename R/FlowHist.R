@@ -210,7 +210,7 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @param debris character, either "SC", the default, "MC", or "none", to
 #'   set the debris model component to the Single-Cut or Multi-Cut models,
 #'   or to not include a debris component (such as for gated data).
-#' @param analyze boolean, if TRUE the model will be analyzed immediately
+#' @param analyze logical, if TRUE the model will be analyzed immediately
 #' @param opts list, currently not used, but maybe in future as a way to
 #'   test additional model options
 #' @param window integer, the width of the moving window used to identify
@@ -220,7 +220,7 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @param smooth integer, the width of the moving window used to reduce
 #'   noise in the histogram via \code{\link{runmean}}. The default is 20.
 #'   As for \code{window}, lower values may be helpful for clean peaks.
-#' @param pick boolean; if TRUE, the user will be prompted to select peaks
+#' @param pick logical; if TRUE, the user will be prompted to select peaks
 #'   to use for starting values. Otherwise (the default), starting values
 #'   will be detected automatically.
 #' @param samples integer; the number of samples in the data. Default is 2
@@ -230,13 +230,13 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   loading a data set where different samples have different standards, a
 #'   vector of all the standard sizes. If set to 0, calculation of pg for
 #'   the unknown sample will not be done.
-#' @param verbose boolean; if TRUE, \code{\link{batchFlowHist}} will list
+#' @param verbose logical; if TRUE, \code{\link{batchFlowHist}} will list
 #'   files as it processes them.
 #' @param debrisLimit an integer value, default is 40. Passed to
 #'   \code{\link{cleanPeaks}}. Peaks with fluorescence values less than
 #'   \code{debrisLimit} will be ignored by the automatic peak-finding
 #'   algorithm.
-#' @param g2 a boolean value, default is TRUE. Should G2 peaks be included
+#' @param g2 a logical value, default is TRUE. Should G2 peaks be included
 #'   in the model?
 #' 
 #' @slot raw a flowFrame object containing the raw data from the FCS file
@@ -279,12 +279,15 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   analysis, and can be interactively increased (or decreased) via
 #'   \code{\link{browseFlowHist}} 
 #' @slot standards a \code{\link{FlowStandards}} object.
-#' @slot g2 boolean, if TRUE the model will include G2 peaks for each
+#' @slot g2 logical, if TRUE the model will include G2 peaks for each
 #'   sample (as long as the G1 peak is less than half-way across the
 #'   histogram). Set to FALSE to drop the G2 peaks for endopolyploidy
 #'   analyses.
 #' @slot annotation character, user-added annotation for the sample.
-#' 
+#' @slot fail logical, set by the user via the \code{\link{browseFlowHist}}
+#'   interface to indicate the sample failed and no model fitting should be
+#'   done.
+#'
 #' @return \code{\link{FlowHist}} returns a \code{\link{FlowHist}} object.
 #' @author Tyler Smith
 setClass(
@@ -313,7 +316,8 @@ setClass(
     RCS = "numeric", ## residual chi-square
     standards = "FlowStandards", ## a FlowStandards object
     g2 = "logical", ## should G2 peaks be included in the model?
-    annotation = "character"
+    annotation = "character",
+    fail = "logical"
   ),
   prototype = prototype(
     ## TODO complete this?
@@ -328,7 +332,7 @@ setMethod(
                         linearity = "variable", debris = "SC",
                         gate = logical(), samples = 2, standards = 0,
                         opts = list(), debrisLimit = 40, g2 = TRUE,
-                        ...){ 
+                        fail = FALSE, ...){
     .Object@raw <- read.FCS(file, dataset = 1, alter.names = TRUE)
     .Object@channel <- channel
     .Object@gate <- gate
@@ -347,6 +351,7 @@ setMethod(
     .Object@debris <- debris
     .Object@opts <- opts
     .Object@g2 <- g2
+    .Object@fail <- FALSE
     if(! any(is.na(fhPeaks(.Object)))){
       ## We have good peaks:
       .Object <- addComponents(.Object)
@@ -674,6 +679,17 @@ fhAnnotation <- function(fh){
   fh
 }
 
+#' @rdname fhAccessors
+#' @export
+fhFail <- function(fh){
+  fh@fail
+}
+
+`fhFail<-` <- function(fh, value){
+  fh@fail <- value
+  fh
+}
+
 #' Reset the values in a \code{\link{FlowHist}} object
 #'
 #' NB: This function isn't required for normal use, and isn't exported for
@@ -708,7 +724,7 @@ fhAnnotation <- function(fh){
 resetFlowHist <- function(fh, from = "peaks"){
   ## Clear analysis slots
   ## Default is to clear everything from peaks onwards
-  removeFrom <- c("gate", "peaks", "comps", "limits")
+  removeFrom <- c("gate", "peaks", "comps", "limits", "analysis")
 
   ## coded to allow for further refinement, if/when additions to the
   ## FlowHist class makes it sensible to change the granularity of slot
@@ -732,11 +748,25 @@ resetFlowHist <- function(fh, from = "peaks"){
     fhLimits(fh) <- list()
     fhModel(fh) <- function(){}
     fhInit(fh) <- list()
+  }
+  if(rmF("analysis")){
     fhNLS(fh) <- structure(list(), class = "nls")
     fhCounts(fh) <- list()
     fhCV(fh) <- list()
     fhRCS(fh) <- NA_real_
   }
+  fh
+}
+
+failFlowHist <- function(fh){
+  fh <- resetFlowHist(fh, from = "analysis")
+  fhFail(fh) <- TRUE
+  fh
+}
+
+passFlowHist <- function(fh){
+  fhFail(fh) <- FALSE
+  fh <- updateFlowHist(fh)
   fh
 }
 
@@ -1467,7 +1497,7 @@ selectPeaks <- function(fh, peakA, peakB = NULL, peakC = NULL,
 #'   as a model parameter.
 #' @param debris character, either "SC", the default, or "MC", to set the
 #'   debris model component to the Single-Cut or Multi-Cut models.
-#' @param analyze boolean, if TRUE the updated model will be analyzed
+#' @param analyze logical, if TRUE the updated model will be analyzed
 #'   immediately
 #' @param samples integer, the number of samples in the data
 #' @return a \code{\link{FlowHist}} object with the modified values of
@@ -1504,9 +1534,6 @@ updateFlowHist <- function(fh, linearity = NULL, debris = NULL,
     else
       stop("Invalid sample number: must be between 1 and 6")
 
-  # this call is redundant, resetFlowHist is called from addComponents
-  # fh <- resetFlowHist(fh, from = "comps")
-  
   fh <- addComponents(fh)
   fh <- setLimits(fh)
   fh <- makeModel(fh)
