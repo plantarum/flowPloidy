@@ -436,7 +436,7 @@ tabulateFlowHist(batch1)
 
 ```{r tabulateFlowHist table, echo = FALSE, results = "as-is"}
 kable(tabulateFlowHist(batch1)[c(1, 4, 5),
-                               c("countsA", "sizeA", "cvA", "AB")],
+                               c("a1_count", "a_mean", "a_CV")],
       digits = 3)
 ```
 
