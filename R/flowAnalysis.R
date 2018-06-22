@@ -61,8 +61,8 @@ fhDoNLS <- function(fh){
   args <- fhArgs(fh)
   pLims <- fhLimits(fh)
   pLims <- pLims[! names(pLims) %in% fhSpecialParams(fh)]
-  lLims <- sapply(pLims, function(x) x[1])
-  uLims <- sapply(pLims, function(x) x[2])
+  lLims <- vapply(pLims, function(x) x[1], numeric(1))
+  uLims <- vapply(pLims, function(x) x[2], numeric(1))
   args <- paste(args, collapse = ", ")
   form3 <- paste(", ", getSpecialParamArgs(fh), ")")
   form <- as.formula(paste(form1, args, form3))
@@ -108,7 +108,8 @@ fhDoCounts <- function(fh){
   coefs <- coef(fhNLS(fh))
 
   countNames <- names(fhComps(fh))
-  countNames <- names(fhComps(fh)[sapply(fhComps(fh)[countNames], mcDoCounts)])
+  countNames <- names(fhComps(fh)[vapply(fhComps(fh)[countNames],
+                                         mcDoCounts, logical(1))])
 
   for(i in countNames){
     comp <- fhComps(fh)[[i]]
@@ -128,9 +129,9 @@ fhDoCounts <- function(fh){
       }
     }
     eval(parse(text =
-                 paste0("res[[paste(i, \"_count\", sep = \"\")]] <- integrate(fun, ",
-                        args, ", ", 
-                        "lower = lower, upper = upper, subdivisions = 1000)")))
+          paste0("res[[paste(i, \"_count\", sep = \"\")]] <- integrate(fun, ",
+                 args, ", ", 
+                 "lower = lower, upper = upper, subdivisions = 1000)")))
   }
 
   fhCounts(fh) <- res
@@ -160,7 +161,8 @@ fhDoCounts <- function(fh){
 fhDoCV <- function(fh){
 
   CVNames <- names(fhComps(fh))
-  CVNames <- names(fhComps(fh)[sapply(fhComps(fh)[CVNames], mcDoCV)])
+  CVNames <- names(fhComps(fh)[vapply(fhComps(fh)[CVNames], mcDoCV,
+                                      logical(1))]) 
 
   res <- list()
   

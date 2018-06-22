@@ -37,11 +37,13 @@ The columns of the returned data.frame are:
    sample}
    \item{countsA2, countsB2, countsC2: }{the cell counts for the G2 peak
    of each sample}
-   \item{sizeA2, sizeB2, sizeC2: }{the peak position for the G2 peak of each sample}
+   \item{sizeA2, sizeB2, sizeC2: }{the peak position for the G2 peak of
+   each sample} 
    \item{countsSA, countsSB, countsSC: }{the cell counts for the S-phase
    for each sample}
    \item{cvA, cvB, cvC: }{the coefficient of variation for each sample}
-   \item{AB, AC, BC: }{the ratios of sizeA/sizeB, sizeA/sizeC, and sizeB/sizeC}
+   \item{AB, AC, BC: }{the ratios of sizeA/sizeB, sizeA/sizeC, and
+   sizeB/sizeC} 
    \item{ABse, ACse, BCse: }{the standard error for each ratio}
    \item{rcs: }{the residual Chi-Square for the model fit}
    \item{linearity: }{the linearity value, if not fixed at 2}

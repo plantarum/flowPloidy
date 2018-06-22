@@ -56,7 +56,7 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
           y = yy, 
           col = "grey", lwd = 1, lty = 5)
 
-    for(comp in letters[1:6]){
+    for(comp in letters[seq_len(6)]){
       NAME <- paste(comp, 1, sep = "")
       if(NAME %in% names(fhComps(x))){
         MEAN <- paste(comp, "mean", sep = "_")

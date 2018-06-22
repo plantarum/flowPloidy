@@ -146,7 +146,7 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'
 #' Similarly, \code{\link{batchFlowHist}} is usually used with only the
 #' \code{files}, \code{channel}, and \code{standards} arguments.
-#' 
+#'
 #' In operation, \code{\link{FlowHist}} starts by reading an FCS file
 #' (using the function \code{\link{read.FCS}} internally). This produces a
 #' \code{\link{flowFrame}} object, which we extend to a
@@ -176,10 +176,10 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' the data, additional components for the G2 peak and sample B (G1, G2,
 #' s-phase) may also be added. The \code{debris} argument can be used to
 #' select the Multi-Cut debris model instead, or this can be toggled in
-#' \code{\link{browseFlowHist}} 
-#' 
+#' \code{\link{browseFlowHist}}
+#'
 #' \item Build the NLS model. All the components are combined into a single
-#' model. 
+#' model.
 #'
 #' \item Identify starting values for Gaussian (G1 and G2 peaks) model
 #' components. For reasonably clean data, the built-in peak detection is
@@ -193,7 +193,7 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' Model fitting is suppressed if the \code{analyze} argument is set as
 #' \code{FALSE}
 #' }
-#' 
+#'
 #' @name FlowHist
 #'
 #' @param file character, the name of the single file to load
@@ -201,9 +201,6 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @param channel character, the name of the data column to use
 #' @param bins integer, the number of bins to use to aggregate events into
 #'   a histogram
-#' @param gate logical, a vector of events to exclude from analysis. In
-#'   normal usage this will be set interactively, not as a function
-#'   argument.
 #' @param linearity character, either "variable", the default, or "fixed".
 #'   If "fixed", linearity is fixed at 2; if "variable", linearity is fit
 #'   as a model parameter.
@@ -211,15 +208,6 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   set the debris model component to the Single-Cut or Multi-Cut models,
 #'   or to not include a debris component (such as for gated data).
 #' @param analyze logical, if TRUE the model will be analyzed immediately
-#' @param opts list, currently not used, but maybe in future as a way to
-#'   test additional model options
-#' @param window integer, the width of the moving window used to identify
-#'   local maxima for peak detection via \code{\link{runmax}}. The default
-#'   is 20. If you have really clean, narrow, peaks, lowering this value
-#'   may help you get better initial values.
-#' @param smooth integer, the width of the moving window used to reduce
-#'   noise in the histogram via \code{\link{runmean}}. The default is 20.
-#'   As for \code{window}, lower values may be helpful for clean peaks.
 #' @param pick logical; if TRUE, the user will be prompted to select peaks
 #'   to use for starting values. Otherwise (the default), starting values
 #'   will be detected automatically.
@@ -235,10 +223,14 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @param debrisLimit an integer value, default is 40. Passed to
 #'   \code{\link{cleanPeaks}}. Peaks with fluorescence values less than
 #'   \code{debrisLimit} will be ignored by the automatic peak-finding
-#'   algorithm.
+#'   algorithm. Used to ignore the debris often found at the left side of
+#'   the histogram.
 #' @param g2 a logical value, default is TRUE. Should G2 peaks be included
 #'   in the model?
-#' 
+#' @param ... additional arguments passed from \code{\link{batchFlowHist}}
+#'   to \code{FlowHist}, or to assorted helper functions. See
+#'   \code{\link{findPeaks}} (arguments \code{window} and \code{smooth})
+#'
 #' @slot raw a flowFrame object containing the raw data from the FCS file
 #' @slot channel character, the name of the data column to use
 #' @slot bins integer, the number of bins to use to aggregate events into a
@@ -265,7 +257,7 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @slot model the function (built from \code{comps}) to fit to these
 #'   data.
 #' @slot limits list, a list of lower and upper bounds for model
-#'   parameters 
+#'   parameters
 #' @slot init a list of initial parameter estimates to use in fitting the
 #'   model.
 #' @slot nls the nls object produced by the model fitting
@@ -277,7 +269,7 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   default is 2 (i.e., unknown and standard), but if two standards are
 #'   used it should be set to 3. It can be up to 6 for endopolyploidy
 #'   analysis, and can be interactively increased (or decreased) via
-#'   \code{\link{browseFlowHist}} 
+#'   \code{\link{browseFlowHist}}
 #' @slot standards a \code{\link{FlowStandards}} object.
 #' @slot g2 logical, if TRUE the model will include G2 peaks for each
 #'   sample (as long as the G1 peak is less than half-way across the
@@ -299,8 +291,8 @@ setClass(
     bins = "integer", ## the number of bins to use
     linearity = "character", ## "fixed" or "variable", to determine whether
     ## or not linearity is fixed at 2, or allowed to vary as a model
-    ## parameter 
-    debris = "character", ## "SC" or "MC", to set the debris model. 
+    ## parameter
+    debris = "character", ## "SC" or "MC", to set the debris model.
     gate = "logical", ## vector indicating which events to exclude from
     ## analysis, i.e., the gate
     histData = "data.frame", ## binned histogram data
@@ -776,9 +768,15 @@ passFlowHist <- function(fh){
 #' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
 #' fh1
 #' @export
-FlowHist <- function(file, channel, bins = 256, analyze = TRUE, ...){ 
+FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
+                     linearity = "variable", debris = "SC", samples = 2,
+                     pick = FALSE, standards = 0, g2 = TRUE,
+                     debrisLimit = 40, ...){ 
   fh <-  new("FlowHist", file = file, channel = channel,
-             bins = as.integer(bins), ...)
+             bins = as.integer(bins), linearity = linearity,
+             debris = debris, samples = samples, pick = pick,
+             standards = standards, g2 = g2, debrisLimit = debrisLimit,
+             ...) 
   if(analyze)
     fh <- fhAnalyze(fh)
   return(fh)
@@ -816,7 +814,6 @@ viewFlowChannels <- function(file){
 #' @examples
 #' batch1 <- batchFlowHist(flowPloidyFiles, channel = "FL3.INT.LIN")
 #' batch1
-#' @param ... Additional arguments passed to \code{\link{FlowHist}}
 #' @return
 #' \code{\link{batchFlowHist}} returns a list of \code{\link{FlowHist}}
 #'   objects. 
@@ -865,14 +862,16 @@ setMethod(
       ## cat(paste("Modelled events: ",
       ##           round(object$counts$total$value, 1)))
       cat(paste("\nCounts\n------\n"))
-      print(sapply(fhCounts(object), function(x) round(x[[1]], 2)))
+      print(vapply(fhCounts(object), function(x) round(x[[1]], 2),
+                   numeric(1))) 
       
       cat(paste("\nPeak Sizes\n----------\n"))
       sizeInd <- grep("_mean", names(coef(fhNLS(object))))
       print(round(coef(fhNLS(object))[sizeInd], 2))
       
       cat(paste("\nCVs\n---\n"))
-      print(round(100 * sapply(fhCV(object), function(x) x[[1]]), 1))
+      print(round(100 * vapply(fhCV(object), function(x) x[[1]],
+                               numeric(1)), 1))  
 
     }
 
@@ -907,11 +906,13 @@ setMethod(
 #'    sample}
 #'    \item{countsA2, countsB2, countsC2: }{the cell counts for the G2 peak
 #'    of each sample}
-#'    \item{sizeA2, sizeB2, sizeC2: }{the peak position for the G2 peak of each sample}
+#'    \item{sizeA2, sizeB2, sizeC2: }{the peak position for the G2 peak of
+#'    each sample} 
 #'    \item{countsSA, countsSB, countsSC: }{the cell counts for the S-phase
 #'    for each sample}
 #'    \item{cvA, cvB, cvC: }{the coefficient of variation for each sample}
-#'    \item{AB, AC, BC: }{the ratios of sizeA/sizeB, sizeA/sizeC, and sizeB/sizeC}
+#'    \item{AB, AC, BC: }{the ratios of sizeA/sizeB, sizeA/sizeC, and
+#'    sizeB/sizeC} 
 #'    \item{ABse, ACse, BCse: }{the standard error for each ratio}
 #'    \item{rcs: }{the residual Chi-Square for the model fit}
 #'    \item{linearity: }{the linearity value, if not fixed at 2}
@@ -954,10 +955,10 @@ exFlowHist <- function(fhList, file = NULL){
     ## fhFile and the names of the list elements are redundant at this
     ## point, it may make sense to drop the names and rely soley on fhFile
     ## for consistency?
-    if (class(fhList) == "list" && all(sapply(fhList, class) ==
+    if (class(fhList) == "list" && all(vapply(fhList, class, character(1)) ==
                                        "FlowHist")){
       ## list of flowHist objects, but without proper names:
-      samples <- names(fhList) <- sapply(fhList, fhFile)
+      samples <- names(fhList) <- vapply(fhList, fhFile, character(1))
     } else {
       stop("tabulateFlowHist needs a FlowHist object, or a list of FlowHist objects!")
     }
@@ -993,9 +994,11 @@ exFlowHist <- function(fhList, file = NULL){
     if(fhStdPeak(i) != "X"){
       out[fhFile(i), "StdPeak"] <- fhStdPeak(i)
       if(fhStdPeak(i) == "A"){
-        out[fhFile(i), "ratio"] <- coef(fhNLS(i))["b_mean"]/coef(fhNLS(i))["a_mean"]
+        out[fhFile(i), "ratio"] <-
+          coef(fhNLS(i))["b_mean"]/coef(fhNLS(i))["a_mean"]
       } else if(fhStdPeak(i) == "B"){
-        out[fhFile(i), "ratio"] <- coef(fhNLS(i))["a_mean"]/coef(fhNLS(i))["b_mean"]
+        out[fhFile(i), "ratio"] <-
+          coef(fhNLS(i))["a_mean"]/coef(fhNLS(i))["b_mean"]
       } else {
         message("More than three peaks, can't calculate ratio")
       }
@@ -1012,7 +1015,7 @@ exFlowHist <- function(fhList, file = NULL){
       coefValues <- coefValues[P]
       coefNames <- coefNames[P]
       out[fhFile(i), coefNames] <- coefValues
-      countValues <- sapply(fhCounts(i), function(x) x[[1]])
+      countValues <- vapply(fhCounts(i), function(x) x[[1]], numeric(1))
       countNames <- names(countValues)
       out[fhFile(i), countNames] <- countValues      
       CVs <- fhCV(i)
@@ -1103,7 +1106,7 @@ setBins <- function(fh, bins = 256){
   ## instrument compensation. This is below the level of actual data, so
   ## shouldn't cause any problems with analysis.
   intensity[1:5] <- 0
-  xx <- 1:length(intensity)
+  xx <- seq_along(intensity)
   startBin <- fhStart(intensity)
   SCvals <- getSingleCutVals(intensity, xx, startBin)
   MCvals <- getMultipleCutVals(intensity, startBin)
@@ -1150,7 +1153,7 @@ fhStart <- function(intensity){
   ## start on the first peak, ignoring any noise in lower channels. This is
   ## the same general principle applied in ModFit (although I don't know
   ## how they actually do this!). I implement this idea by picking the
-  ## highest point in the first 20 non-zero channels in the histogram.
+  ## highest point in the first 10 non-zero channels in the histogram.
   startMax <- max(intensity[which(intensity != 0)][1:10])
   startBin <- which(intensity == startMax)[1]
   startBin
@@ -1266,7 +1269,7 @@ findPeaks <- function(fh, window = 20, smooth = 20){
           }}
 
   maxVals <- dat[isMax]                 # use the raw data for heights 
-  res <- cbind(mean = (1:length(dat))[isMax], height = maxVals)
+  res <- cbind(mean = (seq_along(dat))[isMax], height = maxVals)
   fhPeaks(fh) <- res
   fh
 }

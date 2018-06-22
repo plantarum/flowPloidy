@@ -47,7 +47,7 @@ The model is:
 \enumerate{
 \item \code{x} the histogram channel that we're estimating the debris
 value for.
-\item \code{SCa} the amplitude parameter.
+\item \code{SCaP} the amplitude parameter.
 \item \code{Y_j} the histogram intensity for channel j.
 }
 
@@ -62,7 +62,7 @@ This model involves a recursive calculation, since the fitted value
 for channel x depends not just on the intensity for channel x, but also
 the intensities at all channels > x. I deal with this by pre-calculating
 the raw values, which don't actually depend on the only parameter,
-\code{SCa}. These raw values are stored in the \code{histData} matrix
+\code{SCaP}. These raw values are stored in the \code{histData} matrix
 (which is a slot in the \code{\link{FlowHist}} object). This must be
 accomodated by treating \code{SCvals} as a 'special parameter' in the
 \code{\link{ModelComponent}} definition. See that help page for details.
@@ -76,13 +76,13 @@ single nuclei may be cut multiple times, thus creating more than two
 fragments.
 
 The model is:
-\deqn{S(x) = MCa e^{-kx}\sum_{j = x + 1}^{n} Y_j}
+\deqn{S(x) = MCaP e^{-kx}\sum_{j = x + 1}^{n} Y_j}
 
 \enumerate{
 \item \code{x} the histogram channel that we're estimating the debris
 value for.
 \item \code{k} an exponential fitting parameter
-\item \code{MCa} the amplitiude parameter
+\item \code{MCaP} the amplitiude parameter
 \item \code{Y_j} the histogram intensity for channel j.
 }
 
@@ -91,7 +91,7 @@ component. Again, the sum is independent of the fitted parameters, so we
 can pre-compute that and add it to the \code{histData} slot, in the
 column \code{MCvals}. This is treated as a 'special parameter' when the
 Multiple-Cut model is applied, so we only need to fit the parameters k
-and MCa.
+and MCaP.
 }
 
 \section{Debris Models and Gating}{

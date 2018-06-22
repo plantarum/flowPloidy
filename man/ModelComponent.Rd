@@ -57,6 +57,10 @@ substitute(xx))}}
 
 \item{\code{paramLimits}}{list, a named list with the upper and lower limits of
 each parameter in the function.}
+
+\item{\code{doCounts}}{logical, should cell counts be evaluated for this
+component? Used to exclude the debris models, which don't work with
+R's Integrate function.}
 }}
 
 \section{Coding Concepts}{

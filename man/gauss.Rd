@@ -13,7 +13,7 @@
 
 \item{xx}{vector of histogram intensities}
 
-\item{d}{numeric, the ratio of G2/G1 peak means. When linearity is
+\item{linearity}{numeric, the ratio of G2/G1 peak means. When linearity is
 fixed, this is set to 2. Otherwise, it is fit as a model parameter
 bounded between flowPloidy:::linL and flowPloidy:::linH.}
 }

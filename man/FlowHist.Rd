@@ -7,10 +7,9 @@
 \alias{batchFlowHist}
 \title{FlowHist}
 \usage{
-FlowHist(file, channel, standards = 0, bins = 256, window = 20,
-  smooth = 20, pick = FALSE, linearity = "variable", debris = "SC",
-  opts = list(), samples = 2, gate = logical(), analyze = TRUE,
-  debrisLimit = 40)
+FlowHist(file, channel, bins = 256, analyze = TRUE,
+  linearity = "variable", debris = "SC", samples = 2, pick = FALSE,
+  standards = 0, g2 = TRUE, debrisLimit = 40, ...)
 
 batchFlowHist(files, channel, verbose = TRUE, ...)
 }
@@ -19,26 +18,10 @@ batchFlowHist(files, channel, verbose = TRUE, ...)
 
 \item{channel}{character, the name of the data column to use}
 
-\item{standards}{numeric; the size of the internal standard in pg. When
-loading a data set where different samples have different standards, a
-vector of all the standard sizes. If set to 0, calculation of pg for
-the unknown sample will not be done.}
-
 \item{bins}{integer, the number of bins to use to aggregate events into
 a histogram}
 
-\item{window}{integer, the width of the moving window used to identify
-local maxima for peak detection via \code{\link{runmax}}. The default
-is 20. If you have really clean, narrow, peaks, lowering this value
-may help you get better initial values.}
-
-\item{smooth}{integer, the width of the moving window used to reduce
-noise in the histogram via \code{\link{runmean}}. The default is 20.
-As for \code{window}, lower values may be helpful for clean peaks.}
-
-\item{pick}{boolean; if TRUE, the user will be prompted to select peaks
-to use for starting values. Otherwise (the default), starting values
-will be detected automatically.}
+\item{analyze}{logical, if TRUE the model will be analyzed immediately}
 
 \item{linearity}{character, either "variable", the default, or "fixed".
 If "fixed", linearity is fixed at 2; if "variable", linearity is fit
@@ -48,29 +31,36 @@ as a model parameter.}
 set the debris model component to the Single-Cut or Multi-Cut models,
 or to not include a debris component (such as for gated data).}
 
-\item{opts}{list, currently not used, but maybe in future as a way to
-test additional model options}
-
 \item{samples}{integer; the number of samples in the data. Default is 2
-(unknown and standard), but can be set to 3 if two standards are used.}
+(unknown and standard), but can be set to 3 if two standards are used,
+or up to 6 for endopolyploidy analysis.}
 
-\item{gate}{logical, a vector of events to exclude from analysis. In
-normal usage this will be set interactively, not as a function
-argument.}
+\item{pick}{logical; if TRUE, the user will be prompted to select peaks
+to use for starting values. Otherwise (the default), starting values
+will be detected automatically.}
 
-\item{analyze}{boolean, if TRUE the model will be analyzed immediately}
+\item{standards}{numeric; the size of the internal standard in pg. When
+loading a data set where different samples have different standards, a
+vector of all the standard sizes. If set to 0, calculation of pg for
+the unknown sample will not be done.}
+
+\item{g2}{a logical value, default is TRUE. Should G2 peaks be included
+in the model?}
 
 \item{debrisLimit}{an integer value, default is 40. Passed to
 \code{\link{cleanPeaks}}. Peaks with fluorescence values less than
 \code{debrisLimit} will be ignored by the automatic peak-finding
-algorithm.}
+algorithm. Used to ignore the debris often found at the left side of
+the histogram.}
+
+\item{...}{additional arguments passed from \code{\link{batchFlowHist}}
+to \code{FlowHist}, or to assorted helper functions. See
+\code{\link{findPeaks}} (arguments \code{window} and \code{smooth})}
 
 \item{files}{character, a vector of file names to load}
 
-\item{verbose}{boolean; if TRUE, \code{\link{batchFlowHist}} will list
+\item{verbose}{logical; if TRUE, \code{\link{batchFlowHist}} will list
 files as it processes them.}
-
-\item{...}{Additional arguments passed to \code{\link{FlowHist}}}
 }
 \value{
 \code{\link{FlowHist}} returns a \code{\link{FlowHist}} object.
@@ -196,9 +186,22 @@ fitted model.}
 
 \item{\code{samples}}{numeric, the number of samples included in the data. The
 default is 2 (i.e., unknown and standard), but if two standards are
-used it should be set to 3.}
+used it should be set to 3. It can be up to 6 for endopolyploidy
+analysis, and can be interactively increased (or decreased) via
+\code{\link{browseFlowHist}}}
 
 \item{\code{standards}}{a \code{\link{FlowStandards}} object.}
+
+\item{\code{g2}}{logical, if TRUE the model will include G2 peaks for each
+sample (as long as the G1 peak is less than half-way across the
+histogram). Set to FALSE to drop the G2 peaks for endopolyploidy
+analyses.}
+
+\item{\code{annotation}}{character, user-added annotation for the sample.}
+
+\item{\code{fail}}{logical, set by the user via the \code{\link{browseFlowHist}}
+interface to indicate the sample failed and no model fitting should be
+done.}
 }}
 
 \examples{

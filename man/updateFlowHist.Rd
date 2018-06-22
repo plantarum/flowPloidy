@@ -19,7 +19,7 @@ debris model component to the Single-Cut or Multi-Cut models.}
 
 \item{samples}{integer, the number of samples in the data}
 
-\item{analyze}{boolean, if TRUE the updated model will be analyzed
+\item{analyze}{logical, if TRUE the updated model will be analyzed
 immediately}
 }
 \value{

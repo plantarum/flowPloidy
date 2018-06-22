@@ -449,8 +449,9 @@ makeG2 <- function(l, clr, desc, num){
   makeFun <- function(l){
     tmp <- function(){}
     formals(tmp) <-
-      eval(parse(text = sprintf("alist(%s = , %s = , %s = , linearity = , xx = )",
-                                v2, vM, vS)))
+      eval(parse(text =
+        sprintf("alist(%s = , %s = , %s = , linearity = , xx = )",
+                v2, vM, vS)))
     body(tmp) <-
       parse(text =
     sprintf("(%s / (sqrt(2 * pi) * %s * 2) * exp(-((xx - %s * linearity)^2)/(2 * (%s * 2)^2)))",
@@ -792,7 +793,7 @@ fhComponents$SC <-
 getMultipleCutVals <- function(intensity, first.channel){
   tmpI <- intensity
   res <- sum(tmpI) - cumsum(tmpI)
-  res[1:(first.channel - 1)] <- 0
+  res[seq_len(first.channel - 1)] <- 0
   res
 }
 
@@ -821,7 +822,7 @@ fhComponents$MC <-
 getDoubletVals <- function(intensity){
   doublets <- numeric(length(intensity))
   for(i in seq_along(intensity)[-1]){
-    j <- 1:floor(i/2)
+    j <- seq_len(floor(i/2))
     doublets[i] <-
       sum(intensity[j] * intensity[i-j] * (j * (i - j))^(2/3))
   }
@@ -831,7 +832,7 @@ getDoubletVals <- function(intensity){
 getTripletVals <- function(intensity, doublets){
   triplets <- numeric(length(intensity))
   for(i in seq_along(intensity)[-1]){
-    j <- 1:floor(i/2)
+    j <- seq_len(floor(i/2))
     triplets[i] <- 
       sum(intensity[j] * doublets[i-j] * (j * (i - j))^(2/3))
   }
@@ -841,7 +842,7 @@ getTripletVals <- function(intensity, doublets){
 getQuadrupletVals <- function(intensity, doublets, triplets){
   quadruplets <- numeric(length(intensity))
   for(i in seq_along(intensity)[-1]){
-    j <- 1:floor(i/2)
+    j <- seq_len(floor(i/2))
     quadruplets[i] <-
       sum(intensity[j] * triplets[i - j] * (j * (i - j))^(2/3) +
           doublets[j] + doublets[i - j] * (j * (i - j))^(2/3))

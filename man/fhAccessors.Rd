@@ -27,6 +27,9 @@
 \alias{fhStdSelected}
 \alias{fhStdSizes}
 \alias{fhOpts}
+\alias{fhG2}
+\alias{fhAnnotation}
+\alias{fhFail}
 \title{FlowHist Accessors}
 \usage{
 fhGate(fh)
@@ -78,6 +81,12 @@ fhStdSelected(fh)
 fhStdSizes(fh)
 
 fhOpts(fh)
+
+fhG2(fh)
+
+fhAnnotation(fh)
+
+fhFail(fh)
 }
 \arguments{
 \item{fh}{a \code{\link{FlowHist}}}
