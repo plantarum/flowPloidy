@@ -820,12 +820,23 @@ viewFlowChannels <- function(file){
 #' @export
 batchFlowHist <- function(files, channel, verbose = TRUE, ...){ 
   res <- list()
+  failures <- character()
   for(i in seq_along(files)){
     if(verbose) message(i, ": processing ", files[i])
-    tmpRes <- FlowHist(file = files[i], channel = channel, ...)
-    res[[fhFile(tmpRes)]] <- tmpRes
-    if(verbose) message(" ")
-  }              
+    tryVal <- try(tmpRes <- FlowHist(file = files[i], channel = channel,
+                                     ...), silent = TRUE)
+    if(inherits(tryVal, "try-error")){
+      message("    ** PROBLEM: I couldn't import ", files[i], " **")
+      failures <- c(failures, files[i])
+    } else {
+      res[[fhFile(tmpRes)]] <- tmpRes
+      if(verbose) message(" ")
+    }
+  }
+  if(length(failures) > 0){
+    message("The following files failed to load:")
+    cat(paste(failures, collapse = "\n"))
+  }
   return(res)
 }
 
