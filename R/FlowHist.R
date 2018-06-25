@@ -1345,7 +1345,12 @@ cleanPeaks <- function(fh, window = 20, debrisLimit = 40){
   if(length(drop) > 0){                  # there was at least one tie 
     peaks <- peaks[-drop, ]
   }
-  
+
+  if (is.vector(peaks)){
+    ## only one peak, need to convert the vector back into a matrix:
+    peaks <- t(as.matrix(peaks))
+  }
+
   out <- matrix(NA, nrow = 0, ncol = 2)
 
   while(nrow(peaks) > 0){
