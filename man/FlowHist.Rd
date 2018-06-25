@@ -57,7 +57,9 @@ the histogram.}
 to \code{FlowHist}, or to assorted helper functions. See
 \code{\link{findPeaks}} (arguments \code{window} and \code{smooth})}
 
-\item{files}{character, a vector of file names to load}
+\item{files}{character, a vector of file names to load, or a single
+character value giving the path to a directory; if the latter, all
+files in the directory will be loaded}
 
 \item{verbose}{logical; if TRUE, \code{\link{batchFlowHist}} will list
 files as it processes them.}

@@ -197,7 +197,9 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @name FlowHist
 #'
 #' @param file character, the name of the single file to load
-#' @param files character, a vector of file names to load
+#' @param files character, a vector of file names to load, or a single
+#'   character value giving the path to a directory; if the latter, all
+#'   files in the directory will be loaded 
 #' @param channel character, the name of the data column to use
 #' @param bins integer, the number of bins to use to aggregate events into
 #'   a histogram
@@ -819,6 +821,10 @@ viewFlowChannels <- function(file){
 #'   objects. 
 #' @export
 batchFlowHist <- function(files, channel, verbose = TRUE, ...){ 
+  if(length(files) == 1 && file_test("-d", files)){
+    files <- list.files(files, full.names = TRUE)
+  }
+  
   res <- list()
   failures <- character()
   for(i in seq_along(files)){
@@ -835,7 +841,7 @@ batchFlowHist <- function(files, channel, verbose = TRUE, ...){
   }
   if(length(failures) > 0){
     message("The following files failed to load:")
-    cat(paste(failures, collapse = "\n"))
+    cat(paste(failures, collapse = "\n"), "\n")
   }
   return(res)
 }
