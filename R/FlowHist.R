@@ -1008,7 +1008,7 @@ exFlowHist <- function(fhList, file = NULL){
     out[[i]] <- NA
 
   for(i in fhList){
-    if(fhStdPeak(i) != "X"){
+    if(fhStdPeak(i) != "X" && length(fhNLS(i)) > 0){
       out[fhFile(i), "StdPeak"] <- fhStdPeak(i)
       if(fhStdPeak(i) == "A"){
         out[fhFile(i), "ratio"] <-
