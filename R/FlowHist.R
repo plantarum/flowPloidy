@@ -997,6 +997,9 @@ exFlowHist <- function(fhList, file = NULL){
       CVs <- union(names(fhCV(i)), CVs)
       outFields <- union(outFields, c("RCS"))
     }
+    if(! fhG2(i) && length(fhNLS(i)) > 0){
+      outFields <- union(outFields, "EI")
+    }
   }
   if(length(fhAnnotation(i)) > 0 && fhAnnotation(i) != "")
     outFields <- union(outFields, c("annotation"))
@@ -1040,6 +1043,15 @@ exFlowHist <- function(fhList, file = NULL){
       out[fhFile(i), CVNames] <- CVs
       out[fhFile(i), "RCS"] <- fhRCS(i)
     }
+    if(! fhG2(i) && length(fhNLS(i)) > 0){
+      means <- sort(names(coef(fhNLS(i)))[grep("_mean",
+                                               names(coef(fhNLS(i))))])
+      EI <- sum(coef(fhNLS(i))[means] * (seq_len(length(means)) - 1)) /
+        sum(coef(fhNLS(i))[means] * (seq_len(length(means))))
+
+      out[fhFile(i), "EI"] <- EI
+    }
+
     if(length(fhAnnotation(i)) > 0 && fhAnnotation(i) != "")
       out[fhFile(i), "annotation"] <- fhAnnotation(i)
   }

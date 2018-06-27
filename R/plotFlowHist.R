@@ -123,17 +123,26 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
       linval <- "fixed"
     else
       linval <- round(dat$linearity, 2)
-    
-    text(paste("Linearity: ", linval), cex = 1,
-         pos = 2, 
-         x = grconvertX(0.975, from = "npc", to = "user"),
-         y = yPos) 
-    yPos <- yPos - lHt
-    
+
+    if(fhG2(x)){
+      text(paste("Linearity: ", linval), cex = 1,
+           pos = 2,
+           x = grconvertX(0.975, from = "npc", to = "user"),
+           y = yPos)
+      yPos <- yPos - lHt
+    }
+
+    if(!is.null(dat$EI) && !fhG2(x)){
+      text(paste("EI: ", round(dat$EI, 2)), cex = 1,
+           pos = 2,
+           x = grconvertX(0.975, from = "npc", to = "user"),
+           y = yPos)
+      yPos <- yPos - lHt
+    }
     if(!is.null(dat$pg) && !is.na(dat$pg)){
       text(paste("Sample ", ifelse(dat$StdPeak == "A", "B", "A"),
                  ": ", round(dat$pg, 3), "pg"),
-           cex = 1, pos = 2, 
+           cex = 1, pos = 2,
            x = grconvertX(0.975, from = "npc", to = "user"),
            y = yPos)
       yPos <- yPos - lHt
@@ -145,7 +154,7 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
     yy <- with(fhHistData(x),
                do.call(fhModel(x),
                        args = c(getSpecialParams(x), fhInit(x))))
-  
+
     for(i in seq_along(fhComps(x))){
       params <-
         as.list(coef(fhNLS(x))[names(formals(mcFunc(fhComps(x)[[i]])))])
