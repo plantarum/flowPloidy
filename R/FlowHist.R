@@ -16,7 +16,7 @@ NULL
 #' @importFrom stats as.formula coef integrate predict pnorm
 NULL
 
-#' @importFrom utils write.table
+#' @importFrom utils write.table file_test
 NULL
 
 #' @importFrom methods setClass setMethod new callNextMethod
