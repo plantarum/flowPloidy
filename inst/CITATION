@@ -1,0 +1,17 @@
+bibentry (bibtype="Article",
+  title =
+  "flowPloidy: An R package for genome size and ploidy assessment of flow cytometry data",
+  author = c(person("Tyler W.", "Smith",
+                    email = "tyler@plantarum.ca",
+                    comment = c(ORCID = "0000-0001-7683-2653")),
+             person("Paul", "Kron",
+                    comment = c(ORCID = "0000-0002-1734-5019")),
+             person("Sara L.", "Martin",
+                    comment = c(ORCID = "0000-0003-2055-6498"))),
+  journal = "Applications in Plant Sciences",
+  year = "2018",
+  volume = "6",
+  pages = "e01164",
+  number = "7",
+  doi = "10.1002/aps3.1164"
+)
