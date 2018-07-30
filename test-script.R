@@ -7,6 +7,10 @@ batch1 <- batchFlowHist(flowPloidyFiles, channel="FL3.INT.LIN",
 
 batch1 <- batchFlowHist(flowPloidyFiles, channel="FL3.INT.LIN")
 
+
+endo <- FlowHist(file = "~/research/flow/problems/endopolyploidy.LMD",
+                channel = "FL3.INT.LIN", g2 = FALSE)
+
 b1 <- batch1[[1]]
 
 b1Br <- browseFlowHist(batch1)
@@ -15,6 +19,88 @@ b3 <- b1Br[[3]]
 
 nuria <- FlowHist(file = "~/research/flow/nuria.fcs", channel = "DAPI.A",
                   g2 = FALSE, debrisLimit = 10, samples = 5)
+
+
+fhWMean <- function(fh, range){
+  sum(fhHistData(fh)$intensity[range] * range) /
+    sum(fhHistData(fh)$intensity[range])
+}
+
+fhVisual <- function(fh, range){
+  dat <- rep(range, times = fhHistData(fh)$intensity[range])
+  message("Mean: ", mean(dat))
+  message("CV: ", sd(dat)/ mean(dat))
+  message("counts: ", length(dat))
+}
+
+svg(filename = "visual_gate.svg", width = 25/2.54, height = 25*0.66/2.54,
+    family = "lato")
+par(mar = c(5,5, 1, 1))
+plot(b1Br[[11]], nls = FALSE, init = FALSE, comps= FALSE, main = "",
+     xlim = c(0, 175))
+rcol = "#FF000060"
+rect(xleft = 42, xright = 47, ybottom = 0, ytop=300, col = rcol,
+     border = rcol)
+rect(xleft = 55, xright = 60, ybottom = 0, ytop=300, col = rcol,
+     border = rcol)
+rect(xleft = 125, xright = 133, ybottom = 0, ytop=300, col = rcol,
+     border = rcol)
+rect(xleft = 144, xright = 152, ybottom = 0, ytop=300, col = rcol,
+     border = rcol)
+dev.off()
+
+
+svg(filename = "nls_fit.svg", width = 25/2.54, height = 25*0.66/2.54,
+    family = "lato")
+#dev.new(width = 25/2.54, height = 25 * 0.66/2.54)
+par(mar = c(5,5, 1, 1))
+plot(b1Br[[11]], nls = TRUE, init = FALSE, comps= TRUE, main = "",
+     xlim = c(0, 175))
+dev.off()
+
+
+svg(filename = "endo.svg", width = 25/2.54, height = 25*0.66/2.54,
+    family = "lato")
+#dev.new(width = 25/2.54, height = 25 * 0.66/2.54)
+par(mar = c(5,5, 1, 1))
+plot(endo, nls = TRUE, init = FALSE, comps= TRUE, main = "",
+     xlim = c(0, 125))
+dev.off()
+
+
+abline(v = 42)
+abline(v = 47)
+
+abline(v = 55)
+abline(v = 60)
+
+fhVisual(b1Br[[11]], 42:60)
+fhVisual(b1Br[[11]], 47:55)
+fhVisual(b1Br[[11]], 42:55)
+fhVisual(b1Br[[11]], 47:60)
+## mean range from 49.8 to 51.5
+## CV range from 7.3% to 4.0%
+## counts range from 1883 to 1475
+
+abline(v = 125)
+abline(v = 133)
+
+abline(v = 144)
+abline(v = 152)
+
+fhVisual(b1Br[[11]], 125:152)
+fhVisual(b1Br[[11]], 133:144)
+fhVisual(b1Br[[11]], 125:144)
+fhVisual(b1Br[[11]], 133:152)
+## mean range from 137.4 to 139.4
+## CV range from 2.1% to 3.6%
+## counts range from 1664 to 2126
+## ratio ranges from 0.357 to 0.37
+## with a standard size of 3 pg, this translates to a range of 0.05 pg,
+## introduce 5% or more variation due to subjectivity
+
+
+
 
 browseFlowHist(nuria)
 
