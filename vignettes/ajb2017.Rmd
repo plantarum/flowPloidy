@@ -338,9 +338,10 @@ Builds on existing tools for flow cytometry in R
 ## Installation is simple:
 
 ```{r biocLite1, eval=FALSE}
-source("https://bioconductor.org/biocLite.R")
-biocLite("flowPloidy")
-biocLite("flowPloidyData")              # for examples
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("flowPloidy")
+BiocManager::install("flowPloidyData")              # for examples
 ```
 
 # Loading Data

@@ -31,14 +31,15 @@ You can install the stable version of the package directly from there.
 First, install `bioconductor` in your `R` session:
 
 ```{r bioconductor, eval=FALSE}
-source("https://bioconductor.org/biocLite.R")
-biocLite()
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install()
 ```
 
 Then install `flowPloidy`:
 
 ```{r biocLite1, eval=FALSE}
-biocLite("flowPloidy")
+BiocManager::install("flowPloidy")
 ```
 
 The examples in this vignette, and the `flowPloidy` help files, use data in
@@ -47,7 +48,7 @@ need `flowPloidyData` to use `flowPloidy` on your own data, only for the
 examples).
 
 ```{r biocLite2, eval=FALSE}
-biocLite("flowPloidyData")
+BiocManager::install("flowPloidyData")
 ```
 
 ## Development Release
@@ -61,14 +62,15 @@ few more steps to install.
 First, you need to install `bioconductor`, if you haven't already:
 
 ```{r bioconductor2, eval=FALSE}
-source("https://bioconductor.org/biocLite.R")
-biocLite()
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install()
 ```
 Next, you'll need to install two dependencies from `bioconductor`:
 
 ```{r bioc-dependencies, eval = FALSE}
-biocLite("flowCore")
-biocLite("flowPloidyData")
+BiocManager::install("flowCore")
+BiocManager::install("flowPloidyData")
 ```
 
 You also need the `devtools` package, if you don't have it already:
