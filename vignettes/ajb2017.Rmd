@@ -337,7 +337,7 @@ Builds on existing tools for flow cytometry in R
 
 ## Installation is simple:
 
-```{r biocLite1, eval=FALSE}
+```{r install1, eval=FALSE}
 if (!requireNamespace("BiocManager", quietly=TRUE))
     install.packages("BiocManager")
 BiocManager::install("flowPloidy")

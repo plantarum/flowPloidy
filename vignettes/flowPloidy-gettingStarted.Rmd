@@ -38,7 +38,7 @@ BiocManager::install()
 
 Then install `flowPloidy`:
 
-```{r biocLite1, eval=FALSE}
+```{r install1, eval=FALSE}
 BiocManager::install("flowPloidy")
 ```
 
@@ -47,7 +47,7 @@ the `flowPloidyData` package, which is also on BioConductor. (You don't
 need `flowPloidyData` to use `flowPloidy` on your own data, only for the
 examples).
 
-```{r biocLite2, eval=FALSE}
+```{r install2, eval=FALSE}
 BiocManager::install("flowPloidyData")
 ```
 
