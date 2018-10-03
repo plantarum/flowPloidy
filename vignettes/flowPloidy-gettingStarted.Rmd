@@ -31,14 +31,14 @@ You can install the stable version of the package directly from there.
 First, install `bioconductor` in your `R` session:
 
 ```{r bioconductor, eval=FALSE}
-source("https://bioconductor.org/biocLite.R")
-biocLite()
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
 ```
 
 Then install `flowPloidy`:
 
 ```{r biocLite1, eval=FALSE}
-biocLite("flowPloidy")
+BiocManager::install("flowPloidy", version = "devel")
 ```
 
 The examples in this vignette, and the `flowPloidy` help files, use data in
@@ -47,7 +47,7 @@ need `flowPloidyData` to use `flowPloidy` on your own data, only for the
 examples).
 
 ```{r biocLite2, eval=FALSE}
-biocLite("flowPloidyData")
+BiocManager::install("flowPloidyData")
 ```
 
 ## Development Release
@@ -61,14 +61,13 @@ few more steps to install.
 First, you need to install `bioconductor`, if you haven't already:
 
 ```{r bioconductor2, eval=FALSE}
-source("https://bioconductor.org/biocLite.R")
-biocLite()
+install.packages("BiocManager")
 ```
 Next, you'll need to install two dependencies from `bioconductor`:
 
 ```{r bioc-dependencies, eval = FALSE}
-biocLite("flowCore")
-biocLite("flowPloidyData")
+BiocManager::install("flowCore")
+BiocManager::install("flowPloidyData")
 ```
 
 You also need the `devtools` package, if you don't have it already:
@@ -214,8 +213,7 @@ On the right we see the histogram. The graphical elements are:
     see in this plot)
 * **turquoise line:** the fitted s-phase component for sample B (too small
     to see in this plot)
-* **purple line:** the fitted aggregate component (a very small peak 
-    around 240)
+* **purple line:** the fitted aggregate component (too small to see in this plot)
 
 You also see coloured circles. These are the initial peak estimates, blue
 for sample A, and orange for sample B. The solid circles are the G1
@@ -232,8 +230,8 @@ regarding the model fit:
   numbers are the peak position, the number of nuclei counted, and the
   coefficient of variation.
 * **Linearity:** The linearity parameter. This is the ratio between G1 and
-  G2 peaks. By default, we fit it as a model parameter bounded between 1.9
-  and 2.1[^1].
+  G2 peaks. By default, we fit it as a model parameter bounded between 1.5
+  and 2.5[^1].
 
 [^1]: Linearity should be 2, but local environmental conditions may cause
     your flow cytometer to drift, and it may vary between days, or even
@@ -243,7 +241,7 @@ regarding the model fit:
     case, see `?ModelComponent`).
 
 For this example, the default settings have worked perfectly. The model fit
-is acceptable (RCS 2.208), and the CVs for the peaks are well below the
+is acceptable (RCS 1.59), and the CVs for the peaks are well below the
 usual 5% threshold for acceptable.
 
 One thing we don't see is an indication of which peak is the standard, and
@@ -301,33 +299,21 @@ code to work properly.
 
 ## Changing Model Components: Debris Model
 
-Moving on to the next histogram, we see that there were also problems with
-peak detection here:
+Moving on to histogram 6, "248+r.LMD", we see that the model fit succeeded, and the fitted components are added to our plot: 
 
 ```{r, echo = FALSE, out.width = "100%"}
 knitr::include_graphics("gsFigs/gs_browse3.png")
 ```
 
-We can fix this the same way:
+However, the RCS value is very high - 2553! Looking at the model
+components, notice the gap between the raw data and the fitted between the
+G1 peaks for A and B (between 75 and 100). The largest fitted component in
+this region is the green debris curve. By default, it uses the Single-Cut
+model. We can change to the Multi-Cut model by selecting "MC" from the
+drop-down list under "Debris Model" in the control panel at the left. 
 
 ```{r, echo = FALSE, out.width = "100%"}
 knitr::include_graphics("gsFigs/gs_browse3b.png")
-```
-
-Quick and easy. However, our RCS value is now off the charts! Two things
-are contributing to this. First, RCS is sensitive to a number of factors,
-not all of which are related to model fit (see `?RCS`). Second, the most
-appropriate way to model histogram debris varies for different samples. As
-botanists, we will analyze samples from many different species, tissue
-types, and using different preparation protocols. In some cases, the Single
-Cut debris model will be most effective; in others, the Multi-Cut model
-works better. When your analysis produces high RCS values, as in this case,
-it may be a clue that the other debris model is more appropriate. We can
-check this by selecting "MC" from the "Debris Model" drop-down list at the
-left:
-
-```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gsFigs/gs_browse3c.png")
 ```
 
 With the Multi-Cut debris model, we have a much more sensible RCS value.
@@ -335,11 +321,21 @@ You can also see the improved fit visually - note the top of the fitted
 model is much closer to the raw data with the "MC" debris model, especially
 in the region between 80 and 140.
 
+The most appropriate way to model histogram debris varies for different
+samples. As botanists, we will analyze samples from many different species,
+tissue types, and using different preparation protocols. In some cases, the
+Single Cut debris model will be most effective; in others, the Multi-Cut
+model works better. When your analysis produces high RCS values, as in this
+case, it may be a clue that the other debris model is more appropriate.
+
 For the nitty-gritty details of the debris models, see `?DebrisModels`. In
 practice, use whichever one gives you a lower RCS value. Also keep in mind
 that there is usually only a very small difference between the two options
 when it comes to peak means and CVs, even if the difference in RCS can be
-very large.
+very large. Note also that RCS is sensitive to a number of factors, not all
+of which are related to model fit (see `?RCS`). So getting a very high RCS
+value doesn't necessarily mean you can't use your data; use your judgement,
+and if in doubt, re-run the sample.
 
 ## Local Minima Traps
 
@@ -356,6 +352,10 @@ An example is file 11, "`734.LMD`" in our sample data:
 knitr::include_graphics("gsFigs/gs_browse11.png")
 ```
 
+The real G1 Peak for sample B has been ignored, but the model 'succeeded'
+anyways. The RCS value is `Inf` (infinity), which is another clue that
+something has gone wrong here. 
+
 Once again, we need to correct our peak estimates. If we move the B peak
 over we get the following fit:
 
@@ -363,24 +363,30 @@ over we get the following fit:
 knitr::include_graphics("gsFigs/gs_browse11b.png")
 ```
 
-Other than the RCS value being a little high, the stats for this fit look
-ok. However, notice that the G2 peak for sample A doesn't match well with
-the raw data. That's strange, as the G1 peak looks fine, as does the sample
-B peak. This is an example of the model getting trapped in a local minimum.
+That's better - the model has fit all the peaks in our data, and the RCS
+value has come back down to an acceptable value. You need to be aware of
+these problems, and visually confirm the model fit for each of your
+histograms.
 
-We can fix this by changing the initial estimates. Notice the initial
-estimate for the A peak is actually stuck on a 'noise' peak just below the
-real peak. If we shift that point closer to the true peak, we get a more
-sensible fit:
+## Annotating Histograms and Excluding Results
 
-```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gsFigs/gs_browse11c.png")
+You may encounter a histogram that is successfully fit by `flowPloidy`,
+that you want to exclude from your data. Maybe it had extra peaks (such as
+from contaminants), or `flowPloidy` has fit peaks that you suspect are just
+noise in the debris. In cases like this, you can select the `Fail` button
+under the `Sample Quality` option on the control panel. This option instructs
+`flowPloidy` to exclude model fit data for this sample when exporting the
+results. 
+
+When you do this, you may want to leave yourself a note. That's what the
+`Annotation` box at the bottom of the histogram is for. You can enter any
+text you like in this box, and after you press the **Annotation button**,
+it will be stored with that histogram, and included when you export the
+results (next section).
+
+```{r, echo = FALSE, out.width = "100%", fig.cap = "Annotating a Failed Histogram"}
+knitr::include_graphics("gsFigs/gs_Fail.png")
 ```
-
-The new fit is much better, and our RCS value is now down below 4 where we
-like to see it. Notice, however, that the parameters of most interest (peak
-position, cell count, and CV) don't change appreciably; if we hadn't
-noticed this problem, our results would have been nearly identical.
 
 # Exporting Results
 
@@ -414,27 +420,28 @@ to the way vignettes are generated, these are the uncorrected model fits.
 Your output may differ depending on the changes you made in the interactive
 browser.
 
-The columns in this table are:
+The columns in this table may include:
 
-* **channel:** the data channel used for the histogram
-* **components:** the components included in the model (discussed in more
-  depth in another vignette)
-* **totalEvents:** the total number of events in the raw data
-* **standard:** the size of the standard, if known (discussed below)
-* **stdpeak:** the standard peak (i.e., A or B, or NA if not set)
-* **counts<N>:** the number of nuclei modeled for the G1 peaks of samples A
-  and B (and C, in cases where three samples are co-chopped together)
-* **size<N>:** the peak size for each sample
-* **cv<N>:** the coefficient of variation for the G1 peak of each sample
-* **AB:** the ratio of the G1 peaks A/B
-* **ABse:** the standard error of the A/B peak ratio (see `?PeakRatio`)
-* **AC, BC:** if a third sample is included, the peak ratios and SE for
-  these comparisons
-* **rcs:** the Residual Chi-Square value
-* **linearity:** the linearity parameter (see below)
+* **StdPeak:** which peak (A or B) was the standard (only present if you indicated which peak was the standard using the `Standard Peak` dropdown, see below) 
+* **ratio:** the ratio of the sample size/standard size (also not always present, see below)
+* **StdSize:** the size of the standard, if known (discussed below)
 * **pg:** the estimated genome content for the unknown sample. Requires
   that the standard peak is identified, and the standard size has been set
   (see below)
+* **RCS:** the Residual Chi-Square value
+* **<S>_mean:** the peak size for each sample <S>
+* **<S>_stddev:** the standard deviation for the G1 peak of sample <S>
+* **<S><N>_count:** the number of nuclei modeled for the G<N> peak of
+  sample <S>. e.g., the number of nuclei in the G2 peak of sample B is
+  `b2_count` and B (and C, in cases where three samples are co-chopped
+  together)
+* **<S>_s_count:** the number of nuclei modeled for the s-phase of sample <S>
+* **<S>_CV:** the coefficient of variation for the G1 peak of sample <S>
+* **linearity:** the linearity parameter (see below)
+
+Note that the actual columns present will depend on your analysis. You
+can't count on the columns being in a particular order, so reference them
+by name, not number.
 
 Printing this table to your console isn't very useful. You'll probably want
 to store it in a variable, so you can extract the values for further
@@ -555,7 +562,8 @@ up to now.
 
 ## The Gating Interface
 
-At the bottom of the browser window you'll see this:
+At the bottom of the browser window, click the `Gating` tab, and you'll see
+this:
 
 ```{r, echo = FALSE, out.width = "100%"}
 knitr::include_graphics("gsFigs/gate_ui.png")
