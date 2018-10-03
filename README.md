@@ -18,16 +18,17 @@ details on the [Bioconductor site ](http://bioconductor.org/install/)):
 
 ```{r}
 ## try http:// if https:// URLs are not supported
-source("https://bioconductor.org/biocLite.R")
-biocLite()
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install()
 ```
 
 Once that's installed, you can install `flowPloidy` using the Bioconductor
 tools:
 
 ```{r}
-biocLite("flowPloidy")
-biocLite("flowPloidyData")   # (optional) data for the examples
+BiocManager::install("flowPloidy")
+BiocManager::install("flowPloidyData")   # (optional) data for the examples
 ```
 
 This should pull in all the package dependencies for `flowPloidy`, after
@@ -47,11 +48,12 @@ repository as follows:
 
 ```{r}
 ## Install Bioconductor tools first:
-source("https://bioconductor.org/biocLite.R")
-biocLite()
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install()
 
 ## Install flowCore from Bioconductor:
-biocLite("flowCore")
+BiocManager::install("flowCore")
 
 ## Install devtools so you can directly access GitHub
 install.packages(devtools)
