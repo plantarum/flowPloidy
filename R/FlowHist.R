@@ -802,7 +802,7 @@ FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
 #' viewFlowChannels(flowPloidyFiles[1])
 #' @export
 viewFlowChannels <- function(file){
-  if(class(file) == "FlowHist"){
+  if(is(file, "FlowHist")){
     res <- colnames(exprs(fhRaw(file)))
   } else {
     tmp <- read.FCS(file, alter.names = TRUE, dataset = 1)
@@ -949,7 +949,7 @@ setMethod(
 #' tabulateFlowHist(fh1)
 #' @export
 tabulateFlowHist <- function(fh, file = NULL){
-  if(class(fh) == "FlowHist"){
+  if(is(fh, "FlowHist")){
     fhName <- fhFile(fh)
     fh <- list(fh)
     names(fh) <- fhName
@@ -972,7 +972,7 @@ exFlowHist <- function(fhList, file = NULL){
     ## fhFile and the names of the list elements are redundant at this
     ## point, it may make sense to drop the names and rely soley on fhFile
     ## for consistency?
-    if (class(fhList) == "list" && all(vapply(fhList, class, character(1)) ==
+    if (is(fhList, "list") && all(vapply(fhList, class, character(1)) ==
                                        "FlowHist")){
       ## list of flowHist objects, but without proper names:
       samples <- names(fhList) <- vapply(fhList, fhFile, character(1))
@@ -1134,7 +1134,8 @@ setBins <- function(fh, bins = 256){
   ## remove the first 5 bins, eliminating noisy artifacts produced by
   ## instrument compensation. This is below the level of actual data, so
   ## shouldn't cause any problems with analysis.
-  intensity[1:5] <- 0
+  intensityExclude <- 1:5 ## BiocCheck is overly pedantic on this point
+  intensity[intensityExclude] <- 0
   xx <- seq_along(intensity)
   startBin <- fhStart(intensity)
   SCvals <- getSingleCutVals(intensity, xx, startBin)
@@ -1183,7 +1184,8 @@ fhStart <- function(intensity){
   ## the same general principle applied in ModFit (although I don't know
   ## how they actually do this!). I implement this idea by picking the
   ## highest point in the first 10 non-zero channels in the histogram.
-  startMax <- max(intensity[which(intensity != 0)][1:10])
+  startRange <- 1:10                    # BiocCheck is dumb
+  startMax <- max(intensity[which(intensity != 0)][startRange])
   startBin <- which(intensity == startMax)[1]
   startBin
 }
@@ -1470,7 +1472,7 @@ pickInit <- function(fh){
 pickPeaks <- function(fh){
   ## Does the work of actually plotting and selecting peaks for
   ##   \code{\link{pickInit}}
-  if(class(fh) != "FlowHist")
+  if(!is(fh, "FlowHist"))
     stop("fh must be a FlowHist object")
   message("plotting data...")
   plotFH(fh)

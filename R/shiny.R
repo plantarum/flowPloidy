@@ -40,7 +40,7 @@ NULL
 #' }
 #' @export
 browseFlowHist <- function(flowList, debug = FALSE){
-  if(class(flowList) == "FlowHist"){
+  if(is(flowList, "FlowHist")){
     ## if flowList is a single FlowHist object, wrap it in a list so we can
     ## use the same code for processing single and multiple FlowHist
     ## objects. Convert back to a single object on return.

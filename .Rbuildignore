@@ -9,4 +9,8 @@ test-script.R
 NOTES.org
 ^vignettes/.*_cache
 ^vignettes/old-docs
+^vignettes/oldFigs
+^vignettes/ajbFigs
+^vignettes/ajb2017.Rmd
+^vignettes/pandoc/ajb.beamer
 ^R/TAGS
