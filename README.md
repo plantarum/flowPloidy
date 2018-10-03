@@ -67,8 +67,8 @@ vignette, or reference to Pandoc, try with `build_vignettes = FALSE`
 instead.
 
 Note that I haven't yet updated the documentation to match the new code. To
-use the endopolyploidy workflow, you need to use a new argument, `G2 =
-FALSE` in your call to `FlowHist` or `batchFlowHist`. This excludes the G2
+use the endopolyploidy workflow, you need to use a new argument, `g2 =
+FALSE` in your call to `FlowHist` or `batchFlowHist` (**NB: use g2, lowercase, not G2, uppercase. The original version of this README was incorrect!**). This excludes the g2
 peaks from peak fitting, treating each peak as an independent group of
 cells. You may also want to increase the `samples` argument to match the
 number of peaks; however, you can correct this in `browseFlowHist`, so
@@ -77,7 +77,7 @@ that's not critical.
 
 ```{r }
 ## loading files for endopolyploidy analysis:
-batch1 <- batchFlowHist(endo_files, channel="FL3.INT.LIN", G2 = FALSE,
+batch1 <- batchFlowHist(endo_files, channel="FL3.INT.LIN", g2 = FALSE,
     samples = 5)
 
 batch1 <- browseFlowHist(batch1)
