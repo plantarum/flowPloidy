@@ -3,7 +3,6 @@
 \docType{class}
 \name{FlowHist}
 \alias{FlowHist}
-\alias{FlowHist}
 \alias{batchFlowHist}
 \title{FlowHist}
 \usage{

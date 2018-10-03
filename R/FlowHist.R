@@ -19,7 +19,7 @@ NULL
 #' @importFrom utils write.table file_test
 NULL
 
-#' @importFrom methods setClass setMethod new callNextMethod
+#' @importFrom methods setClass setMethod new callNextMethod is
 NULL
 
 setOldClass("nls")

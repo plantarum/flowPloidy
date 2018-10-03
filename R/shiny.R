@@ -11,6 +11,9 @@ NULL
 #' @importFrom utils str
 NULL
 
+#' @importFrom methods is
+NULL
+
 #' Visually assess and correct histogram fits
 #'
 #' Visually assess histogram fits, correcting initial values, and selecting
