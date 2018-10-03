@@ -28,27 +28,37 @@ row for each object will be added to the data.frame.
 
 If a file name is provided, the data will be saved to that file.
 
-The columns of the returned data.frame are:
+The columns of the returned data.frame may include:
 
 \describe{
-   \item{countsA, countsB, countsC: }{the cell counts for the G1 peak of
-   each sample}
-   \item{sizeA, sizeB, sizeC: }{the peak position for the G1 peak of each
+   \item{StdPeak: }{which peak (A, B etc) was identified by the user as
+   the internal standard}
+   \item{ratio: }{the ratio of the sample peak size to the standard
+   peak size, if the standard size was set and the standard peak
+   identified}
+   \item{StdSize: }{the size of the standard in pg, if set}
+   \item{pg: }{genome size estimate, if the sample peak was identified
+   and the size of the standard was set}
+   \item{RCS: }{the residual Chi-Square for the model fit}
+   \item{a_mean, b_mean etc: }{the peak position for the G1 peak of each
    sample}
-   \item{countsA2, countsB2, countsC2: }{the cell counts for the G2 peak
+   \item{a_stddev, b_stddev etc: }{standard devation for each G1 peak
+   position} 
+   \item{a1_count, b1_count etc: }{the cell counts for the G1 peak of
+   each sample}
+   \item{a2_count, b2_count etc: }{the cell counts for the G2 peak
    of each sample}
-   \item{sizeA2, sizeB2, sizeC2: }{the peak position for the G2 peak of
-   each sample} 
-   \item{countsSA, countsSB, countsSC: }{the cell counts for the S-phase
+   \item{a_s_count, b_s_count etc: }{the cell counts for the S-phase
    for each sample}
-   \item{cvA, cvB, cvC: }{the coefficient of variation for each sample}
-   \item{AB, AC, BC: }{the ratios of sizeA/sizeB, sizeA/sizeC, and
-   sizeB/sizeC} 
-   \item{ABse, ACse, BCse: }{the standard error for each ratio}
-   \item{rcs: }{the residual Chi-Square for the model fit}
+   \item{a_CV, b_CV etc: }{the coefficient of variation for each sample}
    \item{linearity: }{the linearity value, if not fixed at 2}
-   \item{pg: }{genome size estimate, if the sample peak was identified}
 }
+
+Note that columns are only produced for parameters that exist in your
+data. That is, if none of your samples have a G2 peak for the A sample,
+you won't get a2_count column. Similarly, if you didn't set the standard
+size, or identify which peak was the standard, you won't get StdPeak,
+ratio, StdSize, or pg columns.
 }
 \examples{
 library(flowPloidyData) 

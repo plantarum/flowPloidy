@@ -421,8 +421,11 @@ browser.
 
 The columns in this table may include:
 
-* **StdPeak:** which peak (A or B) was the standard (only present if you indicated which peak was the standard using the `Standard Peak` dropdown, see below) 
-* **ratio:** the ratio of the sample size/standard size (also not always present, see below)
+* **StdPeak:** which peak (A or B) was the standard (only present if you 
+  indicated which peak was the standard using the `Standard Peak` dropdown, 
+  see below)
+* **ratio:** the ratio of the sample size/standard size (also not always 
+  present, see below)
 * **StdSize:** the size of the standard, if known (discussed below)
 * **pg:** the estimated genome content for the unknown sample. Requires
   that the standard peak is identified, and the standard size has been set

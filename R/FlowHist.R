@@ -914,28 +914,38 @@ setMethod(
 #'
 #' If a file name is provided, the data will be saved to that file.
 #'
-#' The columns of the returned data.frame are:
+#' The columns of the returned data.frame may include:
 #'
 #' \describe{
-#'    \item{countsA, countsB, countsC: }{the cell counts for the G1 peak of
-#'    each sample}
-#'    \item{sizeA, sizeB, sizeC: }{the peak position for the G1 peak of each
+#'    \item{StdPeak: }{which peak (A, B etc) was identified by the user as
+#'    the internal standard}
+#'    \item{ratio: }{the ratio of the sample peak size to the standard
+#'    peak size, if the standard size was set and the standard peak
+#'    identified}
+#'    \item{StdSize: }{the size of the standard in pg, if set}
+#'    \item{pg: }{genome size estimate, if the sample peak was identified
+#'    and the size of the standard was set}
+#'    \item{RCS: }{the residual Chi-Square for the model fit}
+#'    \item{a_mean, b_mean etc: }{the peak position for the G1 peak of each
 #'    sample}
-#'    \item{countsA2, countsB2, countsC2: }{the cell counts for the G2 peak
+#'    \item{a_stddev, b_stddev etc: }{standard devation for each G1 peak
+#'    position} 
+#'    \item{a1_count, b1_count etc: }{the cell counts for the G1 peak of
+#'    each sample}
+#'    \item{a2_count, b2_count etc: }{the cell counts for the G2 peak
 #'    of each sample}
-#'    \item{sizeA2, sizeB2, sizeC2: }{the peak position for the G2 peak of
-#'    each sample} 
-#'    \item{countsSA, countsSB, countsSC: }{the cell counts for the S-phase
+#'    \item{a_s_count, b_s_count etc: }{the cell counts for the S-phase
 #'    for each sample}
-#'    \item{cvA, cvB, cvC: }{the coefficient of variation for each sample}
-#'    \item{AB, AC, BC: }{the ratios of sizeA/sizeB, sizeA/sizeC, and
-#'    sizeB/sizeC} 
-#'    \item{ABse, ACse, BCse: }{the standard error for each ratio}
-#'    \item{rcs: }{the residual Chi-Square for the model fit}
+#'    \item{a_CV, b_CV etc: }{the coefficient of variation for each sample}
 #'    \item{linearity: }{the linearity value, if not fixed at 2}
-#'    \item{pg: }{genome size estimate, if the sample peak was identified}
 #' }
 #'
+#' Note that columns are only produced for parameters that exist in your
+#' data. That is, if none of your samples have a G2 peak for the A sample,
+#' you won't get a2_count column. Similarly, if you didn't set the standard
+#' size, or identify which peak was the standard, you won't get StdPeak,
+#' ratio, StdSize, or pg columns.
+#' 
 #' @title exportFlowHist
 #' @param fh a \code{\link{FlowHist}} object, or a list of
 #'   \code{\link{FlowHist}} objects.
@@ -1134,8 +1144,7 @@ setBins <- function(fh, bins = 256){
   ## remove the first 5 bins, eliminating noisy artifacts produced by
   ## instrument compensation. This is below the level of actual data, so
   ## shouldn't cause any problems with analysis.
-  intensityExclude <- 1:5 ## BiocCheck is overly pedantic on this point
-  intensity[intensityExclude] <- 0
+  intensity[seq_len(5)] <- 0
   xx <- seq_along(intensity)
   startBin <- fhStart(intensity)
   SCvals <- getSingleCutVals(intensity, xx, startBin)
@@ -1184,8 +1193,7 @@ fhStart <- function(intensity){
   ## the same general principle applied in ModFit (although I don't know
   ## how they actually do this!). I implement this idea by picking the
   ## highest point in the first 10 non-zero channels in the histogram.
-  startRange <- 1:10                    # BiocCheck is dumb
-  startMax <- max(intensity[which(intensity != 0)][startRange])
+  startMax <- max(intensity[which(intensity != 0)][seq_len(10)])
   startBin <- which(intensity == startMax)[1]
   startBin
 }
