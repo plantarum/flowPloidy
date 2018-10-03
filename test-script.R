@@ -11,6 +11,18 @@ batch1 <- batchFlowHist(flowPloidyFiles, channel="FL3.INT.LIN")
 endo <- FlowHist(file = "~/research/flow/problems/endopolyploidy.LMD",
                 channel = "FL3.INT.LIN", g2 = FALSE)
 
+etFiles <- list.files("~/research/flow/problems/etienne/",
+                      pattern = ".fcs", full.names = TRUE) 
+
+viewFlowChannels(etFiles[1])
+
+etienne <- batchFlowHist(etFiles, channel = "FL3.A", standard = 2.5)
+
+et  <- browseFlowHist(etienne)
+
+etienne <- FlowHist(file = "~/research/flow/problems/etienne/",
+                channel = "FL3.INT.LIN", g2 = FALSE)
+
 b1 <- batch1[[1]]
 
 b1Br <- browseFlowHist(batch1)
