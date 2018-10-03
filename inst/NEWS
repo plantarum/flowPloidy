@@ -1,12 +1,12 @@
-Changes in version NEXT (2018-10-03)
+Changes in version 1.7.2 (2018-10-03)
 ------------------------------------
 
 WARNING:
 
-    * There are some major user-visible changes in this version, and I
-      haven't updated the documentation to match yet! This is on my todo
-      list, but it may not be completed until the next official release in
-      October. 
+    * There are some major user-visible changes in this version. The
+      vignette has been updated, as have the manual pages. There may still
+      be inconsistencies, please let me know if you find anything
+      confusing. I still need to document the endopolyploidy workflow.
 
 User Visible Changes:
 
