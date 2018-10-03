@@ -3,9 +3,6 @@ title: "flowPloidy: Flow Cytometry Histograms"
 author: "Tyler Smith"
 date: "2017-03-15"
 output: 
-    rmarkdown::html_vignette:
-        fig_width: 6
-        fig_height: 4
     pdf_document:
         fig_width: 6
         fig_height: 4

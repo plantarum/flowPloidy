@@ -3,9 +3,6 @@ title: "flowPloidy: Getting Started"
 author: "Tyler Smith"
 date: "2018-03-07"
 output: 
-    rmarkdown::html_vignette:
-        fig_width: 6
-        fig_height: 4
     pdf_document:
         fig_width: 6
         fig_height: 4
@@ -213,7 +210,8 @@ On the right we see the histogram. The graphical elements are:
     see in this plot)
 * **turquoise line:** the fitted s-phase component for sample B (too small
     to see in this plot)
-* **purple line:** the fitted aggregate component (too small to see in this plot)
+* **purple line:** the fitted aggregate component (too small to see in this
+  plot)
 
 You also see coloured circles. These are the initial peak estimates, blue
 for sample A, and orange for sample B. The solid circles are the G1
@@ -299,7 +297,8 @@ code to work properly.
 
 ## Changing Model Components: Debris Model
 
-Moving on to histogram 6, "248+r.LMD", we see that the model fit succeeded, and the fitted components are added to our plot: 
+Moving on to histogram 6, "248+r.LMD", we see that the model fit succeeded,
+and the fitted components are added to our plot:
 
 ```{r, echo = FALSE, out.width = "100%"}
 knitr::include_graphics("gsFigs/gs_browse3.png")
@@ -625,7 +624,7 @@ zoom slider about halfway across[^2] we see this:
     higher numbers mean a higher zoom, measured on a log scale.
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gsFigs/gs_gate.png")
+knitr::include_graphics("gsFigs/gs_gate.jpg")
 ```
 
 Notice the dense cloud of points on the upper left. These particles have
@@ -640,7 +639,7 @@ cluster further right is the G2 peak for the standard. Zooming in further
 we can see these more clearly:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gsFigs/gs_gate_zoom2.png")
+knitr::include_graphics("gsFigs/gs_gate_zoom2.jpg")
 ```
 
 Here, notice that the nuclei form tight, dark clusters, with particles
@@ -663,7 +662,7 @@ increases our CV, and excluding them lowers our cell count.
 Use the mouse to left-click and drag a box around the cell clouds:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gsFigs/draw_gate.png")
+knitr::include_graphics("gsFigs/draw_gate.jpg")
 ```
 
 The upper boundary of the gate is important - it will have a direct
@@ -679,7 +678,7 @@ in the histogram preview. To apply this gate to the analysis, click the
 `Set Gate` button. The result should look something like this:
 
 ```{r, echo = FALSE, out.width = "100%"}
-knitr::include_graphics("gsFigs/gated_analysis.png")
+knitr::include_graphics("gsFigs/gated_analysis.jpg")
 ```
 
 The histogram plot now includes the **--GATED--** flag. This is a caution
