@@ -1,4 +1,4 @@
-Changes in version NEXT (2018-06-22)
+Changes in version NEXT (2018-10-03)
 ------------------------------------
 
 WARNING:
@@ -35,6 +35,10 @@ User Visible Changes:
       requiring that the 4C peak be twice the size of the 2C peak; and c)
       reworking the output of tabulateFlowHist to allow for reporting the
       fit parameters for an arbitrary number of peaks.
+
+    * Internal changes to the model component code uncovered some bugs in
+      the way G2 peaks were fit. These are fixed, and the model fitting
+      works slightly better (higher success rate) as a consequence.
 
 Internal Changes:
 
