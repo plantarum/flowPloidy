@@ -326,8 +326,9 @@ setMethod(
                         linearity = "variable", debris = "SC",
                         gate = logical(), samples = 2, standards = 0,
                         opts = list(), debrisLimit = 40, g2 = TRUE,
-                        fail = FALSE, ...){
-    .Object@raw <- read.FCS(file, dataset = 1, alter.names = TRUE)
+                        fail = FALSE, emptyValue = TRUE, ...){
+    .Object@raw <- read.FCS(file, dataset = 1, alter.names = TRUE,
+                            emptyValue = emptyValue)
     .Object@channel <- channel
     .Object@gate <- gate
     .Object@samples <- as.integer(samples)
@@ -801,11 +802,11 @@ FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
 #' library(flowPloidyData) 
 #' viewFlowChannels(flowPloidyFiles[1])
 #' @export
-viewFlowChannels <- function(file){
+viewFlowChannels <- function(file, emptyValue = TRUE){
   if(is(file, "FlowHist")){
     res <- colnames(exprs(fhRaw(file)))
   } else {
-    tmp <- read.FCS(file, alter.names = TRUE, dataset = 1)
+    tmp <- read.FCS(file, alter.names = TRUE, dataset = 1, emptyValue = emptyValue)
     res <- colnames(exprs(tmp))
   }
   names(res) <- NULL
