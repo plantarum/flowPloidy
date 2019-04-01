@@ -37,7 +37,7 @@ NULL
 #' @author Tyler Smith
 #' @examples
 #' library(flowPloidyData)
-#' batch1 <- batchFlowHist(flowPloidyFiles, channel = "FL3.INT.LIN")
+#' batch1 <- batchFlowHist(flowPloidyFiles(), channel = "FL3.INT.LIN")
 #' \dontrun{
 #' batch1 <- browseFlowHist(batch1)
 #' }

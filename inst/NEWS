@@ -1,3 +1,15 @@
+Changes in version 1.7.4 (2019-04-01)
+
+User Visible Changes:
+
+    * Note that the data files in `flowPloidyData` are now accessed by
+      functions, not variables. That is, instead of refering to the
+      variable `flowPloidyFiles`, you now need to refer to the output of
+      the function `flowPloidyFiles()`. This was necessary to accomodate
+      changes in the way R loads packages. This only effects the sample
+      data from `flowPloidyData`, you should not change code referring to
+      your own files.
+
 Changes in version 1.7.2 (2018-10-03)
 ------------------------------------
 

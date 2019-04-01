@@ -2,7 +2,7 @@ library(flowPloidy)
 library(flowPloidyData)
 context("models and components")
 
-fh1 <- FlowHist(file = flowPloidyFiles["188-15.LMD"],
+fh1 <- FlowHist(file = flowPloidyFiles()["188-15.LMD"],
                 channel = "FL3.INT.LIN")
 fh2 <- fh1
 

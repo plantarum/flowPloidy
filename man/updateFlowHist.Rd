@@ -37,7 +37,7 @@ Allows users to switch the debris model from Single-Cut to Multi-Cut (or
 \examples{
 ## defaults to 256 bins:
 library(flowPloidyData) 
-fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
+fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN")
 ## default is Single-Cut, change that to Multi-Cut:
 fh1mc <- updateFlowHist(fh1, debris = "MC")
 plot(fh1)

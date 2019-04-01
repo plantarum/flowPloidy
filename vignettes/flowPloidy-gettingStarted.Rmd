@@ -112,12 +112,12 @@ previous section.
 library(flowPloidyData)
 ```
 
-After loading this package, you'll have access to the variable
-`flowPloidyFiles`. This is a vector containing the full paths to the sample
+After loading this package, you'll have access to the function
+`flowPloidyFiles()`. This function returns the full paths to the sample
 data files on your system. Whenever we use it in the examples below, you
 can substitute a vector containing the paths to your FCM data files.
-Subsetting this variable (i.e., `flowPloidyFiles[1]`) produces a single
-file name.
+Subsetting output (i.e., `flowPloidyFiles()[1]`) produces a single file
+name.
 
 ***
 
@@ -140,7 +140,7 @@ my.files <- list.files("~/flow/data", full.names = TRUE, pattern = ".LMD")
 ```
 
 Once you've generated a list of files, you can pass it to `batchFlowHist`
-as we do with `flowPloidyFiles` in the following example.
+as we do with `flowPloidyFiles()` in the following example.
 
 ***
 
@@ -149,7 +149,7 @@ our histogram. We can see a list of all channel names with the function
 `viewFlowChannels`:
 
 ```{r viewFlowChannel, output = "hold"}
-viewFlowChannels(flowPloidyFiles[1])
+viewFlowChannels(flowPloidyFiles()[1])
 ## or viewFlowcChannels("my-flow-file.LMD")
 ```
 
@@ -158,7 +158,7 @@ Knowing this, we can now import all the files in a directory with the
 function `batchFlowHist()`:
 
 ```{r batchFlowHist, message = 1:10, collapse = TRUE, cache = TRUE}
-batch1 <- batchFlowHist(flowPloidyFiles, channel = "FL3.INT.LIN")
+batch1 <- batchFlowHist(flowPloidyFiles(), channel = "FL3.INT.LIN")
 ```
 
 [ ... output truncated to save space ...]
@@ -494,7 +494,7 @@ we used _Raphananus sativus_ Saxa, (genome size 1.11pg) as our standard,
 we'd call `batchFlowHist()` as:
 
 ```{r setting standards, eval = FALSE}
-batch1 <- batchFlowHist(flowPloidyFiles, channel = "FL3.INT.LIN",
+batch1 <- batchFlowHist(flowPloidyFiles(), channel = "FL3.INT.LIN",
                         standards = 1.11)
 ```
 
@@ -512,7 +512,7 @@ others used _Pisum sativum_ Ctirad (9.09pg), we'd call `batchFlowHist()`
 as:
 
 ```{r multiple standards, eval = FALSE}
-batch1 <- batchFlowHist(flowPloidyFiles, channel = "FL3.INT.LIN",
+batch1 <- batchFlowHist(flowPloidyFiles(), channel = "FL3.INT.LIN",
                         standards = c(1.11, 9.09))
 ```
 
@@ -535,19 +535,19 @@ G1 peaks in this species are typically obscured by large amounts of debris.
 With some relatively straightforward gating, however, we can still use the
 model-fitting approach to determining genome size.
 
-We'll use a single file for this example: `fpVac`. Again, this is provided
-by the `flowPloidyData` package. As before, we start by determining
-the correct data channel to use:
+We'll use a single file for this example: `fpVac()`. Again, this is
+provided by the `flowPloidyData` package. As before, we start by
+determining the correct data channel to use:
 
 ```{r vac channel}
-viewFlowChannels(fpVac)
+viewFlowChannels(fpVac())
 ```
 
 This data came from a different flow cytometer, so here we'll use the
 "`FL2.A`" channel:
 
 ```{r read vac}
-vac <- batchFlowHist(fpVac, channel = "FL2.A")
+vac <- batchFlowHist(fpVac(), channel = "FL2.A")
 ```
 
 Now we can take a look at the histogram:

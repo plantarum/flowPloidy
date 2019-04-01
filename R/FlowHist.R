@@ -47,7 +47,7 @@ setOldClass("nls")
 #'
 #' @examples
 #' library(flowPloidyData) 
-#' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN",
+#' fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN",
 #'                 standards = c(1.96, 5.43))
 #' fhStandards(fh1)  ## display standards included in this object
 #' stdSizes(fhStandards(fh1))  ## list standard sizes
@@ -385,7 +385,7 @@ setMethod(
 #' @rdname fhAccessors
 #' @examples
 #' library(flowPloidyData) 
-#' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
+#' fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN")
 #' fhModel(fh1) ## prints the model to screen
 #' @export
 fhGate <- function(fh){
@@ -768,7 +768,7 @@ passFlowHist <- function(fh){
 #' @rdname FlowHist
 #' @examples
 #' library(flowPloidyData) 
-#' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
+#' fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN")
 #' fh1
 #' @export
 FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
@@ -795,18 +795,22 @@ FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
 #' @title viewFlowChannels
 #' @param file character, the name of an FCS data file; or the name of a
 #'   FlowHist object.
+#' @param emptyValue boolean, passed to \code{\link{read.FCS}},
+#'   needed to deal with unusual FCS file formats. Default is TRUE - if
+#'   your file loads without errors, then don't change this value 
 #' @return A vector of column names from the FCS file/FlowHist object.
 #' @seealso \code{\link{FlowHist}}
 #' @author Tyler Smith
 #' @examples
 #' library(flowPloidyData) 
-#' viewFlowChannels(flowPloidyFiles[1])
+#' viewFlowChannels(flowPloidyFiles()[1])
 #' @export
 viewFlowChannels <- function(file, emptyValue = TRUE){
   if(is(file, "FlowHist")){
     res <- colnames(exprs(fhRaw(file)))
   } else {
-    tmp <- read.FCS(file, alter.names = TRUE, dataset = 1, emptyValue = emptyValue)
+    tmp <- read.FCS(file, alter.names = TRUE, dataset = 1,
+                    emptyValue = emptyValue) 
     res <- colnames(exprs(tmp))
   }
   names(res) <- NULL
@@ -815,7 +819,7 @@ viewFlowChannels <- function(file, emptyValue = TRUE){
 
 #' @rdname FlowHist
 #' @examples
-#' batch1 <- batchFlowHist(flowPloidyFiles, channel = "FL3.INT.LIN")
+#' batch1 <- batchFlowHist(flowPloidyFiles(), channel = "FL3.INT.LIN")
 #' batch1
 #' @return
 #' \code{\link{batchFlowHist}} returns a list of \code{\link{FlowHist}}
@@ -955,7 +959,7 @@ setMethod(
 #' @author Tyler Smith
 #' @examples
 #' library(flowPloidyData) 
-#' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
+#' fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN")
 #' fh1 <- fhAnalyze(fh1)
 #' tabulateFlowHist(fh1)
 #' @export
@@ -1100,7 +1104,7 @@ exFlowHist <- function(fhList, file = NULL){
 #' @examples
 #' ## defaults to 256 bins:
 #' library(flowPloidyData) 
-#' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
+#' fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN")
 #' plot(fh1)
 #' ## reset them to 512 bins:
 #' fh1 <- setBins(fh1, 512)
@@ -1453,7 +1457,7 @@ cleanPeaks <- function(fh, window = 20, debrisLimit = 40){
 #'
 #' @examples
 #' library(flowPloidyData) 
-#' fh2 <- FlowHist(file = flowPloidyFiles[2], channel = "FL3.INT.LIN")
+#' fh2 <- FlowHist(file = flowPloidyFiles()[2], channel = "FL3.INT.LIN")
 #' plot(fh2, init = TRUE) ## automatic peak estimates
 #' \dontrun{
 #' fh2 <- pickInit(fh2)   ## hand-pick peak estimates
@@ -1555,7 +1559,7 @@ selectPeaks <- function(fh, peakA, peakB = NULL, peakC = NULL,
 #' @examples
 #' ## defaults to 256 bins:
 #' library(flowPloidyData) 
-#' fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
+#' fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN")
 #' ## default is Single-Cut, change that to Multi-Cut:
 #' fh1mc <- updateFlowHist(fh1, debris = "MC")
 #' plot(fh1)

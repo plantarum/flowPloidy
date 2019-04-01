@@ -38,7 +38,7 @@ process (as you want!).
 \examples{
 ## defaults to 256 bins:
 library(flowPloidyData) 
-fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
+fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN")
 plot(fh1)
 ## reset them to 512 bins:
 fh1 <- setBins(fh1, 512)

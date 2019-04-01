@@ -44,7 +44,7 @@ peaks is the size standard.}
 
 \examples{
 library(flowPloidyData) 
-fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN",
+fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN",
                 standards = c(1.96, 5.43))
 fhStandards(fh1)  ## display standards included in this object
 stdSizes(fhStandards(fh1))  ## list standard sizes

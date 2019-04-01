@@ -207,9 +207,9 @@ done.}
 
 \examples{
 library(flowPloidyData) 
-fh1 <- FlowHist(file = flowPloidyFiles[1], channel = "FL3.INT.LIN")
+fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN")
 fh1
-batch1 <- batchFlowHist(flowPloidyFiles, channel = "FL3.INT.LIN")
+batch1 <- batchFlowHist(flowPloidyFiles(), channel = "FL3.INT.LIN")
 batch1
 }
 \author{

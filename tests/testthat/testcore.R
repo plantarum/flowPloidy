@@ -2,13 +2,13 @@ library(flowPloidy)
 library(flowPloidyData)
 context("core features")
 
-fh1 <- FlowHist(file = flowPloidyFiles["188-15.LMD"],
+fh1 <- FlowHist(file = flowPloidyFiles()["188-15.LMD"],
                 channel = "FL3.INT.LIN", analyze = TRUE)
 
-fh2 <- FlowHist(file = flowPloidyFiles["222.LMD"],
+fh2 <- FlowHist(file = flowPloidyFiles()["222.LMD"],
                 channel = "FL3.INT.LIN", analyze = FALSE)
 
-fh3 <- FlowHist(file = flowPloidyFiles["240+S.LMD"],
+fh3 <- FlowHist(file = flowPloidyFiles()["240+S.LMD"],
                 channel = "FL3.INT.LIN", debris = "MC", analyze = TRUE)
 
 test_that("FlowHist objects print without error", {
@@ -35,7 +35,7 @@ test_that("FlowHist plots work without error", {
 })
 
 test_that("Crappy FCM files can be loaded and plotted without error", {
-  expect_error(fhBad <- FlowHist(fpBad, channel = "FL2.A"), NA)
+  expect_error(fhBad <- FlowHist(fpBad(), channel = "FL2.A"), NA)
   expect_error(plot(fhBad, init = TRUE), NA)
   expect_error(print(fhBad), NA)
 })
