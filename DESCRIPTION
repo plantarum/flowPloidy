@@ -1,6 +1,6 @@
 Package: flowPloidy
 Title: Analyze flow cytometer data to determine sample ploidy
-Version: 1.13.0
+Version: 1.13.1
 Author: Tyler Smith <tyler@plantarum.ca>
 Maintainer: Tyler Smith <tyler@plantarum.ca>
 Author@R: person(given = "Tyler", middle = "William", family = "Smith",
