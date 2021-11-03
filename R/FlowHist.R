@@ -229,6 +229,12 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   the histogram.
 #' @param g2 a logical value, default is TRUE. Should G2 peaks be included
 #'   in the model?
+#' @param trimRaw numeric. If not 0, truncate the raw intensity data to below
+#'   this threshold. Necessary for some cytometers, which emit a lot of
+#'   empty data channels.
+#' @param truncate_max_range logical, default is TRUE. Can be turned off to
+#'   avoid truncating extreme positive values from the instrument. See 
+#'   \code{\link{read.FCS}} for details.
 #' @param ... additional arguments passed from \code{\link{batchFlowHist}}
 #'   to \code{FlowHist}, or to assorted helper functions. See
 #'   \code{\link{findPeaks}} (arguments \code{window} and \code{smooth})
@@ -244,6 +250,8 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @slot gate logical, a vector indicating events to exclude from the
 #'   analysis. In normal use, the gate will be modified via interactive
 #'   functions, not set directly by users.
+#' @slot trimRaw numeric, the threshold for trimming/truncating raw data
+#'   before binning. The default, 0, means no trimming will be done.
 #' @slot histdata data.frame, the columns are the histogram bin number
 #'   (xx), florescence intensity (intensity), and the raw single-cut and
 #'   multi-cut debris model values (SCvals and MCvals), and the raw
@@ -297,6 +305,8 @@ setClass(
     debris = "character", ## "SC" or "MC", to set the debris model.
     gate = "logical", ## vector indicating which events to exclude from
     ## analysis, i.e., the gate
+    trimRaw = "numeric", ## the threshold used to trim empty high channels
+    ## in the raw output from the flow cytometer
     histData = "data.frame", ## binned histogram data
     peaks = "matrix", ## peak coordinates for initial values
     opts = "list",    ## flags for selecting model components
@@ -326,13 +336,16 @@ setMethod(
                         linearity = "variable", debris = "SC",
                         gate = logical(), samples = 2, standards = 0,
                         opts = list(), debrisLimit = 40, g2 = TRUE,
-                        fail = FALSE, emptyValue = TRUE, ...){
+                        fail = FALSE, emptyValue = TRUE,
+                        trimRaw = 0, truncate_max_range = TRUE, ...){
     .Object@raw <- read.FCS(file, dataset = 1, alter.names = TRUE,
-                            emptyValue = emptyValue)
+                           emptyValue = emptyValue,
+                           truncate_max_range = truncate_max_range)
     .Object@channel <- channel
     .Object@gate <- gate
     .Object@samples <- as.integer(samples)
     .Object@standards <- FlowStandards(sizes = standards)
+    .Object@trimRaw <- trimRaw
     .Object <- setBins(.Object, bins)
     if(pick){
       .Object <- pickPeaks(.Object)
@@ -418,6 +431,17 @@ fhSamples <- function(fh){
   fh@samples <- value
   fh
 }
+
+#' @rdname fhAccessors
+#' @export
+fhTrimRaw <- function(fh){
+  fh@trimRaw
+}
+
+## Can't update trimRaw after initial loading. If we do decide to support
+## this, will need to keep a copy of the original untrimmed data, and
+## ensure that changing this value automatically re-trims the raw data and
+## all downstream slots (bins for sure, others?).
 
 #' @rdname fhAccessors
 #' @export
@@ -772,14 +796,16 @@ passFlowHist <- function(fh){
 #' fh1
 #' @export
 FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
-                     linearity = "variable", debris = "SC", samples = 2,
-                     pick = FALSE, standards = 0, g2 = TRUE,
-                     debrisLimit = 40, ...){ 
+                    linearity = "variable", debris = "SC", samples = 2,
+                    pick = FALSE, standards = 0, g2 = TRUE,
+                    debrisLimit = 40, truncate_max_range = TRUE,
+                    trimRaw = 0, ...){ 
   fh <-  new("FlowHist", file = file, channel = channel,
              bins = as.integer(bins), linearity = linearity,
              debris = debris, samples = samples, pick = pick,
              standards = standards, g2 = g2, debrisLimit = debrisLimit,
-             ...) 
+            truncate_max_range = truncate_max_range, trimRaw = trimRaw,
+            ...) 
   if(analyze)
     fh <- fhAnalyze(fh)
   return(fh)
@@ -797,7 +823,8 @@ FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
 #'   FlowHist object.
 #' @param emptyValue boolean, passed to \code{\link{read.FCS}},
 #'   needed to deal with unusual FCS file formats. Default is TRUE - if
-#'   your file loads without errors, then don't change this value 
+#'   your file loads without errors, then don't change this value
+#' @param truncate_max_range boolean, passed to \code{\link{read.FCS}}. 
 #' @return A vector of column names from the FCS file/FlowHist object.
 #' @seealso \code{\link{FlowHist}}
 #' @author Tyler Smith
@@ -805,12 +832,13 @@ FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
 #' library(flowPloidyData) 
 #' viewFlowChannels(flowPloidyFiles()[1])
 #' @export
-viewFlowChannels <- function(file, emptyValue = TRUE){
+viewFlowChannels <- function(file, emptyValue = TRUE, truncate_max_range = TRUE){
   if(is(file, "FlowHist")){
     res <- colnames(exprs(fhRaw(file)))
   } else {
     tmp <- read.FCS(file, alter.names = TRUE, dataset = 1,
-                    emptyValue = emptyValue) 
+                   emptyValue = emptyValue,
+                   truncate_max_range = truncate_max_range) 
     res <- colnames(exprs(tmp))
   }
   names(res) <- NULL
@@ -1123,6 +1151,13 @@ setBins <- function(fh, bins = 256){
   ## out-of-range data, not true values
   chanTrim <- chanDat[chanDat < max(chanDat)]
   gate <- gate[chanDat < max(chanDat)]
+
+  if(fhTrimRaw(fh) > 0) {
+    TrimRawSelected <- chanTrim < fhTrimRaw(fh)
+    chanTrim <- chanTrim[TrimRawSelected]
+    gate <- gate[TrimRawSelected]
+  }
+  
   ## remove values < 0
   ## negative values are artifacts produced by compensation in the
   ## instrument
@@ -1138,11 +1173,18 @@ setBins <- function(fh, bins = 256){
   metaData <- pData(parameters(fhRaw(fh)))
   maxBins <- metaData[which(metaData$name == fhChannel(fh)), "range"]
   
+
+  ## Ugly, for use when truncate_max_range has been turned off, and the
+  ## channel includes out-of-range data. Need a smarter way to deal with
+  ## this. Check ggcyto for ideas!
+  maxBins <- max(maxBins, max(chanTrim))
+
   ## aggregate bins: combine maxBins into bins via hist
   binAg <- floor(maxBins / bins)
 
-  histBins <- hist(chanTrim, breaks = seq(from = 0, to = maxBins,
-                                          by = binAg),
+  histBins <- hist(chanTrim, breaks = seq(from = 0,
+                                         to = maxBins + binAg - 1,
+                                         by = binAg),
                    plot = FALSE)
 
   intensity <- histBins$counts
