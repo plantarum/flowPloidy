@@ -347,6 +347,7 @@ setMethod(
     .Object@standards <- FlowStandards(sizes = standards)
     .Object@trimRaw <- trimRaw
     .Object <- setBins(.Object, bins)
+    .Object@g2 <- g2
     if(pick){
       .Object <- pickPeaks(.Object)
     } else {
@@ -358,7 +359,6 @@ setMethod(
     .Object@linearity <- linearity
     .Object@debris <- debris
     .Object@opts <- opts
-    .Object@g2 <- g2
     .Object@fail <- FALSE
     if(! any(is.na(fhPeaks(.Object)))){
       ## We have good peaks:
@@ -1377,7 +1377,8 @@ findPeaks <- function(fh, window = 20, smooth = 20){
 #' \item drop G2 peaks. In some cases the G2 peak for one sample will have
 #' greater intensity than the G1 peak for another sample. We correct for
 #' this by removing detected peaks with means close to twice that of other
-#' peaks.
+#' peaks. This step is skipped for endopolyploidy analysis (i.e., when G2
+#' == FALSE). 
 #'
 #' \item ignore noise, by removing peaks with \code{fluorescence} <
 #' \code{debrisLimit}. The default is 40, which works well for
@@ -1439,27 +1440,32 @@ cleanPeaks <- function(fh, window = 20, debrisLimit = 40){
 
   out <- matrix(NA, nrow = 0, ncol = 2)
 
-  while(nrow(peaks) > 0){
-    ## which peaks are half or double the size of the first peak:
-    paircheck <-
-      which(((peaks[, "mean"] < 0.53 * peaks[1, "mean"]) &
-             (peaks[, "mean"] > 0.47 * peaks[1, "mean"])) |
-            ((peaks[, "mean"] < 2.13 * peaks[1, "mean"]) &
-             (peaks[, "mean"] > 1.89 * peaks[1, "mean"])))
-    ## Add the first peak to that list:
-    paircheck <- c(1, paircheck)
-    if(length(paircheck) == 1){            # no pairs
-      out <- rbind(out, peaks[1, ])
-      peaks <- peaks[-1, , drop = FALSE]              # remove peak
-    } else if (length(paircheck == 2)) {              # pick the smallest
-                                        # of the pair 
-      out <- rbind(out,
-                   peaks[paircheck[which.min(peaks[paircheck, "mean"])], ])
-      peaks <- peaks[-paircheck, , drop = FALSE]      # remove pair
-    } else {
-      warning("paircheck found more than 2 peaks")
-    }
+  if(!fhG2(fh)) {
+    out <- peaks
+  } else {
+    while(nrow(peaks) > 0){
+      ## which peaks are half or double the size of the first peak:
+      paircheck <-
+        which(((peaks[, "mean"] < 0.53 * peaks[1, "mean"]) &
+               (peaks[, "mean"] > 0.47 * peaks[1, "mean"])) |
+              ((peaks[, "mean"] < 2.13 * peaks[1, "mean"]) &
+               (peaks[, "mean"] > 1.89 * peaks[1, "mean"])))
+      ## Add the first peak to that list:
+      paircheck <- c(1, paircheck)
 
+      if(length(paircheck) == 1){     # no pairs
+        out <- rbind(out, peaks[1, ])
+        peaks <- peaks[-1, , drop = FALSE]              # remove peak
+      } else if (length(paircheck == 2)) {              # pick the smallest
+                                        # of the pair 
+        out <- rbind(out,
+                    peaks[paircheck[which.min(peaks[paircheck, "mean"])], ])
+        peaks <- peaks[-paircheck, , drop = FALSE]      # remove pair
+      } else {
+        warning("paircheck found more than 2 peaks")
+      }
+
+    }
   }
 
   if(is.vector(peaks))
