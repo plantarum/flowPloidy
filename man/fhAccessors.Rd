@@ -5,6 +5,7 @@
 \alias{fhGate}
 \alias{fhLimits}
 \alias{fhSamples}
+\alias{fhTrimRaw}
 \alias{fhPeaks}
 \alias{fhInit}
 \alias{fhComps}
@@ -37,6 +38,8 @@ fhGate(fh)
 fhLimits(fh)
 
 fhSamples(fh)
+
+fhTrimRaw(fh)
 
 fhPeaks(fh)
 

@@ -219,6 +219,6 @@ fhComponents$pois <-
   ## a new one, we either need to explicitly change the includeTest for
   ## the existing component to account for situations when the new one
   ## is used instead. As a temporary hack, you could add both and then
-  ## manually remove one with \\code{dropComponents}. 
+  ## manually remove one with \code{dropComponents}. 
   }
 }

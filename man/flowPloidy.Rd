@@ -3,7 +3,6 @@
 \docType{package}
 \name{flowPloidy}
 \alias{flowPloidy}
-\alias{flowPloidy-package}
 \title{flowPloidy: A package for analyzing Flow Cytometry Histograms}
 \description{
 The flowPloidy package provides functions for reading and analyzing flow

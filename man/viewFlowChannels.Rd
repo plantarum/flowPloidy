@@ -4,7 +4,7 @@
 \alias{viewFlowChannels}
 \title{viewFlowChannels}
 \usage{
-viewFlowChannels(file, emptyValue = TRUE)
+viewFlowChannels(file, emptyValue = TRUE, truncate_max_range = TRUE)
 }
 \arguments{
 \item{file}{character, the name of an FCS data file; or the name of a
@@ -13,6 +13,8 @@ FlowHist object.}
 \item{emptyValue}{boolean, passed to \code{\link{read.FCS}},
 needed to deal with unusual FCS file formats. Default is TRUE - if
 your file loads without errors, then don't change this value}
+
+\item{truncate_max_range}{boolean, passed to \code{\link{read.FCS}}.}
 }
 \value{
 A vector of column names from the FCS file/FlowHist object.

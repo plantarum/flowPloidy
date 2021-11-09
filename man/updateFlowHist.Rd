@@ -4,8 +4,13 @@
 \alias{updateFlowHist}
 \title{updateFlowHist}
 \usage{
-updateFlowHist(fh, linearity = NULL, debris = NULL, samples = NULL,
-  analyze = TRUE)
+updateFlowHist(
+  fh,
+  linearity = NULL,
+  debris = NULL,
+  samples = NULL,
+  analyze = TRUE
+)
 }
 \arguments{
 \item{fh}{a \code{\link{FlowHist}} object}

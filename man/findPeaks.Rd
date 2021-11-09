@@ -40,7 +40,7 @@ value.
 
 Utility functions for use internally by flowPloidy; not exported and
 won't be visible to users. Usually invoked from within
-\code{\link{FlowHist}}.
+\code{\link{FlowHist}}. 
 
 Note that there is a trade-off between accuracy in detected peaks, and
 avoiding noise. Increasing the value of \code{smooth} will reduce the

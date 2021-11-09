@@ -6,9 +6,22 @@
 \alias{batchFlowHist}
 \title{FlowHist}
 \usage{
-FlowHist(file, channel, bins = 256, analyze = TRUE,
-  linearity = "variable", debris = "SC", samples = 2, pick = FALSE,
-  standards = 0, g2 = TRUE, debrisLimit = 40, ...)
+FlowHist(
+  file,
+  channel,
+  bins = 256,
+  analyze = TRUE,
+  linearity = "variable",
+  debris = "SC",
+  samples = 2,
+  pick = FALSE,
+  standards = 0,
+  g2 = TRUE,
+  debrisLimit = 40,
+  truncate_max_range = TRUE,
+  trimRaw = 0,
+  ...
+)
 
 batchFlowHist(files, channel, verbose = TRUE, ...)
 }
@@ -52,6 +65,14 @@ in the model?}
 algorithm. Used to ignore the debris often found at the left side of
 the histogram.}
 
+\item{truncate_max_range}{logical, default is TRUE. Can be turned off to
+avoid truncating extreme positive values from the instrument. See 
+\code{\link{read.FCS}} for details.}
+
+\item{trimRaw}{numeric. If not 0, truncate the raw intensity data to below
+this threshold. Necessary for some cytometers, which emit a lot of
+empty data channels.}
+
 \item{...}{additional arguments passed from \code{\link{batchFlowHist}}
 to \code{FlowHist}, or to assorted helper functions. See
 \code{\link{findPeaks}} (arguments \code{window} and \code{smooth})}
@@ -74,7 +95,7 @@ Creates a \code{\link{FlowHist}} object from an FCS file, setting up the
 histogram data for analysis.
 }
 \details{
-For most uses, simpling calling \code{\link{FlowHist}} with a
+For most uses, simply calling \code{\link{FlowHist}} with a
 \code{file}, \code{channel}, and \code{standards} argument will do what
 you need. The other arguments are provided for optional tuning of this
 process. In practice, it's easier to correct the model fit using
@@ -150,6 +171,9 @@ should include the single-cut or multi-cut model}
 \item{\code{gate}}{logical, a vector indicating events to exclude from the
 analysis. In normal use, the gate will be modified via interactive
 functions, not set directly by users.}
+
+\item{\code{trimRaw}}{numeric, the threshold for trimming/truncating raw data
+before binning. The default, 0, means no trimming will be done.}
 
 \item{\code{histdata}}{data.frame, the columns are the histogram bin number
 (xx), florescence intensity (intensity), and the raw single-cut and
