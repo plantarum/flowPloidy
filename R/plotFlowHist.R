@@ -87,7 +87,7 @@ plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
   } else if(nls && (length(fhNLS(x)) > 0)){
     dat <- tabulateFlowHist(x)
     lines(x = fhHistData(x)$xx[fhRange(fhHistData(x)$intensity)], 
-          y = predict(fhNLS(x)), col = 2)
+          y = predict(fhNLS(x)), col = 2, lwd = 2)
     yPos <- grconvertY(0.95, from = "npc", to = "user") # starting pos
     lHt <- par("cxy")[2]                # line height
     if(isGated(x)){
