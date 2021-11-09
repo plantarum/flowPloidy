@@ -271,3 +271,19 @@ fhDoRCS <- function(fh){
   fhRCS(fh) <- RCS
   fh
 }
+
+fhRCSContribs <- function(fh){
+  ## For testing: returns the contribution of each channel to the total RCS
+  ## value. 
+
+  RCScontrib <- residuals(fhNLS(fh))^2 / predict(fhNLS(fh))
+  RCScontrib
+}
+
+fhPlotRCSContribs <- function(fh, ...){
+  contribs <- fhRCSContribs(fh)
+  start <- fhStart(fhHistData(fh)$intensity)
+  plot(xlim = c(0, fhBins(fh)), type = 'l', x = start:fhBins(fh),
+       y = contribs, xlab = "Fluorescence",
+       ylab = "RCS Contribution", ...)
+}
