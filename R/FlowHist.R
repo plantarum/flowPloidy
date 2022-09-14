@@ -1176,6 +1176,9 @@ setBins <- function(fh, bins = 256){
   ## channel includes out-of-range data. Need a smarter way to deal with
   ## this. Check ggcyto for ideas!
   maxBins <- max(maxBins, max(chanTrim))
+  if(fhTrimRaw(fh) > 0) {
+    maxBins <- min(maxBins, fhTrimRaw(fh))
+  }
 
   ## aggregate bins: combine maxBins into bins via hist
   binAg <- floor(maxBins / bins)
