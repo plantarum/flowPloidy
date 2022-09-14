@@ -26,8 +26,10 @@ NULL
 #' fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN")
 #' fh1 <- fhAnalyze(fh1)
 #' @export
-fhAnalyze <- function(fh){
-  message("analyzing ", fhFile(fh))
+fhAnalyze <- function(fh, verbose = TRUE){
+  if(verbose){
+    message("analyzing ", fhFile(fh))
+  }
   if(fhFail(fh)){
     message(" ** sample failed, not analyzing! **")
     return(fh)

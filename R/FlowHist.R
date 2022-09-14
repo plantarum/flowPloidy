@@ -552,10 +552,9 @@ fhFile <- function(fh){
 }
 
 `fhFile<-` <- function(fh, value){
-  warning("Changing the FlowHist Data File is a terrible idea")
-  warning("-- it would obscure the link between your analysis")
-  warning("and the raw data file, and you don't want to do that, do you?")
-
+  warning("Changing the FlowHist Data File is a terrible idea\n",
+          "-- it would obscure the link between your analysis\n",
+          "and the raw data file, and you don't want to do that, do you?")
   fh
 }
 
@@ -621,8 +620,7 @@ fhRaw <- function(fh){
 }
 
 `fhRaw<-` <- function(fh, value){
-  warning("Changing the raw data is a terrible idea")
-  warning("It is not supported")
+  warning("** Changing the raw data is a terrible idea **\n** It is not supported  **")
   fh
 }
 

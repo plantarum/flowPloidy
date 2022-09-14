@@ -63,7 +63,8 @@ highest point to be multiple distinct peaks.
 \item drop G2 peaks. In some cases the G2 peak for one sample will have
 greater intensity than the G1 peak for another sample. We correct for
 this by removing detected peaks with means close to twice that of other
-peaks.
+peaks. This step is skipped for endopolyploidy analysis (i.e., when G2
+== FALSE). 
 
 \item ignore noise, by removing peaks with \code{fluorescence} <
 \code{debrisLimit}. The default is 40, which works well for
