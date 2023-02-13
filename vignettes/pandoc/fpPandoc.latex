@@ -11,6 +11,14 @@
 \renewcommand{\dbltopfraction}{0.9}	% fit big float above 2-col. text
 \renewcommand{\textfraction}{0.07}	% allow minimal text w. figs
 
+$if(csl-refs)$
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newenvironment{CSLReferences}%
+  {$if(csl-hanging-indent)$\setlength{\parindent}{0pt}%
+  \everypar{\setlength{\hangindent}{\cslhangindent}}\ignorespaces$endif$}%
+  {\par}
+$endif$
 
 $if(linestretch)$
 \usepackage{setspace}
