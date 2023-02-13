@@ -25,7 +25,7 @@ adjusting the model parameters to minimize the Chi-Square value for the
 resulting fit. The Chi-Square value calculates the departure of observed
 values from the values predicted by the fitted model:
 
-\deqn{\Chi^2 = \sum \frac{(observed(x) -
+\deqn{\mathrm{X}^2 = \sum \frac{(observed(x) -
   predicted(x))^2}{observed(x)}}{%
 Chi^2 = Sum [(observed(x) - predicted(x))^2 / observed(x)]}
 
@@ -40,7 +40,7 @@ providing essentially identical results.
 Bagwell (1993) suggested using the Reduced Chi-Square (RCS) value as an
 superior alternative. It is defined as:
 
-\deqn{RCS = \frac{\Chi^2}{n - m}}{RCS = Chi^2/(n - m)}
+\deqn{RCS = \frac{\mathrm{X}^2}{n - m}}{RCS = Chi^2/(n - m)}
 
 Where n is the number of data points (bins), and m is the number of
 model parameters. Thus, we correct for the inflation of the Chi-Square
