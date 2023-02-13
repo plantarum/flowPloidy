@@ -4,10 +4,12 @@
 \alias{fhAnalyze}
 \title{fhAnalyze}
 \usage{
-fhAnalyze(fh)
+fhAnalyze(fh, verbose = TRUE)
 }
 \arguments{
 \item{fh}{a \code{\link{FlowHist}} object}
+
+\item{verbose}{boolean, set to FALSE to turn off logging messages}
 }
 \value{
 a \code{\link{FlowHist}} object with the analysis (nls, counts,

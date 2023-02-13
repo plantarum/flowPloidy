@@ -17,6 +17,7 @@ NULL
 #' 
 #' @title fhAnalyze
 #' @param fh a \code{\link{FlowHist}} object
+#' @param verbose boolean, set to FALSE to turn off logging messages
 #' @return a \code{\link{FlowHist}} object with the analysis (nls, counts,
 #'   cv, RCS) slots filled.
 #' @seealso \code{\link{FlowHist}}
