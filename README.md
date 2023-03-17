@@ -37,14 +37,7 @@ which you can load the package with the normal function
 
 ## Development Version
 
-As of June 2018, I have added a new analysis method. This is aimed at
-assessing endopolyploidy, where a single sample may have four or more
-peaks. The intent is to compare the number of cells in each peak, rather
-than to determine a ratio relative to a co-chopped standard.
-
-This new code will be incorporated into Bioconductor for the next release.
-If you'd like to try it now, you can install it directly from the GitHub
-repository as follows: 
+To install the development version, use the following code:
 
 ```{r}
 ## Install Bioconductor tools first:
@@ -68,14 +61,13 @@ If the last command fails, particularly with complaints about building a
 vignette, or reference to Pandoc, try with `build_vignettes = FALSE`
 instead.
 
-Note that I haven't yet updated the documentation to match the new code. To
-use the endopolyploidy workflow, you need to use a new argument, `g2 =
-FALSE` in your call to `FlowHist` or `batchFlowHist` (**NB: use g2, lowercase, not G2, uppercase. The original version of this README was incorrect!**). This excludes the g2
-peaks from peak fitting, treating each peak as an independent group of
-cells. You may also want to increase the `samples` argument to match the
-number of peaks; however, you can correct this in `browseFlowHist`, so
-that's not critical.
-
+Note that I haven't yet updated the documentation to describe the
+endopolyploidy analysis. To use the endopolyploidy workflow, you need to
+use `g2 = FALSE` in your call to `FlowHist` or `batchFlowHist`. This
+excludes the g2 peaks from peak fitting, treating each peak as an
+independent group of cells. You may also want to increase the `samples`
+argument to match the number of peaks; however, you can correct this in
+`browseFlowHist`, so that's not critical.
 
 ```{r }
 ## loading files for endopolyploidy analysis:
