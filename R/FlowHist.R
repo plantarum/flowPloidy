@@ -548,7 +548,7 @@ fhRCS <- function(fh){
 #' @rdname fhAccessors
 #' @export
 fhFile <- function(fh){
-  fh@raw@description$GUID
+  base::basename(fh@raw@description$FILENAME)
 }
 
 `fhFile<-` <- function(fh, value){
