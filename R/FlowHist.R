@@ -251,11 +251,15 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' @param truncate_max_range logical, default is TRUE. Can be turned off to
 #'   avoid truncating extreme positive values from the instrument. See 
 #'   \code{\link{read.FCS}} for details.
+#' @param nameField string, default is "GUID", which field to use for the
+#'   sample name. Check \code{\link{fhMetadata}} for other likely options.
 #' @param ... additional arguments passed from \code{\link{batchFlowHist}}
 #'   to \code{FlowHist}, or to assorted helper functions. See
 #'   \code{\link{findPeaks}} (arguments \code{window} and \code{smooth})
 #'
 #' @slot raw a flowFrame object containing the raw data from the FCS file
+#' @slot name character, the name of the sample, used in plots and other
+#'   summaries
 #' @slot channel character, the name of the data column to use
 #' @slot bins integer, the number of bins to use to aggregate events into a
 #'   histogram
@@ -312,6 +316,7 @@ setClass(
   Class = "FlowHist",
   representation = representation(
     raw = "flowFrame", ## raw data, object defined in flowCore
+    name = "character", ## name to use in plots and summaries
     channel = "character", ## data channel to use for histogram
     samples = "integer", ## (maximum) number of sample peaks to fit
     bins = "integer", ## the number of bins to use
@@ -353,10 +358,12 @@ setMethod(
                         gate = logical(), samples = 2, standards = 0,
                         opts = list(), debrisLimit = 40, g2 = TRUE,
                         fail = FALSE, emptyValue = TRUE,
-                        trimRaw = 0, truncate_max_range = TRUE, ...){
+                        trimRaw = 0, nameField = "GUID",
+                        truncate_max_range = TRUE, ...){
     .Object@raw <- read.FCS(file, dataset = 1, alter.names = TRUE,
                            emptyValue = emptyValue,
                            truncate_max_range = truncate_max_range)
+    .Object@name <- .Object@raw@description[[nameField]]
     .Object@channel <- channel
     .Object@gate <- gate
     .Object@samples <- as.integer(samples)
@@ -383,7 +390,7 @@ setMethod(
       .Object <- makeModel(.Object)
       .Object <- getInit(.Object)
     } else {
-      message("WARNING: couldn't find peaks for ", fhFile(.Object))
+      message("WARNING: couldn't find peaks for ", fhName(.Object))
     }
     callNextMethod(.Object, ...)
   })
@@ -564,7 +571,13 @@ fhRCS <- function(fh){
 #' @rdname fhAccessors
 #' @export
 fhFile <- function(fh){
-  fh@raw@description$GUID
+  params <- names(fh@raw@description)
+  if("$FIL" %in% params)
+    return(fh@raw@description[["$FIL"]])
+  else if("FILENAME" %in% params)
+    return(fh@raw@description[["FILENAME"]])
+  else
+    return(fh@raw@description[["GUID"]])
 }
 
 `fhFile<-` <- function(fh, value){
@@ -573,6 +586,18 @@ fhFile <- function(fh){
           "and the raw data file, and you don't want to do that, do you?")
   fh
 }
+
+#' @rdname fhAccessors
+#' @export
+fhName <- function(fh){
+  fh@name
+}
+
+`fhName<-` <- function(fh, value){
+  fh@name <- value
+  fh
+}
+
 
 #' @rdname fhAccessors
 #' @export
@@ -813,13 +838,13 @@ FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
                     linearity = "variable", debris = "SC", samples = 2,
                     pick = FALSE, standards = 0, g2 = TRUE,
                     debrisLimit = 40, truncate_max_range = TRUE,
-                    trimRaw = 0, ...){ 
+                    trimRaw = 0, nameField = nameField, ...){ 
   fh <-  new("FlowHist", file = file, channel = channel,
              bins = as.integer(bins), linearity = linearity,
              debris = debris, samples = samples, pick = pick,
              standards = standards, g2 = g2, debrisLimit = debrisLimit,
-            truncate_max_range = truncate_max_range, trimRaw = trimRaw,
-            ...) 
+             truncate_max_range = truncate_max_range, trimRaw = trimRaw,
+             nameField = nameField, ...) 
   if(analyze)
     fh <- fhAnalyze(fh)
   return(fh)
@@ -951,7 +976,7 @@ setMethod(
   signature = "FlowHist",
   def = function(object){
     cat("FlowHist object '")
-    cat(fhFile(object)); cat("'\n")
+    cat(fhName(object)); cat("'\n")
     if(length(fhAnnotation(object)) > 0 && fhAnnotation(object) != "")
       cat("#", fhAnnotation(object), "\n\n")
 
@@ -1060,9 +1085,8 @@ setMethod(
 #' @export
 tabulateFlowHist <- function(fh, file = NULL){
   if(is(fh, "FlowHist")){
-    fhName <- fhFile(fh)
     fh <- list(fh)
-    names(fh) <- fhName
+    names(fh) <- fhName(fh)
   }
 
   res <- exFlowHist(fh)
@@ -1085,7 +1109,7 @@ exFlowHist <- function(fhList, file = NULL){
     if (is(fhList, "list") && all(vapply(fhList, class, character(1)) ==
                                        "FlowHist")){
       ## list of flowHist objects, but without proper names:
-      samples <- names(fhList) <- vapply(fhList, fhFile, character(1))
+      samples <- names(fhList) <- vapply(fhList, fhName, character(1))
     } else {
       stop("tabulateFlowHist needs a FlowHist object, or a list of FlowHist objects!")
     }
@@ -1122,36 +1146,36 @@ exFlowHist <- function(fhList, file = NULL){
 
   for(i in fhList){
     if(fhStdPeak(i) != "X" && length(fhNLS(i)) > 0){
-      out[fhFile(i), "StdPeak"] <- fhStdPeak(i)
+      out[fhName(i), "StdPeak"] <- fhStdPeak(i)
       if(fhStdPeak(i) == "A"){
-        out[fhFile(i), "ratio"] <-
+        out[fhName(i), "ratio"] <-
           coef(fhNLS(i))["b_mean"]/coef(fhNLS(i))["a_mean"]
       } else if(fhStdPeak(i) == "B"){
-        out[fhFile(i), "ratio"] <-
+        out[fhName(i), "ratio"] <-
           coef(fhNLS(i))["a_mean"]/coef(fhNLS(i))["b_mean"]
       } else {
         message("More than three peaks, can't calculate ratio")
       }
     }
     if(stdSelected(fhStandards(i)) != 0)
-      out[fhFile(i), "StdSize"] <- stdSelected(fhStandards(i))
+      out[fhName(i), "StdSize"] <- stdSelected(fhStandards(i))
     if(fhStdPeak(i) != "X" && stdSelected(fhStandards(i)) != 0)
-      out[fhFile(i), "pg"] <- stdSelected(fhStandards(i)) *
-        out[fhFile(i), "ratio"]
+      out[fhName(i), "pg"] <- stdSelected(fhStandards(i)) *
+        out[fhName(i), "ratio"]
     if(length(fhNLS(i)) > 0){
       coefValues <- coef(fhNLS(i))
       coefNames <- names(coefValues)
       P <- grep(".*P$", coefNames, invert = TRUE)
       coefValues <- coefValues[P]
       coefNames <- coefNames[P]
-      out[fhFile(i), coefNames] <- coefValues
+      out[fhName(i), coefNames] <- coefValues
       countValues <- vapply(fhCounts(i), function(x) x[[1]], numeric(1))
       countNames <- names(countValues)
-      out[fhFile(i), countNames] <- countValues      
+      out[fhName(i), countNames] <- countValues      
       CVs <- fhCV(i)
       CVNames <- names(CVs)
-      out[fhFile(i), CVNames] <- CVs
-      out[fhFile(i), "RCS"] <- fhRCS(i)
+      out[fhName(i), CVNames] <- CVs
+      out[fhName(i), "RCS"] <- fhRCS(i)
     }
     if(! fhG2(i) && length(fhNLS(i)) > 0){
       means <- sort(names(coef(fhNLS(i)))[grep("_mean",
@@ -1159,11 +1183,11 @@ exFlowHist <- function(fhList, file = NULL){
       EI <- sum(coef(fhNLS(i))[means] * (seq_len(length(means)) - 1)) /
         sum(coef(fhNLS(i))[means] * (seq_len(length(means))))
 
-      out[fhFile(i), "EI"] <- EI
+      out[fhName(i), "EI"] <- EI
     }
 
     if(length(fhAnnotation(i)) > 0 && fhAnnotation(i) != "")
-      out[fhFile(i), "annotation"] <- fhAnnotation(i)
+      out[fhName(i), "annotation"] <- fhAnnotation(i)
   }
   out
 }
