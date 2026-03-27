@@ -825,25 +825,41 @@ FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
   return(fh)
 }
 
-#' Displays the column names present in an FCS file
+#' Display metadata present in an FCS file
 #'
-#' A convenience function for viewing column names in a FCS data file, or a
-#' FlowHist object. Used to select one for the \code{channel} argument
-#' in \code{\link{FlowHist}}, or for viewing additional channels for use in
-#' gating.
+#' Displays a selection of potentially useful metadata fields from the FCS
+#' data file, and a summary of the data channels. Useful for selecting the
+#' the \code{channel} argument in \code{\link{FlowHist}}, finding a
+#' starting value for \code{trimRaw} (when needed), and identifying the
+#' parameter to use for the sample name.
+#'
+#' The `top` column in the \code{Flow Channels} table displays the 99th
+#' percentile value for that parameter. For flow cytometers that require
+#' the \code{trimRaw} argument, this may be a reasonable starting place.
+#' See \code{\link{FlowHist}}.
+#'
+#' The `metadata` table includes a selection of parameters stored in the
+#' FCS file. Different machines include different fields here. I've tried
+#' to select ones that are most likely to be useful. You can always all the
+#' metadata with \code{\link{fhRaw}}, i.e., `fhRaw(fh)@description`.
 #' 
-#' @title viewFlowChannels
+#' @name fhMetadata
 #' @param file character, the name of an FCS data file; or the name of a
 #'   FlowHist object.
 #' @param emptyValue boolean, passed to \code{\link{read.FCS}},
 #'   needed to deal with unusual FCS file formats. Default is TRUE - if
 #'   your file loads without errors, then don't change this value
 #' @param truncate_max_range boolean, passed to \code{\link{read.FCS}}. 
-#' @return A vector of column names from the FCS file/FlowHist object.
+#' @return A list of 
 #' @seealso \code{\link{FlowHist}}
 #' @author Tyler Smith
+#' @aliases viewFlowChannels
 #' @examples
 #' library(flowPloidyData) 
+#' fhMetadata(flowPloidyFiles()[1])
+#'
+#' ## retained for now, but viewFlowChannels will be removed from future
+#' ## relases: 
 #' viewFlowChannels(flowPloidyFiles()[1])
 #' @export
 viewFlowChannels <- function(file, emptyValue = TRUE, truncate_max_range = TRUE){
@@ -858,6 +874,43 @@ viewFlowChannels <- function(file, emptyValue = TRUE, truncate_max_range = TRUE)
   names(res) <- NULL
   res
 }
+
+#' @rdname fhMetadata
+#' @export
+fhMetadata <- function(file, emptyValue = TRUE,
+                       truncate_max_range = TRUE){
+  ## A selection of potentially interesting metadata files to display:
+  interesting <- c("$FIL", "TUBE NAME", "GUID", "DATE", "$CYT",
+                   "FILENAME", "$DATE", "@SAMPLEID1")
+  if(is(file, "FlowHist")){
+    tmp <- fhRaw(file)
+  } else {
+    tmp <- read.FCS(file, alter.names = TRUE, dataset = 1,
+                   emptyValue = emptyValue,
+                   truncate_max_range = truncate_max_range)
+  }
+
+  flowChannels <- colnames(exprs(tmp))
+  channelMin <- apply(exprs(tmp), 2, min)
+  channelMax <- apply(exprs(tmp), 2, max)
+  channelTop <- apply(exprs(tmp), 2, function(x) quantile(x, 0.99))
+  channelDat <- data.frame(channel = flowChannels,
+                           min = channelMin,
+                           max = channelMax,
+                           top= channelTop)
+
+  interesting <- interesting[interesting %in% names(tmp@description)]
+  metaDat <- data.frame(Parameter = interesting,
+                        Value = unlist(tmp@description[interesting]))
+  parameters <- length(tmp@description)
+  metaDat <- rbind(metaDat, data.frame(Parameter = "Parameters",
+                                       Value = parameters))
+  print(kable(metaDat, row.names = FALSE, caption = "Metadata Summary"))
+  print(kable(channelDat, caption = "Flow Channels"))
+
+  invisible(list(metadata = metaDat, channelData = channelDat))
+}
+
 
 #' @rdname FlowHist
 #' @examples
