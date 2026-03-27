@@ -95,7 +95,7 @@ Creates a \code{\link{FlowHist}} object from an FCS file, setting up the
 histogram data for analysis.
 }
 \details{
-For most uses, simply calling \code{\link{FlowHist}} with a
+For most uses, simpling calling \code{\link{FlowHist}} with a
 \code{file}, \code{channel}, and \code{standards} argument will do what
 you need. The other arguments are provided for optional tuning of this
 process. In practice, it's easier to correct the model fit using
@@ -104,6 +104,22 @@ in as arguments to \code{\link{FlowHist}}.
 
 Similarly, \code{\link{batchFlowHist}} is usually used with only the
 \code{files}, \code{channel}, and \code{standards} arguments.
+
+NOTE: the raw data emitted by some Flow Cytometers includes a small
+proportion of very high values in some channels. This generates
+histograms that are strongly skewed to the left, and mostly empty in the
+central and right side. We deal with that in flowPloidy by trimming off
+these upper bins manually. Which means you need to set the threshold via
+the \code{trimRaw} argument. The output of \code{\link{fhMetadata}},
+particularly the \code{top} column of the \code{FlowChannel} table, may
+provide a useful starting point for this.
+
+The flow cytometers we use don't do this, so I don't have direct
+experience. From analyzing files submitted by flowPloidy users, the
+empty upper channels are clearly distinct from the actual data. The
+analysis output does not appear to be sensitive to the specific value of
+\code{trimRaw}, so long as the retained data fills the histogram without
+being clipped at the right side.
 
 In operation, \code{\link{FlowHist}} starts by reading an FCS file
 (using the function \code{\link{read.FCS}} internally). This produces a
