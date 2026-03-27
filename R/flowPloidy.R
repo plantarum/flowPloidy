@@ -82,7 +82,9 @@
 #' }
 #'
 #'
-#' @author Tyler Smith
-#' @docType package
 #' @name flowPloidy
+#' @author Tyler Smith
+#' @keywords internal 
+"_PACKAGE"
+
 NULL
