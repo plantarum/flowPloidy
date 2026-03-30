@@ -836,7 +836,7 @@ FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
                     linearity = "variable", debris = "SC", samples = 2,
                     pick = FALSE, standards = 0, g2 = TRUE,
                     debrisLimit = 40, truncate_max_range = TRUE,
-                    trimRaw = 0, nameField = nameField, ...){ 
+                    trimRaw = 0, nameField = "GUID", ...){ 
   fh <-  new("FlowHist", file = file, channel = channel,
              bins = as.integer(bins), linearity = linearity,
              debris = debris, samples = samples, pick = pick,
@@ -956,9 +956,10 @@ batchFlowHist <- function(files, channel, verbose = TRUE, ...){
                                      ...), silent = TRUE)
     if(inherits(tryVal, "try-error")){
       message("    ** PROBLEM: I couldn't import ", files[i], " **")
+      message(tryVal)
       failures <- c(failures, files[i])
     } else {
-      res[[fhFile(tmpRes)]] <- tmpRes
+      res[[fhName(tmpRes)]] <- tmpRes
       if(verbose) message(" ")
     }
   }
@@ -1083,8 +1084,9 @@ setMethod(
 #' @export
 tabulateFlowHist <- function(fh, file = NULL){
   if(is(fh, "FlowHist")){
+    nm <- fhName(fh)
     fh <- list(fh)
-    names(fh) <- fhName(fh)
+    names(fh) <- nm
   }
 
   res <- exFlowHist(fh)
