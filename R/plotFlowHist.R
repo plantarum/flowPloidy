@@ -18,7 +18,7 @@
 #' fh1 <- FlowHist(file = flowPloidyFiles()[1], channel = "FL3.INT.LIN")
 #' plotFH(fh1)
 #' @export
-plotFH <- function(fh, main = fhFile(fh), ...){
+plotFH <- function(fh, main = fhName(fh), ...){
   ## plots the raw data for a FlowHist object
   plot(fhHistData(fh)$intensity, type = 'n', main = main,
        ylab = "Nuclei", xlab = "Fluorescence", ...)
@@ -45,7 +45,7 @@ plotFH <- function(fh, main = fhFile(fh), ...){
 #' @author Tyler Smith
 #' @export
 plot.FlowHist <- function(x, init = FALSE, nls = TRUE, comps = TRUE,
-                          main = fhFile(x), ...){
+                          main = fhName(x), ...){
   plotFH(x, main = main, ...)
 
   if(init && is.list(fhInit(x)) && length(fhInit(x))){

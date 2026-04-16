@@ -2,6 +2,7 @@
 % Please edit documentation in R/flowPloidy.R
 \docType{package}
 \name{flowPloidy}
+\alias{flowPloidy-package}
 \alias{flowPloidy}
 \title{flowPloidy: A package for analyzing Flow Cytometry Histograms}
 \description{
@@ -93,6 +94,15 @@ modifying or extending the package, or just curious about details:
 }
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/plantarum/flowPloidy}
+  \item Report bugs at \url{https://github.com/plantarum/flowPloidy/issues}
+}
+
+}
 \author{
 Tyler Smith
 }
+\keyword{internal}

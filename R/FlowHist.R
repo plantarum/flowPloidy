@@ -147,6 +147,22 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #' Similarly, \code{\link{batchFlowHist}} is usually used with only the
 #' \code{files}, \code{channel}, and \code{standards} arguments.
 #'
+#' NOTE: the raw data emitted by some Flow Cytometers includes a small
+#' proportion of very high values in some channels. This generates
+#' histograms that are strongly skewed to the left, and mostly empty in the
+#' central and right side. We deal with that in flowPloidy by trimming off
+#' these upper bins manually. Which means you need to set the threshold via
+#' the \code{trimRaw} argument. The output of \code{\link{fhMetadata}},
+#' particularly the \code{top} column of the \code{FlowChannel} table, may
+#' provide a useful starting point for this.
+#'
+#' The flow cytometers we use don't do this, so I don't have direct
+#' experience. From analyzing files submitted by flowPloidy users, the
+#' empty upper channels are clearly distinct from the actual data. The
+#' analysis output does not appear to be sensitive to the specific value of
+#' \code{trimRaw}, so long as the retained data fills the histogram without
+#' being clipped at the right side.
+#'
 #' In operation, \code{\link{FlowHist}} starts by reading an FCS file
 #' (using the function \code{\link{read.FCS}} internally). This produces a
 #' \code{\link{flowFrame}} object, which we extend to a
@@ -229,17 +245,21 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   the histogram.
 #' @param g2 a logical value, default is TRUE. Should G2 peaks be included
 #'   in the model?
-#' @param trimRaw numeric. If not 0, truncate the raw intensity data to below
-#'   this threshold. Necessary for some cytometers, which emit a lot of
-#'   empty data channels.
+#' @param trimRaw numeric. If not 0, truncate the raw intensity data to
+#'   below this threshold. Necessary for some cytometers, which emit a lot
+#'   of (nearly) empty data channels.
 #' @param truncate_max_range logical, default is TRUE. Can be turned off to
 #'   avoid truncating extreme positive values from the instrument. See 
 #'   \code{\link{read.FCS}} for details.
+#' @param nameField string, default is "GUID", which field to use for the
+#'   sample name. Check \code{\link{fhMetadata}} for other likely options.
 #' @param ... additional arguments passed from \code{\link{batchFlowHist}}
 #'   to \code{FlowHist}, or to assorted helper functions. See
 #'   \code{\link{findPeaks}} (arguments \code{window} and \code{smooth})
 #'
 #' @slot raw a flowFrame object containing the raw data from the FCS file
+#' @slot name character, the name of the sample, used in plots and other
+#'   summaries
 #' @slot channel character, the name of the data column to use
 #' @slot bins integer, the number of bins to use to aggregate events into a
 #'   histogram
@@ -264,10 +284,8 @@ FlowStandards <- function(sizes, selected = 0, peak = "X"){
 #'   when trying out new options.
 #' @slot comps a list of \code{ModelComponent} objects included for these
 #'   data.
-#' @slot model the function (built from \code{comps}) to fit to these
-#'   data.
-#' @slot limits list, a list of lower and upper bounds for model
-#'   parameters
+#' @slot model the function (built from \code{comps}) to fit to these data.
+#' @slot limits list, a list of lower and upper bounds for model parameters
 #' @slot init a list of initial parameter estimates to use in fitting the
 #'   model.
 #' @slot nls the nls object produced by the model fitting
@@ -296,6 +314,7 @@ setClass(
   Class = "FlowHist",
   representation = representation(
     raw = "flowFrame", ## raw data, object defined in flowCore
+    name = "character", ## name to use in plots and summaries
     channel = "character", ## data channel to use for histogram
     samples = "integer", ## (maximum) number of sample peaks to fit
     bins = "integer", ## the number of bins to use
@@ -337,10 +356,12 @@ setMethod(
                         gate = logical(), samples = 2, standards = 0,
                         opts = list(), debrisLimit = 40, g2 = TRUE,
                         fail = FALSE, emptyValue = TRUE,
-                        trimRaw = 0, truncate_max_range = TRUE, ...){
+                        trimRaw = 0, nameField = "GUID",
+                        truncate_max_range = TRUE, ...){
     .Object@raw <- read.FCS(file, dataset = 1, alter.names = TRUE,
                            emptyValue = emptyValue,
                            truncate_max_range = truncate_max_range)
+    .Object@name <- .Object@raw@description[[nameField]]
     .Object@channel <- channel
     .Object@gate <- gate
     .Object@samples <- as.integer(samples)
@@ -367,7 +388,7 @@ setMethod(
       .Object <- makeModel(.Object)
       .Object <- getInit(.Object)
     } else {
-      message("WARNING: couldn't find peaks for ", fhFile(.Object))
+      message("WARNING: couldn't find peaks for ", fhName(.Object))
     }
     callNextMethod(.Object, ...)
   })
@@ -548,7 +569,13 @@ fhRCS <- function(fh){
 #' @rdname fhAccessors
 #' @export
 fhFile <- function(fh){
-  fh@raw@description$GUID
+  params <- names(fh@raw@description)
+  if("$FIL" %in% params)
+    return(fh@raw@description[["$FIL"]])
+  else if("FILENAME" %in% params)
+    return(fh@raw@description[["FILENAME"]])
+  else
+    return(fh@raw@description[["GUID"]])
 }
 
 `fhFile<-` <- function(fh, value){
@@ -557,6 +584,18 @@ fhFile <- function(fh){
           "and the raw data file, and you don't want to do that, do you?")
   fh
 }
+
+#' @rdname fhAccessors
+#' @export
+fhName <- function(fh){
+  fh@name
+}
+
+`fhName<-` <- function(fh, value){
+  fh@name <- value
+  fh
+}
+
 
 #' @rdname fhAccessors
 #' @export
@@ -797,37 +836,53 @@ FlowHist <- function(file, channel, bins = 256, analyze = TRUE,
                     linearity = "variable", debris = "SC", samples = 2,
                     pick = FALSE, standards = 0, g2 = TRUE,
                     debrisLimit = 40, truncate_max_range = TRUE,
-                    trimRaw = 0, ...){ 
+                    trimRaw = 0, nameField = "GUID", ...){ 
   fh <-  new("FlowHist", file = file, channel = channel,
              bins = as.integer(bins), linearity = linearity,
              debris = debris, samples = samples, pick = pick,
              standards = standards, g2 = g2, debrisLimit = debrisLimit,
-            truncate_max_range = truncate_max_range, trimRaw = trimRaw,
-            ...) 
+             truncate_max_range = truncate_max_range, trimRaw = trimRaw,
+             nameField = nameField, ...) 
   if(analyze)
     fh <- fhAnalyze(fh)
   return(fh)
 }
 
-#' Displays the column names present in an FCS file
+#' Display metadata present in an FCS file
 #'
-#' A convenience function for viewing column names in a FCS data file, or a
-#' FlowHist object. Used to select one for the \code{channel} argument
-#' in \code{\link{FlowHist}}, or for viewing additional channels for use in
-#' gating.
+#' Displays a selection of potentially useful metadata fields from the FCS
+#' data file, and a summary of the data channels. Useful for selecting the
+#' the \code{channel} argument in \code{\link{FlowHist}}, finding a
+#' starting value for \code{trimRaw} (when needed), and identifying the
+#' parameter to use for the sample name.
+#'
+#' The `top` column in the \code{Flow Channels} table displays the 99th
+#' percentile value for that parameter. For flow cytometers that require
+#' the \code{trimRaw} argument, this may be a reasonable starting place.
+#' See \code{\link{FlowHist}}.
+#'
+#' The `metadata` table includes a selection of parameters stored in the
+#' FCS file. Different machines include different fields here. I've tried
+#' to select ones that are most likely to be useful. You can always all the
+#' metadata with \code{\link{fhRaw}}, i.e., `fhRaw(fh)@description`.
 #' 
-#' @title viewFlowChannels
+#' @name fhMetadata
 #' @param file character, the name of an FCS data file; or the name of a
 #'   FlowHist object.
 #' @param emptyValue boolean, passed to \code{\link{read.FCS}},
 #'   needed to deal with unusual FCS file formats. Default is TRUE - if
 #'   your file loads without errors, then don't change this value
 #' @param truncate_max_range boolean, passed to \code{\link{read.FCS}}. 
-#' @return A vector of column names from the FCS file/FlowHist object.
+#' @return A list of 
 #' @seealso \code{\link{FlowHist}}
 #' @author Tyler Smith
+#' @aliases viewFlowChannels
 #' @examples
 #' library(flowPloidyData) 
+#' fhMetadata(flowPloidyFiles()[1])
+#'
+#' ## retained for now, but viewFlowChannels will be removed from future
+#' ## relases: 
 #' viewFlowChannels(flowPloidyFiles()[1])
 #' @export
 viewFlowChannels <- function(file, emptyValue = TRUE, truncate_max_range = TRUE){
@@ -842,6 +897,43 @@ viewFlowChannels <- function(file, emptyValue = TRUE, truncate_max_range = TRUE)
   names(res) <- NULL
   res
 }
+
+#' @rdname fhMetadata
+#' @export
+fhMetadata <- function(file, emptyValue = TRUE,
+                       truncate_max_range = TRUE){
+  ## A selection of potentially interesting metadata files to display:
+  interesting <- c("$FIL", "TUBE NAME", "GUID", "DATE", "$CYT",
+                   "FILENAME", "$DATE", "@SAMPLEID1")
+  if(is(file, "FlowHist")){
+    tmp <- fhRaw(file)
+  } else {
+    tmp <- read.FCS(file, alter.names = TRUE, dataset = 1,
+                   emptyValue = emptyValue,
+                   truncate_max_range = truncate_max_range)
+  }
+
+  flowChannels <- colnames(exprs(tmp))
+  channelMin <- apply(exprs(tmp), 2, min)
+  channelMax <- apply(exprs(tmp), 2, max)
+  channelTop <- apply(exprs(tmp), 2, function(x) quantile(x, 0.99))
+  channelDat <- data.frame(channel = flowChannels,
+                           min = channelMin,
+                           max = channelMax,
+                           top= channelTop)
+
+  interesting <- interesting[interesting %in% names(tmp@description)]
+  metaDat <- data.frame(Parameter = interesting,
+                        Value = unlist(tmp@description[interesting]))
+  parameters <- length(tmp@description)
+  metaDat <- rbind(metaDat, data.frame(Parameter = "Parameters",
+                                       Value = parameters))
+  print(kable(metaDat, row.names = FALSE, caption = "Metadata Summary"))
+  print(kable(channelDat, caption = "Flow Channels"))
+
+  invisible(list(metadata = metaDat, channelData = channelDat))
+}
+
 
 #' @rdname FlowHist
 #' @examples
@@ -864,9 +956,10 @@ batchFlowHist <- function(files, channel, verbose = TRUE, ...){
                                      ...), silent = TRUE)
     if(inherits(tryVal, "try-error")){
       message("    ** PROBLEM: I couldn't import ", files[i], " **")
+      message(tryVal)
       failures <- c(failures, files[i])
     } else {
-      res[[fhFile(tmpRes)]] <- tmpRes
+      res[[fhName(tmpRes)]] <- tmpRes
       if(verbose) message(" ")
     }
   }
@@ -882,7 +975,7 @@ setMethod(
   signature = "FlowHist",
   def = function(object){
     cat("FlowHist object '")
-    cat(fhFile(object)); cat("'\n")
+    cat(fhName(object)); cat("'\n")
     if(length(fhAnnotation(object)) > 0 && fhAnnotation(object) != "")
       cat("#", fhAnnotation(object), "\n\n")
 
@@ -991,9 +1084,9 @@ setMethod(
 #' @export
 tabulateFlowHist <- function(fh, file = NULL){
   if(is(fh, "FlowHist")){
-    fhName <- fhFile(fh)
+    nm <- fhName(fh)
     fh <- list(fh)
-    names(fh) <- fhName
+    names(fh) <- nm
   }
 
   res <- exFlowHist(fh)
@@ -1016,7 +1109,7 @@ exFlowHist <- function(fhList, file = NULL){
     if (is(fhList, "list") && all(vapply(fhList, class, character(1)) ==
                                        "FlowHist")){
       ## list of flowHist objects, but without proper names:
-      samples <- names(fhList) <- vapply(fhList, fhFile, character(1))
+      samples <- names(fhList) <- vapply(fhList, fhName, character(1))
     } else {
       stop("tabulateFlowHist needs a FlowHist object, or a list of FlowHist objects!")
     }
@@ -1053,36 +1146,36 @@ exFlowHist <- function(fhList, file = NULL){
 
   for(i in fhList){
     if(fhStdPeak(i) != "X" && length(fhNLS(i)) > 0){
-      out[fhFile(i), "StdPeak"] <- fhStdPeak(i)
+      out[fhName(i), "StdPeak"] <- fhStdPeak(i)
       if(fhStdPeak(i) == "A"){
-        out[fhFile(i), "ratio"] <-
+        out[fhName(i), "ratio"] <-
           coef(fhNLS(i))["b_mean"]/coef(fhNLS(i))["a_mean"]
       } else if(fhStdPeak(i) == "B"){
-        out[fhFile(i), "ratio"] <-
+        out[fhName(i), "ratio"] <-
           coef(fhNLS(i))["a_mean"]/coef(fhNLS(i))["b_mean"]
       } else {
         message("More than three peaks, can't calculate ratio")
       }
     }
     if(stdSelected(fhStandards(i)) != 0)
-      out[fhFile(i), "StdSize"] <- stdSelected(fhStandards(i))
+      out[fhName(i), "StdSize"] <- stdSelected(fhStandards(i))
     if(fhStdPeak(i) != "X" && stdSelected(fhStandards(i)) != 0)
-      out[fhFile(i), "pg"] <- stdSelected(fhStandards(i)) *
-        out[fhFile(i), "ratio"]
+      out[fhName(i), "pg"] <- stdSelected(fhStandards(i)) *
+        out[fhName(i), "ratio"]
     if(length(fhNLS(i)) > 0){
       coefValues <- coef(fhNLS(i))
       coefNames <- names(coefValues)
       P <- grep(".*P$", coefNames, invert = TRUE)
       coefValues <- coefValues[P]
       coefNames <- coefNames[P]
-      out[fhFile(i), coefNames] <- coefValues
+      out[fhName(i), coefNames] <- coefValues
       countValues <- vapply(fhCounts(i), function(x) x[[1]], numeric(1))
       countNames <- names(countValues)
-      out[fhFile(i), countNames] <- countValues      
+      out[fhName(i), countNames] <- countValues      
       CVs <- fhCV(i)
       CVNames <- names(CVs)
-      out[fhFile(i), CVNames] <- CVs
-      out[fhFile(i), "RCS"] <- fhRCS(i)
+      out[fhName(i), CVNames] <- CVs
+      out[fhName(i), "RCS"] <- fhRCS(i)
     }
     if(! fhG2(i) && length(fhNLS(i)) > 0){
       means <- sort(names(coef(fhNLS(i)))[grep("_mean",
@@ -1090,11 +1183,11 @@ exFlowHist <- function(fhList, file = NULL){
       EI <- sum(coef(fhNLS(i))[means] * (seq_len(length(means)) - 1)) /
         sum(coef(fhNLS(i))[means] * (seq_len(length(means))))
 
-      out[fhFile(i), "EI"] <- EI
+      out[fhName(i), "EI"] <- EI
     }
 
     if(length(fhAnnotation(i)) > 0 && fhAnnotation(i) != "")
-      out[fhFile(i), "annotation"] <- fhAnnotation(i)
+      out[fhName(i), "annotation"] <- fhAnnotation(i)
   }
   out
 }

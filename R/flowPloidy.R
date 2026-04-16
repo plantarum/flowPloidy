@@ -17,7 +17,7 @@
 #' Most users will need only the functions:
 #'
 #' \enumerate{
-#' \item \code{\link{viewFlowChannels}}, to determine the name of the
+#' \item \code{\link{fhMetadata}}, to determine the name of the
 #'   primary data channel to use.
 #' \item \code{\link{batchFlowHist}}, to load a list of FCM files into R.
 #' \item \code{\link{browseFlowHist}}, to review and correct the
@@ -82,7 +82,9 @@
 #' }
 #'
 #'
-#' @author Tyler Smith
-#' @docType package
 #' @name flowPloidy
+#' @author Tyler Smith
+#' @keywords internal 
+"_PACKAGE"
+
 NULL
