@@ -4,7 +4,7 @@
 \alias{plot.FlowHist}
 \title{Plot histograms for FlowHist objects}
 \usage{
-\method{plot}{FlowHist}(x, init = FALSE, nls = TRUE, comps = TRUE, main = fhFile(x), ...)
+\method{plot}{FlowHist}(x, init = FALSE, nls = TRUE, comps = TRUE, main = fhName(x), ...)
 }
 \arguments{
 \item{x}{a \code{\link{FlowHist}} object}

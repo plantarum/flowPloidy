@@ -20,6 +20,7 @@ FlowHist(
   debrisLimit = 40,
   truncate_max_range = TRUE,
   trimRaw = 0,
+  nameField = "GUID",
   ...
 )
 
@@ -69,9 +70,12 @@ the histogram.}
 avoid truncating extreme positive values from the instrument. See 
 \code{\link{read.FCS}} for details.}
 
-\item{trimRaw}{numeric. If not 0, truncate the raw intensity data to below
-this threshold. Necessary for some cytometers, which emit a lot of
-empty data channels.}
+\item{trimRaw}{numeric. If not 0, truncate the raw intensity data to
+below this threshold. Necessary for some cytometers, which emit a lot
+of (nearly) empty data channels.}
+
+\item{nameField}{string, default is "GUID", which field to use for the
+sample name. Check \code{\link{fhMetadata}} for other likely options.}
 
 \item{...}{additional arguments passed from \code{\link{batchFlowHist}}
 to \code{FlowHist}, or to assorted helper functions. See
@@ -173,6 +177,9 @@ Model fitting is suppressed if the \code{analyze} argument is set as
 \describe{
 \item{\code{raw}}{a flowFrame object containing the raw data from the FCS file}
 
+\item{\code{name}}{character, the name of the sample, used in plots and other
+summaries}
+
 \item{\code{channel}}{character, the name of the data column to use}
 
 \item{\code{bins}}{integer, the number of bins to use to aggregate events into a
@@ -207,11 +214,9 @@ when trying out new options.}
 \item{\code{comps}}{a list of \code{ModelComponent} objects included for these
 data.}
 
-\item{\code{model}}{the function (built from \code{comps}) to fit to these
-data.}
+\item{\code{model}}{the function (built from \code{comps}) to fit to these data.}
 
-\item{\code{limits}}{list, a list of lower and upper bounds for model
-parameters}
+\item{\code{limits}}{list, a list of lower and upper bounds for model parameters}
 
 \item{\code{init}}{a list of initial parameter estimates to use in fitting the
 model.}

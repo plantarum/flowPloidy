@@ -13,7 +13,7 @@ NULL
 #'   grconvertY text abline par
 NULL
 
-#' @importFrom stats as.formula coef integrate predict pnorm
+#' @importFrom stats as.formula coef integrate predict pnorm quantile
 NULL
 
 #' @importFrom utils write.table file_test

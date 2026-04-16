@@ -17,6 +17,7 @@
 \alias{fhCV}
 \alias{fhRCS}
 \alias{fhFile}
+\alias{fhName}
 \alias{fhChannel}
 \alias{fhBins}
 \alias{fhLinearity}
@@ -62,6 +63,8 @@ fhCV(fh)
 fhRCS(fh)
 
 fhFile(fh)
+
+fhName(fh)
 
 fhChannel(fh)
 

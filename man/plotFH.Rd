@@ -4,7 +4,7 @@
 \alias{plotFH}
 \title{Plot the raw data for a FlowHist object}
 \usage{
-plotFH(fh, main = fhFile(fh), ...)
+plotFH(fh, main = fhName(fh), ...)
 }
 \arguments{
 \item{fh}{a \code{\link{FlowHist}} object}

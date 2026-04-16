@@ -34,6 +34,11 @@ The `top` column in the \code{Flow Channels} table displays the 99th
 percentile value for that parameter. For flow cytometers that require
 the \code{trimRaw} argument, this may be a reasonable starting place.
 See \code{\link{FlowHist}}.
+
+The `metadata` table includes a selection of parameters stored in the
+FCS file. Different machines include different fields here. I've tried
+to select ones that are most likely to be useful. You can always all the
+metadata with \code{\link{fhRaw}}, i.e., `fhRaw(fh)@description`.
 }
 \examples{
 library(flowPloidyData) 
